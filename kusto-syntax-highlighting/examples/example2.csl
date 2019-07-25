@@ -1,0 +1,10 @@
+let Events = MyLogTable | where ... ;
+
+Events
+| where Name == "Start"
+| project Name, City, SessionId, StartTime=timestamp
+| join (Events 
+        | where Name="Stop"
+        | project StopTime=timestamp, SessionId) 
+    on activityId
+| project City, SessionId, StartTime, StopTime, Duration = StopTime - StartTime

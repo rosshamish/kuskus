@@ -1,0 +1,92 @@
+{
+    "name": "kuskus-kusto-language-server",
+    "displayName": "[Kuskus] Kusto Language Server",
+    "description": "Language server for the Kusto query language",
+    "version": "0.1.0",
+    "publisher": "rosshamish",
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/rosshamish/kuskus",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rosshamish/kuskus"
+    },
+    "bugs": {
+        "url": "https://github.com/rosshamish/kuskus/issues"
+    },
+    "engines": {
+        "vscode": "^1.33.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Formatters"
+    ],
+    "keywords": [
+        "kusto",
+        "language",
+        "kuskus",
+        "query",
+        "azure data explorer",
+        "azure",
+        "csl",
+        "kql"
+    ],
+    "activationEvents": [
+        "onLanguage:kusto"
+    ],
+    "main": "./client/out/extension",
+    "contributes": {
+        "languages": [
+            {
+                "id": "kusto",
+                "aliases": [
+                    "Kusto",
+                    "kusto"
+                ],
+                "extensions": [
+                    ".csl",
+                    ".kusto",
+                    ".kql"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "[Kuskus] Kusto",
+            "properties": {
+                "kuskusLanguageServer.diagnosticsEnabled": {
+                    "scope": "resource",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether diagnostics are enabled or not (red squiggly underlines, Problems tab)"
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "kuskus.loadSymbols",
+                "title": "[Kuskus] Load Symbols from Cluster"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
+        "compile": "tsc -b",
+        "watch": "tsc -b -w",
+        "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+        "test": "sh ./scripts/e2e.sh"
+    },
+    "devDependencies": {
+        "@types/mocha": "^5.2.0",
+        "@types/node": "^8.0.0",
+        "tslint": "^5.16.0",
+        "typescript": "^3.5.1"
+    },
+    "dependencies": {
+        "@types/lodash": "^4.14.136",
+        "azure-kusto-data": "^0.2.5",
+        "clipboardy": "^2.1.0",
+        "lodash": "^4.17.15",
+        "open": "^6.4.0"
+    }
+}

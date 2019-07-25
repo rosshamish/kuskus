@@ -1,0 +1,5 @@
+StormEvents 
+| where isnotempty(EndLocation) 
+| summarize event_count=count() by EndLocation
+| top 10 by event_count
+| render columnchart

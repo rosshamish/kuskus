@@ -1,0 +1,38 @@
+{
+  "name": "kuskus-kusto-color-themes",
+  "displayName": "[Kuskus] Kusto Color Themes",
+  "description": "Kusto color themes",
+  "version": "0.1.0",
+  "publisher": "rosshamish",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/rosshamish/kuskus",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rosshamish/kuskus"
+  },
+  "bugs": {
+    "url": "https://github.com/rosshamish/kuskus/issues"
+  },
+  "engines": {
+    "vscode": "^1.33.0"
+  },
+  "keywords": [
+    "kusto",
+    "azure",
+    "language",
+    "highlight",
+    "syntax"
+  ],
+  "categories": [
+    "Themes"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "[Kuskus] Kusto (Dark)",
+        "uiTheme": "vs-dark",
+        "path": "./themes/kuskus-kusto-dark.json"
+      }
+    ]
+  }
+}
