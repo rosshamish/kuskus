@@ -1,0 +1,27 @@
+{
+	"name": "kuskus-kusto-language-client",
+	"description": "VSCode part of the Kuskus Kusto Language Server",
+	"author": "Microsoft Corporation",
+	"license": "MIT",
+	"version": "0.0.1",
+	"publisher": "vscode",
+	"repository": {
+		"type": "git",
+		"url": "https://TODO"
+	},
+	"engines": {
+		"vscode": "^1.23.0"
+	},
+	"scripts": {
+		"update-vscode": "vscode-install",
+		"postinstall": "vscode-install"
+	},
+	"dependencies": {
+		"clipboardy": "^2.1.0",
+		"open": "^6.4.0",
+		"vscode-languageclient": "^4.1.4"
+	},
+	"devDependencies": {
+		"vscode": "^1.1.35"
+	}
+}

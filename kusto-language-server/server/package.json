@@ -1,0 +1,27 @@
+{
+	"name": "kuskus-kusto-language-server",
+	"description": "[Kuskus] Kusto Language Server",
+	"version": "0.0.1",
+	"author": "Microsoft Corporation",
+	"license": "MIT",
+	"engines": {
+		"node": "*"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://TODO"
+	},
+	"dependencies": {
+		"@kusto/language-service": "0.0.23-alpha",
+		"@kusto/language-service-next": "0.0.28-rc.1",
+		"monaco-editor-core": "^0.17.0",
+		"vscode-languageserver": "^4.4.2",
+		"azure-kusto-data": "^0.2.5"
+	},
+	"scripts": {},
+	"devDependencies": {
+		"eslint": "^5.16.0",
+		"eslint-config-airbnb-base": "^13.2.0",
+		"eslint-plugin-import": "^2.18.2"
+	}
+}
