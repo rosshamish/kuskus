@@ -2,7 +2,7 @@
     "name": "kuskus-extensions-pack",
     "displayName": "[Kuskus] Kusto extensions pack",
     "description": "Kusto extensions pack",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "publisher": "rosshamish",
     "license": "Apache-2.0",
     "homepage": "https://github.com/rosshamish/kuskus",
@@ -28,7 +28,7 @@
         "Extension Packs"
     ],
     "extensionPack": [ 
-        "rosshamish.kuskus-kusto-color-themes", 
+        "rosshamish.kuskus-kusto-color-themes",
         "rosshamish.kuskus-kusto-syntax-highlighting",
         "rosshamish.kuskus-kusto-language-server"
     ]
