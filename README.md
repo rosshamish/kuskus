@@ -2,7 +2,7 @@
 
 > The extension pack so nice they named it twice
 
-This repo houses a number of useful extensions supporting Kusto development in VS Code. They _can_ be installed independently, but it's recommended to just install the [extension pack](https://TODO) which includes them all.
+This repo houses a number of useful extensions supporting Kusto development in VS Code. They _can_ be installed independently, but it's recommended to just install the [extension pack](https://marketplace.visualstudio.com/items?itemName=rosshamish.kuskus-extensions-pack) which includes them all.
 
 Kusto is an ergonomic database query language used extensively across Microsoft: https://aka.ms/kusto.
 
@@ -12,7 +12,7 @@ VS Code is a lightweight code editor https://code.visualstudio.com/
 
 |   |   |
 | - | - |
-| **[Kuskus] Kusto Extension Pack** | All extensions in one pack. One click to install them all! |
+| **[Kuskus] Kusto Extension Pack** | All extensions in one pack. [One click to install them all](https://marketplace.visualstudio.com/items?itemName=rosshamish.kuskus-extensions-pack)! |
 | - | - |
 | [Kusto Syntax Highlighting](https://github.com/rosshamish/kuskus/kusto-syntax-highlighting) | Textmate grammar. Works with most themes. Fork of [josefsin/kusto-syntax-highlighting](https://github.com/josin/kusto-syntax-highlighting). |
 | [Kusto Color Themes](https://github.com/rosshamish/kuskus/kusto-color-themes) | [Kuskus] Kusto (Dark) <br/>![[Kuskus] Kusto (Dark)](https://github.com/rosshamish/kuskus/raw/master/kusto-extensions-pack/readme-content/color-themes/kuskus-kusto-dark.png) |
