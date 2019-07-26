@@ -1,5 +1,5 @@
-## v0.1.x
+## v1.x
 
-0.1.1
+1.0.1
 
 - Initial release
