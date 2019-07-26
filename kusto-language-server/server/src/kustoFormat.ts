@@ -11,9 +11,9 @@ export function formatCodeScript(kustoCodeScript: Kusto.Language.Editor.CodeScri
 	let hasSeenFirstQueryBlock: boolean = false;
 	let indentSize: number = 0;
 	const blocks = kustoCodeScript.Blocks;
-	for (let i=0; i < blocks.Count; i++) {
+	for (let i = 0; i < blocks.Count; i++) {
 		let block = blocks._items[i];
-		( { formattedText, hasSeenFirstQueryBlock, indentSize } = formatBlock(block, hasSeenFirstQueryBlock, indentSize));
+		({ formattedText, hasSeenFirstQueryBlock, indentSize } = formatBlock(block, hasSeenFirstQueryBlock, indentSize));
 		// Remove empty blocks
 		if (/\S/.test(formattedText)) {
 			formattedBlocks.push(formattedText);
@@ -22,6 +22,10 @@ export function formatCodeScript(kustoCodeScript: Kusto.Language.Editor.CodeScri
 
 	return formattedBlocks.join("");
 }
+
+// for future crossplat support
+const NEWLINE: string = '\r\n';
+const NEWLINE_REGEX: RegExp = /\r\n/g;
 
 function formatBlock(block: Kusto.Language.Editor.CodeBlock, hasSeenFirstQueryBlock: boolean, indentSize: number): { formattedText: string, hasSeenFirstQueryBlock: boolean, indentSize: number } {
 	let formattedText = block.Service.GetFormattedText().Text;
@@ -32,9 +36,13 @@ function formatBlock(block: Kusto.Language.Editor.CodeBlock, hasSeenFirstQueryBl
 			hasSeenFirstQueryBlock = true;
 		}
 		// Add the indent to all lines
-		let indentedText: string = (' '.repeat(indentSize) + formattedText.trimLeft()).replace(/\r\n/g, '\r\n' + ' '.repeat(indentSize));
+		let indentedText: string = (' '.repeat(indentSize) + formattedText.trimLeft()).replace(NEWLINE_REGEX, NEWLINE + ' '.repeat(indentSize)).trimRight().concat(NEWLINE, NEWLINE);
+		// except the final } of a function
+		if (indentedText.trim() === '}') {
+			indentedText = indentedText.trim();
+		}
 		if (indentedText.endsWith('\r\n')) {
-			let withoutFinalWhitespace: string = indentedText.substring(0, indentedText.lastIndexOf('\r\n') + '\r\n'.length);
+			let withoutFinalWhitespace: string = indentedText.substring(0, indentedText.lastIndexOf(NEWLINE) + NEWLINE.length);
 			return {
 				formattedText: withoutFinalWhitespace,
 				hasSeenFirstQueryBlock,
@@ -46,7 +54,7 @@ function formatBlock(block: Kusto.Language.Editor.CodeBlock, hasSeenFirstQueryBl
 			hasSeenFirstQueryBlock,
 			indentSize
 		};
-		
+
 	} else {
 		return {
 			formattedText: formattedText,
