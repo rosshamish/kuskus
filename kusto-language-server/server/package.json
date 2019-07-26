@@ -1,15 +1,19 @@
 {
-	"name": "kuskus-kusto-language-server",
-	"description": "[Kuskus] Kusto Language Server",
-	"version": "0.0.1",
-	"author": "Microsoft Corporation",
-	"license": "MIT",
-	"engines": {
-		"node": "*"
-	},
+	"name": "kuskus-kusto-language-server-server",
+	"description": "LSP part of the Kuskus Kusto Language Server",
+	"version": "0.1.1",
+	"publisher": "rosshamish",
+	"license": "Apache-2.0",
+	"homepage": "https://github.com/rosshamish/kuskus",
 	"repository": {
 		"type": "git",
-		"url": "https://TODO"
+		"url": "https://github.com/rosshamish/kuskus"
+	},
+	"bugs": {
+		"url": "https://github.com/rosshamish/kuskus/issues"
+	},
+	"engines": {
+		"vscode": "^1.33.0"
 	},
 	"dependencies": {
 		"@kusto/language-service": "0.0.23-alpha",
