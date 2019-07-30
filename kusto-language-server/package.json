@@ -33,7 +33,7 @@
     "activationEvents": [
         "onLanguage:kusto"
     ],
-    "main": "./client/out/extension",
+    "main": "./dist/extension",
     "contributes": {
         "languages": [
             {
@@ -70,20 +70,23 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
-        "compile": "tsc -b",
-        "watch": "tsc -b -w",
+        "vscode:prepublish": "npm install && webpack --mode production",
+        "compile": "webpack --mode none",
+        "watch": "webpack --mode none --watch",
         "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
         "test": "sh ./scripts/e2e.sh"
     },
     "devDependencies": {
         "@types/mocha": "^5.2.0",
         "@types/node": "^8.0.0",
+        "@types/lodash": "^4.14.136",
+        "ts-loader": "^6.0.4",
         "tslint": "^5.16.0",
-        "typescript": "^3.5.1"
+        "typescript": "^3.5.1",
+        "webpack": "^4.38.0",
+        "webpack-cli": "^3.3.6"
     },
     "dependencies": {
-        "@types/lodash": "^4.14.136",
         "azure-kusto-data": "^0.2.5",
         "clipboardy": "^2.1.0",
         "lodash": "^4.17.15",

@@ -3,7 +3,10 @@
 		"module": "commonjs",
 		"target": "es6",
 		"outDir": "out",
-		"rootDir": "src",
+		"rootDirs": [
+			"src",
+			"../server/src" // required for webpack for some reason
+		],
 		"sourceMap": true
 	},
 	"include": ["src"],

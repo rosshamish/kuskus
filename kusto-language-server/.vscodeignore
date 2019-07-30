@@ -1,4 +1,4 @@
-.vscode/**
+.vscode
 **/*.ts
 **/*.map
 .gitignore
@@ -6,10 +6,9 @@
 **/tsconfig.base.json
 contributing.md
 .travis.yml
-client/node_modules/**
-!client/node_modules/vscode-jsonrpc/**
-!client/node_modules/vscode-languageclient/**
-!client/node_modules/vscode-languageserver-protocol/**
-!client/node_modules/vscode-languageserver-types/**
-!client/node_modules/semver/**
-!server/node_modules/vscode-languageserver/**
+client
+server
+readme-content
+node_modules
+
+!dist
