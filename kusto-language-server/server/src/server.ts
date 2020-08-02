@@ -85,9 +85,9 @@ connection.onInitialized(async () => {
     }
 });
 
-connection.onRequest('kuskus.loadSymbols', async ({ clusterUri, database }: { clusterUri: string, database: string }) => {
-	let kustoClient = getKustoClient(clusterUri, (tokenResponse: TokenResponse) => {
-		connection.sendRequest('kuskus.loadSymbols.auth', { clusterUri, database, verificationUrl: tokenResponse.verificationUrl, verificationCode: tokenResponse.userCode });
+connection.onRequest('kuskus.loadSymbols', async ({ clusterUri, authId, database }: { clusterUri: string, authId: string, database: string }) => {
+	let kustoClient = getKustoClient(clusterUri, authId, (tokenResponse: TokenResponse) => {
+		connection.sendRequest('kuskus.loadSymbols.auth', { clusterUri, authId, database, verificationUrl: tokenResponse.verificationUrl, verificationCode: tokenResponse.userCode });
 	});
 
 	try {
