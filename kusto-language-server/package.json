@@ -2,8 +2,8 @@
     "name": "kuskus-kusto-language-server",
     "displayName": "[Kuskus] Kusto Language Server",
     "description": "Language server for the Kusto query language",
-    "version": "1.0.1",
-    "publisher": "rosshamish",
+    "version": "1.0.2",
+    "publisher": "stevenhurwitt",
     "license": "Apache-2.0",
     "homepage": "https://github.com/rosshamish/kuskus",
     "repository": {
@@ -66,6 +66,10 @@
             {
                 "command": "kuskus.loadSymbols",
                 "title": "[Kuskus] Load Symbols from Cluster"
+            },
+            {
+                "command": "kuskus.loadTable",
+                "title": "[Kuskus] Load Table from Cluster"
             }
         ]
     },

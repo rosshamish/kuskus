@@ -107,8 +107,8 @@ commands.registerCommand('kuskus.loadSymbols', async () => {
 
 		const authId = await window.showInputBox({
 			ignoreFocusOut: true,
-			placeHolder: 'common',
-			prompt: 'Authority/Tenant ID'
+			value: 'common',
+			prompt: 'Authority/Tenant ID - this can be found in Azure Portal / Azure Active Directory.'
 		});
 		if (!authId) {
 			window.showErrorMessage('Default authority id not provided, couldn\'t load symbols');
