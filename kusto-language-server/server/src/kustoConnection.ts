@@ -10,11 +10,11 @@ export interface TokenResponse {
 // does not have typescript support.
 let clients: Map<string, any> = new Map();
 
-export function getClient(clusterUri: string, authCallback: (tokenResponse: TokenResponse) => void) {
+export function getClient(clusterUri: string, authId: string, authCallback: (tokenResponse: TokenResponse) => void) {
 	if (clients.has(clusterUri)) {
 		return clients.get(clusterUri);
 	} else {
-		const kcsb = KustoConnectionStringBuilder.withAadDeviceAuthentication(clusterUri, "common", (tokenResponse: TokenResponse) => {
+		const kcsb = KustoConnectionStringBuilder.withAadDeviceAuthentication(clusterUri, authId, (tokenResponse: TokenResponse) => {
 			authCallback(tokenResponse);
 		});
 		const kustoClient = new KustoClient(kcsb);
