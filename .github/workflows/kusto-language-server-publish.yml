@@ -24,7 +24,7 @@ jobs:
           version_file: ./kusto-language-server/VERSION
           prefix: kusto-language-server # this will prefix the created tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
       - run: npm ci
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v0
