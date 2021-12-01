@@ -5,8 +5,10 @@ name: kusto-language-server-publish
 # Controls when the workflow will run
 on:
   push:
-    branches: [ master ]
-    paths: ./kusto-language-server
+    branches:
+      - master
+    paths:
+      - './kusto-language-server/**'
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -19,7 +21,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - name: Bump VERSION
-        uses: remorses/bump-version@v8
+        uses: remorses/bump-version@js
         with:
           version_file: ./kusto-language-server/VERSION
           prefix: kusto-language-server # this will prefix the created tag
