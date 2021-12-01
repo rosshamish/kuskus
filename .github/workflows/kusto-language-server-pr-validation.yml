@@ -4,8 +4,6 @@ name: kusto-language-server-pr-validation
 
 # Controls when the workflow will run
 on:
-  
-  package:
   # Triggers the workflow on push or pull request events but only for the master branch
   pull_request:
     branches: [ master ]
