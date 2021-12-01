@@ -19,7 +19,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - name: Bump VERSION
-        uses: remorses/bump-version@v8
+        uses: remorses/bump-version@js
         with:
           version_file: ./kusto-language-server/VERSION
           prefix: kusto-language-server # this will prefix the created tag
