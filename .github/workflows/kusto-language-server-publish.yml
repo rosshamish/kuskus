@@ -20,6 +20,10 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
       - name: Bump VERSION
         uses: remorses/bump-version@js
         with:
@@ -27,7 +31,9 @@ jobs:
           prefix: kusto-language-server # this will prefix the created tag
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-      - run: |
+
+      - name: npm ci
+        run: |
           cd kusto-language-server
           npm ci
       - name: Publish VS Code Extension
