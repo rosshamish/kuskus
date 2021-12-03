@@ -8,7 +8,7 @@ on:
     branches:
       - master
     paths:
-      - './kusto-language-server/**'
+      - 'kusto-language-server/**'
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -24,14 +24,6 @@ jobs:
         with:
           node-version: 12
 
-      - name: Bump VERSION
-        uses: remorses/bump-version@js
-        with:
-          version_file: ./kusto-language-server/VERSION
-          prefix: kusto-language-server # this will prefix the created tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
       - name: npm ci
         run: |
           cd kusto-language-server
@@ -42,3 +34,12 @@ jobs:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
           packagePath: ./kusto-language-server
+
+      - name: Bump VERSION
+        uses: remorses/bump-version@js
+        with:
+          version_file: ./kusto-language-server/VERSION
+          prefix: kusto-language-server # this will prefix the created tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+
