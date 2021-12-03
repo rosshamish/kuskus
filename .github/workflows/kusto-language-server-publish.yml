@@ -1,14 +1,11 @@
-# This is a basic workflow to help you get started with Actions
-
 name: kusto-language-server-publish
 
-# Controls when the workflow will run
 on:
   push:
     branches:
       - master
     paths:
-      - './kusto-language-server/**'
+      - 'kusto-language-server/**'
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -16,23 +13,29 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kusto-language-server
 
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Bump VERSION
-        uses: remorses/bump-version@js
+      - uses: actions/setup-node@v1
         with:
-          version_file: ./kusto-language-server/VERSION
-          prefix: kusto-language-server # this will prefix the created tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-      - run: |
-          cd kusto-language-server
-          npm ci
+          node-version: 12
+
+      - run: npm ci
+
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v0
         with:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
           packagePath: ./kusto-language-server
+
+      - name:  'Automated Version Bump'
+        uses:  'phips28/gh-action-bump-version@master'
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+          PACKAGEJSON_DIR:  'kusto-language-server'
+        with:
+          default: patch

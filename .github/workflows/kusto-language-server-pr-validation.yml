@@ -5,17 +5,23 @@ on:
     branches:
       - master
     paths:
-      - './kusto-language-server/**'
+      - 'kusto-language-server/**'
+
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kusto-language-server
 
     steps:
       - uses: actions/checkout@v2
-      - name: Changelog Reminder
-        uses: peterjgrainger/action-changelog-reminder@v1.3.0
+      - uses: actions/setup-node@v1
         with:
-          changelog_regex: '.*kusto-language-server\/CHANGELOG.md'
-          customPrMessage: Please update CHANGELOG.md with a short summary of the changes in this version.
+          node-version: 12
+      - run: npm ci
+      - run: npm run vscode:prepublish
