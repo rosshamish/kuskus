@@ -32,11 +32,10 @@ jobs:
           registryUrl: https://marketplace.visualstudio.com
           packagePath: ./kusto-language-server
 
-      - name: Bump VERSION
-        uses: remorses/bump-version@js
-        with:
-          version_file: ./kusto-language-server/VERSION
-          prefix: kusto-language-server # this will prefix the created tag
+      - name:  'Automated Version Bump'
+        uses:  'phips28/gh-action-bump-version@master'
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
+          PACKAGEJSON_DIR:  'kusto-language-server'
+        with:
+          default: patch
