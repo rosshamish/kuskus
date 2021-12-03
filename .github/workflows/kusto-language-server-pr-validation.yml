@@ -21,4 +21,6 @@ jobs:
         uses: peterjgrainger/action-changelog-reminder@v1.3.0
         with:
           changelog_regex: '.*kusto-language-server\/CHANGELOG.md'
-          customPrMessage: Please update CHANGELOG.md with a short summary of the changes in this version.
+          customPrMessage: Please update CHANGELOG.md with a short summary of the changes in this pull request.
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
