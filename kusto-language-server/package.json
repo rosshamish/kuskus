@@ -14,7 +14,7 @@
         "url": "https://github.com/rosshamish/kuskus/issues"
     },
     "engines": {
-        "vscode": "^1.33.0"
+        "vscode": "*"
     },
     "categories": [
         "Programming Languages",
@@ -79,6 +79,8 @@
     "devDependencies": {
         "@types/mocha": "^5.2.0",
         "@types/node": "^8.0.0",
+        "glob": "^7.2.0",
+        "mocha": "^9.1.3",
         "tslint": "^5.16.0",
         "typescript": "^3.5.1"
     },

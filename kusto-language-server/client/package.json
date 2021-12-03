@@ -16,8 +16,7 @@
 		"vscode": "^1.33.0"
 	},
 	"scripts": {
-		"update-vscode": "vscode-install",
-		"postinstall": "vscode-install"
+		"test": "node ./out/test/runTest.js"
 	},
 	"dependencies": {
 		"clipboardy": "^2.1.0",
@@ -25,6 +24,7 @@
 		"vscode-languageclient": "^4.1.4"
 	},
 	"devDependencies": {
-		"vscode": "^1.1.35"
+		"@vscode/test-electron": "*",
+		"@types/vscode": "^1.33.0"
 	}
 }
