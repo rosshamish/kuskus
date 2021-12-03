@@ -1,8 +1,5 @@
-# This is a basic workflow to help you get started with Actions
-
 name: kusto-language-server-publish
 
-# Controls when the workflow will run
 on:
   push:
     branches:
@@ -16,18 +13,18 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kusto-language-server
 
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12
 
-      - name: npm ci
-        run: |
-          cd kusto-language-server
-          npm ci
+      - run: npm ci
+
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v0
         with:
