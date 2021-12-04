@@ -14,6 +14,7 @@ runs:
       shell: bash
       run: |
         errors=0
+        echo "Checking if exists: ${{ steps.themes.outputs.value }}"
         for theme in ${{ steps.themes.outputs.value }}; do
           filepath="${{ inputs.working-directory }}/$theme"
           echo "Checking if exists: $filepath"
