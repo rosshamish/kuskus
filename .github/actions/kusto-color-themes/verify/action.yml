@@ -9,7 +9,7 @@ runs:
       uses: sergeysova/jq-action@v2
       id: themes
       with:
-        cmd: 'jq .contributes.themes[].path ${{ inputs.working-directory }}/package.json'
+        cmd: 'jq .contributes.themes[].path ${{ inputs.working-directory }}/package.json -r'
     - name: Verify each contributed theme exists
       shell: bash
       run: |
