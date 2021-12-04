@@ -11,6 +11,7 @@ runs:
       with:
         cmd: 'jq .contributes.themes[].path package.json'
     - name: Verify each contributed theme exists
+      shell: bash
       run: |
         for theme in ${{ steps.themes.outputs.value }}
         do
