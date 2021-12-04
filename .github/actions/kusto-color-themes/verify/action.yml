@@ -13,10 +13,9 @@ runs:
     - name: Verify each contributed theme exists
       shell: bash
       run: |
-        for theme in ${{ steps.themes.outputs.value }}
         errors=0
-        filepath="${{ inputs.working-directory }}/$theme"
-        do
+        for theme in ${{ steps.themes.outputs.value }}; do
+          filepath="${{ inputs.working-directory }}/$theme"
           echo "Checking if exists: $filepath"
           if (test -f "$filepath"); then
             echo "Found: $filepath"
