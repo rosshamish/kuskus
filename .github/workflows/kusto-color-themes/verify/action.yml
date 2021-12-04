@@ -1,0 +1,18 @@
+inputs:
+  working-directory: 
+    description: 'Working directory where package.json can be found, e.g. '
+    default: './'
+runs:
+  using: "composite"
+  steps: 
+    - name: Extract contributed themes from package.json
+      uses: sergeysova/jq-action@v2
+      id: themes
+      with:
+        cmd: 'jq .contributes.themes[].path package.json'
+    - name: Verify each contributed theme exists
+      run: |
+        for theme in ${{ steps.themes.outputs.value }}
+        do
+          ls "${{ inputs.working-directory }}$theme"
+        done

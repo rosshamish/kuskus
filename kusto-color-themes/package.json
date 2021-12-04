@@ -32,6 +32,11 @@
         "label": "[Kuskus] Kusto (Dark)",
         "uiTheme": "vs-dark",
         "path": "./themes/kuskus-kusto-dark.json"
+      },
+      {
+        "label": "[Kuskus] Kusto (Light)",
+        "uiTheme": "vs-dark",
+        "path": "./themes/kuskus-kusto-light.json"
       }
     ]
   }
