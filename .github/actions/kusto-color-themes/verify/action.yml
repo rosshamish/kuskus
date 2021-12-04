@@ -1,7 +1,7 @@
 inputs:
   working-directory: 
-    description: 'Working directory where package.json can be found, e.g. '
-    default: './'
+    description: 'Working directory where package.json can be found'
+    default: '.'
 runs:
   using: "composite"
   steps: 
@@ -9,11 +9,19 @@ runs:
       uses: sergeysova/jq-action@v2
       id: themes
       with:
-        cmd: 'jq .contributes.themes[].path package.json'
+        cmd: 'jq .contributes.themes[].path ${{ inputs.working-directory }}/package.json'
     - name: Verify each contributed theme exists
       shell: bash
       run: |
         for theme in ${{ steps.themes.outputs.value }}
+        errors=0
+        filepath="${{ inputs.working-directory }}/$theme"
         do
-          ls "${{ inputs.working-directory }}$theme"
+          echo "Checking if exists: $filepath"
+          if (test -f "$filepath"); then
+            echo "Found: $filepath"
+          else
+            echo "Not found: $filepath"
+            errors+=1
         done
+        exit $errors
