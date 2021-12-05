@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'kusto-color-themes/**'
+      - '.github/workflows/kusto-color-themes-pr-validation.yml'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
