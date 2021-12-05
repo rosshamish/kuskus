@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name:  'Automated Version Bump'
-        uses:  '.github/actions/gh-action-bump-version-master'
+        uses:  ./.github/actions/gh-action-bump-version-master
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
           PACKAGEJSON_DIR:  'kusto-syntax-highlighting'
