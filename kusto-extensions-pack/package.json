@@ -2,7 +2,7 @@
     "name": "kuskus-extensions-pack",
     "displayName": "[Kuskus] Kusto extensions pack",
     "description": "Kusto extensions pack",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "publisher": "rosshamish",
     "license": "Apache-2.0",
     "homepage": "https://github.com/rosshamish/kuskus",
