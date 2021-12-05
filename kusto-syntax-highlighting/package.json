@@ -52,7 +52,7 @@
       }
     ]
   },
-  "dependencies": {
+  "devDependencies": {
     "vscode-tmgrammar-test": "^0.0.11"
   },
   "scripts":{

@@ -20,11 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-
-      - run: npm ci
 
       - name:  'Automated Version Bump'
         uses:  ./.github/actions/gh-action-bump-version-master
@@ -38,6 +33,7 @@ jobs:
           # We'll fetch, merge, and push at the end.
           push: false
 
+      - run: npm ci
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v0
         with:
