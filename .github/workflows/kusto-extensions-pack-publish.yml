@@ -28,6 +28,9 @@ jobs:
         with:
           default: patch
           tag-prefix: kusto-extensions-pack-v
+          # Don't push this commit, because we might not have latest master.
+          # We'll fetch, merge, and push at the end.
+          push: false
 
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v0
@@ -35,3 +38,10 @@ jobs:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
           packagePath: ./kusto-extensions-pack
+
+      - name: Push version bump commit
+        run: |
+          git status
+          git pull --rebase
+          git status
+          git push
