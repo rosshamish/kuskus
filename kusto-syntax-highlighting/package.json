@@ -2,7 +2,7 @@
   "name": "kuskus-kusto-syntax-highlighting",
   "displayName": "[Kuskus] Kusto Syntax Highlighting",
   "description": "Kusto Syntax Highlighting for Visual Studio Code.",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "publisher": "rosshamish",
   "license": "Apache-2.0",
   "homepage": "https://github.com/rosshamish/kuskus",
