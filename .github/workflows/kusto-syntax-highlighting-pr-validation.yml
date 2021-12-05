@@ -20,6 +20,5 @@ jobs:
         working-directory: kusto-syntax-highlighting
 
     steps:
-      # TODO xml validation, or otherwise tmlanguage validation. Right
-      # now this is a no-op validation run.
       - uses: actions/checkout@v2
+      - run: npm run test
