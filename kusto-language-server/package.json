@@ -2,7 +2,7 @@
     "name": "kuskus-kusto-language-server",
     "displayName": "[Kuskus] Kusto Language Server",
     "description": "Language server for the Kusto query language",
-    "version": "1.0.14",
+    "version": "1.0.15",
     "publisher": "rosshamish",
     "license": "Apache-2.0",
     "homepage": "https://github.com/rosshamish/kuskus",
