@@ -1,26 +1,24 @@
-name: kusto-language-server-pr-validation
+name: kusto-syntax-highlighting-pr-validation
 
 on:
   pull_request:
     branches:
       - master
     paths:
-      - 'kusto-language-server/**'
+      - 'kusto-syntax-highlighting/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: kusto-language-server
+        working-directory: kusto-syntax-highlighting
 
     steps:
+      # TODO xml validation, or otherwise tmlanguage validation. Right
+      # now this is a no-op validation run.
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - run: npm ci
-      - run: npm run vscode:prepublish

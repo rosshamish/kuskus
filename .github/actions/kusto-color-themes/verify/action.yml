@@ -1,0 +1,26 @@
+inputs:
+  working-directory: 
+    description: 'Working directory where package.json can be found'
+    default: '.'
+runs:
+  using: "composite"
+  steps: 
+    - name: Extract contributed themes from package.json
+      uses: ./.github/actions/jq-action-master
+      id: themes
+      with:
+        cmd: 'jq .contributes.themes[].path ${{ inputs.working-directory }}/package.json --raw-output'
+        multiline: true
+    - name: Verify each contributed theme exists
+      shell: bash
+      run: |
+        errors=0
+        themes_in_package_json="${{ steps.themes.outputs.value }}"
+        for theme in $themes_in_package_json; do
+          filepath="${{ inputs.working-directory }}/$theme"
+          if (!(test -f "$filepath")); then
+            echo "ERROR: File not found: $filepath"
+            errors+=1
+          fi
+        done
+        exit $errors

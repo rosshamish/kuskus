@@ -1,11 +1,11 @@
-name: kusto-language-server-publish
+name: kusto-syntax-highlighting-publish
 
 on:
   push:
     branches:
       - master
     paths:
-      - 'kusto-language-server/**'
+      - 'kusto-syntax-highlighting/**'
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -15,28 +15,23 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: kusto-language-server
+        working-directory: kusto-syntax-highlighting
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-
-      - run: npm ci
 
       - name:  'Automated Version Bump'
         uses:  'phips28/gh-action-bump-version@master'
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-          PACKAGEJSON_DIR:  'kusto-language-server'
+          PACKAGEJSON_DIR:  'kusto-syntax-highlighting'
         with:
           default: patch
-          tag-prefix: kusto-language-server-v
+          tag-prefix: kusto-syntax-highlighting-v
 
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v0
         with:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
-          packagePath: ./kusto-language-server
+          packagePath: ./kusto-syntax-highlighting
