@@ -17,7 +17,7 @@ runs:
       uses: nick-invision/retry@v2
       with:
         timeout_seconds: 60
-        max_attempts: ${{ inputs.max_retries }}
+        max_attempts: ${{ inputs.max-retries }}
         retry_on: error
         shell: bash
         command: |
