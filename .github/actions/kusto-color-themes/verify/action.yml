@@ -15,8 +15,8 @@ runs:
       shell: bash
       run: |
         errors=0
-        echo "Checking if exists: ${{ steps.themes.outputs.value }}"
-        for theme in ${{ steps.themes.outputs.value }}; do
+        themes_in_package_json="${{ steps.themes.outputs.value }}"
+        for theme in themes_in_package_json; do
           filepath="${{ inputs.working-directory }}/$theme"
           echo "Checking if exists: $filepath"
           if (test -f "$filepath"); then
