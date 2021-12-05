@@ -51,5 +51,12 @@
         "path": "./syntaxes/kusto.tmLanguage"
       }
     ]
+  },
+  "dependencies": {
+    "vscode-tmgrammar-test": "^0.0.11"
+  },
+  "scripts":{
+    "test": "vscode-tmgrammar-snap --grammar syntaxes/kusto.tmLanguage --scope source.kusto --testcases 'test/snapshots/src/*'",
+    "test:update-snapshots": "vscode-tmgrammar-snap --updateSnapshot --grammar syntaxes/kusto.tmLanguage --scope source.kusto --testcases 'test/snapshots/src/*'"
   }
 }
