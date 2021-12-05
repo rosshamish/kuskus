@@ -14,15 +14,12 @@ runs:
   using: "composite"
   steps: 
     - name: pull --rebase, then push
-      shell: bash
-      run: |
-        MAX_RETRIES=${{ inputs.max-retries }}
-        RETRY_NUM=0
-        git pull ${{ inputs.remote-name }} ${{ inputs.branch }} --rebase
-        git push
-        while [[ $? -ne 0 && $RETRY_NUM -lt $MAX_RETRIES ]]; do
-          ((RETRY_NUM++))
-          echo "Retrying.. attempt $RETRY_NUM/$MAX_RETRIES"
+      uses: nick-invision/retry@v2
+      with:
+        timeout_seconds: 60
+        max_attempts: ${{ inputs.max_retries }}
+        retry_on: error
+        shell: bash
+        command: |
           git pull ${{ inputs.remote-name }} ${{ inputs.branch }} --rebase
           git push
-        done
