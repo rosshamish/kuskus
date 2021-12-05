@@ -1,0 +1,24 @@
+name: 'Run jq'
+description: 'Run jq on your data and get result as output'
+branding:
+  icon: 'crosshair'
+  color: 'blue'
+inputs:
+  cmd:
+    description: 'jq command with arguments'
+    required: true
+  multiline:
+    description: 'If true, support multiline output'
+    required: false
+    type: boolean
+    default: false
+outputs:
+  value:
+    description: 'What jq is outputs'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+#   image: "docker://delmendo/yq-action:latest"
+  args:
+    - ${{ inputs.cmd }}
+    - ${{ inputs.working_directory }}
