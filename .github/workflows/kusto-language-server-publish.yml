@@ -46,8 +46,8 @@ jobs:
           packagePath: ./kusto-language-server
 
       - name: Push version bump commit
-        run: |
-          git status
-          git pull --rebase
-          git status
-          git push
+        uses: ./.github/actions/pull-rebase-then-push
+        with:
+          max-retries: 5
+          remote-name: origin
+          branch: master
