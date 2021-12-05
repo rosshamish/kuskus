@@ -18,11 +18,8 @@ runs:
         themes_in_package_json="${{ steps.themes.outputs.value }}"
         for theme in $themes_in_package_json; do
           filepath="${{ inputs.working-directory }}/$theme"
-          echo "Checking if exists: $filepath"
-          if (test -f "$filepath"); then
-            echo "Found: $filepath"
-          else
-            echo "Not found: $filepath"
+          if (!(test -f "$filepath")); then
+            echo "ERROR: File not found: $filepath"
             errors+=1
           fi
         done
