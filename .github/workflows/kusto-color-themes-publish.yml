@@ -20,13 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Publish VS Code Extension
-        uses: HaaLeo/publish-vscode-extension@v0
-        with:
-          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-          registryUrl: https://marketplace.visualstudio.com
-          packagePath: ./kusto-color-themes
-
       - name:  'Automated Version Bump'
         uses:  'phips28/gh-action-bump-version@master'
         env:
@@ -34,3 +27,11 @@ jobs:
           PACKAGEJSON_DIR:  'kusto-color-themes'
         with:
           default: patch
+          tag-prefix: kusto-color-themes-v
+
+      - name: Publish VS Code Extension
+        uses: HaaLeo/publish-vscode-extension@v0
+        with:
+          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+          registryUrl: https://marketplace.visualstudio.com
+          packagePath: ./kusto-color-themes

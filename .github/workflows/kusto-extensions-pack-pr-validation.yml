@@ -1,11 +1,11 @@
-name: kusto-language-server-pr-validation
+name: kusto-extensions-pack-pr-validation
 
 on:
   pull_request:
     branches:
       - master
     paths:
-      - 'kusto-language-server/**'
+      - 'kusto-extensions-pack/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -15,12 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: kusto-language-server
+        working-directory: kusto-extensions-pack
 
     steps:
+      # TODO validate that the extensions listed in the pack exist
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - run: npm ci
-      - run: npm run vscode:prepublish
