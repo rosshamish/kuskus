@@ -6,7 +6,7 @@ runs:
   using: "composite"
   steps: 
     - name: Extract contributed themes from package.json
-      uses: ./github/actions/jq-action-master
+      uses: ./.github/actions/jq-action-master
       id: themes
       with:
         cmd: 'jq .contributes.themes[].path ${{ inputs.working-directory }}/package.json'
