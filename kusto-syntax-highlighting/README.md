@@ -17,6 +17,22 @@ Isolated testing of the grammar is available with snapshot tests, via [PanAeon/v
 
 For testing with Color Themes, see [https://code.visualstudio.com/api/extension-guides/color-theme#test-a-new-color-theme](https://code.visualstudio.com/api/extension-guides/color-theme#test-a-new-color-theme).
 
+Manually-taken visual snapshots of how the syntax highlighting looks with certain themes are in `test/snapshots/**/theme-screenshots`. Filenames indicate the test file and theme used.
+
+- \[Kuskus\] Kusto (Dark)
+- Monokai
+- Dark+ (default dark)
+- Light+ (default light)
+
+Please update the snapshots when making tmLanguage changes. To take new snapshots, use the Polacode extension.
+
+> Name: Polacode
+> Id: pnp.polacode
+> Description: 📸  Polaroid for your code
+> Version: 0.3.4
+> Publisher: P & P
+> VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=pnp.polacode
+
 ## Changelog
 
 See CHANGELOG.md

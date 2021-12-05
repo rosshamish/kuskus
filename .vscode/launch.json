@@ -1,0 +1,52 @@
+// A launch configuration that launches the extension inside a new window
+// Use IntelliSense to learn about possible attributes.
+// Hover to view descriptions of existing attributes.
+// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+{
+	"version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Color Themes",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--disable-extensions",
+                "--extensionDevelopmentPath=${workspaceFolder}/kusto-color-themes",
+                "${workspaceFolder}/kusto-syntax-highlighting/test/snapshots/src"
+            ]
+        },
+        {
+            "name": "Syntax Highlighting",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--disable-extensions",
+                "--extensionDevelopmentPath=${workspaceFolder}/kusto-syntax-highlighting",
+                "${workspaceFolder}/kusto-syntax-highlighting/test/snapshots/src"
+            ],
+        },
+        {
+            "name": "Language Server",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--disable-extensions",
+                "--extensionDevelopmentPath=${workspaceFolder}/kusto-language-server",
+                "${workspaceFolder}/kusto-syntax-highlighting/test/snapshots/src"
+            ]
+        },
+        {
+            "name": "All (Extension Pack)",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/kusto-extensions-pack",
+                "${workspaceFolder}/kusto-syntax-highlighting/test/snapshots/src"
+            ]
+        },
+    ]
+}

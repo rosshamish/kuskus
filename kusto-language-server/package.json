@@ -14,8 +14,8 @@
         "url": "https://github.com/rosshamish/kuskus/issues"
     },
     "engines": {
-        "vscode": "*"
-    },
+        "vscode": "^1.33.0"
+      },
     "categories": [
         "Programming Languages",
         "Formatters"
