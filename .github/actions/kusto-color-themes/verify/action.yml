@@ -9,7 +9,7 @@ runs:
       uses: ./.github/actions/jq-action-master
       id: themes
       with:
-        cmd: 'jq .contributes.themes[].path ${{ inputs.working-directory }}/package.json'
+        cmd: 'jq .contributes.themes[].path ${{ inputs.working-directory }}/package.json --raw-output'
         multiline: true
     - name: Verify each contributed theme exists
       shell: bash
