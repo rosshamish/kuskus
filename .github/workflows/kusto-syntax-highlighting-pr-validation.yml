@@ -1,0 +1,28 @@
+name: kusto-syntax-highlighting-pr-validation
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'kusto-syntax-highlighting/**'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kusto-syntax-highlighting
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # TODO
+      - name: Ensure all contributed themes exist in repo
+        uses: ./.github/actions/kusto-syntax-highlighting/verify
+        with:
+          working-directory: kusto-syntax-highlighting
