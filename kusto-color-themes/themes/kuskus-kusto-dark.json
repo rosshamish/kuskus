@@ -1,5 +1,5 @@
 {
-	"tokenColors": "./Kuskus.Dark.tmTheme",
+	"tokenColors": "./kuskus-kusto-dark.tmTheme",
 	"colors": {
 		"editor.background": "#272822",
 		"editorCursor.foreground": "#F8F8F0",
