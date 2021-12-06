@@ -2,7 +2,7 @@
     "name": "kuskus-kusto-language-server",
     "displayName": "[Kuskus] Kusto Language Server",
     "description": "Language server for the Kusto query language",
-    "version": "1.0.1",
+    "version": "1.0.18",
     "publisher": "rosshamish",
     "license": "Apache-2.0",
     "homepage": "https://github.com/rosshamish/kuskus",
@@ -14,7 +14,7 @@
         "url": "https://github.com/rosshamish/kuskus/issues"
     },
     "engines": {
-        "vscode": "^1.33.0"
+        "vscode": "*"
     },
     "categories": [
         "Programming Languages",
@@ -70,7 +70,7 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
+        "vscode:prepublish": "npm run compile",
         "compile": "tsc -b",
         "watch": "tsc -b -w",
         "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
@@ -79,6 +79,8 @@
     "devDependencies": {
         "@types/mocha": "^5.2.0",
         "@types/node": "^8.0.0",
+        "glob": "^7.2.0",
+        "mocha": "^9.1.3",
         "tslint": "^5.16.0",
         "typescript": "^3.5.1"
     },
@@ -86,7 +88,7 @@
         "@types/lodash": "^4.14.136",
         "azure-kusto-data": "^0.2.5",
         "clipboardy": "^2.1.0",
-        "lodash": "^4.17.15",
+        "lodash": "^4.17.19",
         "open": "^6.4.0"
     }
 }

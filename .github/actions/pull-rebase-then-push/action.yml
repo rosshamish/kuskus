@@ -1,0 +1,25 @@
+# Retry up to {{ max-retries }} times. Helpful if there is contention on the main
+# branch, e.g. from many workflows simultaneously trying to push automated commits.
+inputs:
+  max-retries: 
+    description: 'Max number of retries'
+    default: 3
+  remote-name:
+    description: 'Remote name to pull from, e.g. origin'
+    default: origin
+  branch:
+    description: 'Branch to pull from, e.g. main'
+    default: master
+runs:
+  using: "composite"
+  steps: 
+    - name: pull --rebase, then push
+      uses: nick-invision/retry@v2
+      with:
+        timeout_seconds: 60
+        max_attempts: ${{ inputs.max-retries }}
+        retry_on: error
+        shell: bash
+        command: |
+          git pull ${{ inputs.remote-name }} ${{ inputs.branch }} --rebase
+          git push

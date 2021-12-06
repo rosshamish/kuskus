@@ -1,0 +1,13 @@
+.create-or-alter function with (folder='foo/bar', docstring='foobar')
+fooBar(a:int, b:string) {
+    let b = c;
+    T
+    | where foo == 1234 and bar and baz !in beer
+    | join kind=innerunique hint.strategy=broadcast (
+        A | where b=2
+    ) on $left.a == $right.b
+    | parse kind=regex textField with "Abc=" abc, "Xyz=" xyz
+    | where acos(b) == acosb
+    | evaluate sql_request()
+    | sort by a desc null last;
+}

@@ -1,0 +1,48 @@
+name: kusto-color-themes-publish
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'kusto-color-themes/**'
+      - '.github/workflows/kusto-color-themes-publish.yml'
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kusto-color-themes
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name:  'Automated Version Bump'
+        uses:  ./.github/actions/gh-action-bump-version-master
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+          PACKAGEJSON_DIR:  'kusto-color-themes'
+        with:
+          default: patch
+          tag-prefix: kusto-color-themes-v
+          # Don't push this commit, because we might not have latest master.
+          # We'll fetch, merge, and push at the end.
+          push: false
+
+      - name: Publish VS Code Extension
+        uses: HaaLeo/publish-vscode-extension@v0
+        with:
+          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+          registryUrl: https://marketplace.visualstudio.com
+          packagePath: ./kusto-color-themes
+
+      - name: Push version bump commit
+        uses: ./.github/actions/pull-rebase-then-push
+        with:
+          max-retries: 5
+          remote-name: origin
+          branch: master
