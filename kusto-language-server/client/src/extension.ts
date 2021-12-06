@@ -63,23 +63,23 @@ export function activate(context: ExtensionContext) {
 		if (listener.newState == 2) {
 			window.showInformationMessage('Kuskus loaded!');
 
-			client.onRequest('kuskus.loadSymbols.auth', ( { clusterUri, authId, database, verificationUrl, verificationCode }: { clusterUri: string, authId: string, database: string, verificationUrl: string, verificationCode: string }) => {
+			client.onRequest('kuskus.loadSymbols.auth', ( { clusterUri, tenantId, database, verificationUrl, verificationCode }: { clusterUri: string, tenantId: string, database: string, verificationUrl: string, verificationCode: string }) => {
 				// window.showInformationMessage(`[kuskus.loadSymbols.auth] cluster ${clusterUri} database ${database} verificationUrl ${verificationUrl} verificationCode ${verificationCode}`);
 				clipboardy.writeSync(verificationCode);
 				window.showInformationMessage(`Login with code ${verificationCode} (it's already on your clipboard)`);
 				open(verificationUrl);
 			});
 
-			client.onNotification('kuskus.loadSymbols.auth.complete.success', ( { clusterUri, authId, database }: { clusterUri: string, authId: string, database: string } ) => {
-				window.showInformationMessage(`[Kuskus] Successfully authenticated to ${clusterUri}/${authId}/${database}`);
+			client.onNotification('kuskus.loadSymbols.auth.complete.success', ( { clusterUri, tenantId, database }: { clusterUri: string, tenantId: string, database: string } ) => {
+				window.showInformationMessage(`[Kuskus] Successfully authenticated to ${clusterUri}/${tenantId}/${database}`);
 			});
 
-			client.onNotification('kuskus.loadSymbols.auth.complete.error', ( { clusterUri, authId, database }: { clusterUri: string, authId: string, database: string } ) => {
-				window.showErrorMessage(`[Kuskus] Failed to authenticate to ${clusterUri}/${authId}/${database}`);
+			client.onNotification('kuskus.loadSymbols.auth.complete.error', ( { clusterUri, tenantId, database }: { clusterUri: string, tenantId: string, database: string } ) => {
+				window.showErrorMessage(`[Kuskus] Failed to authenticate to ${clusterUri}/${tenantId}/${database}`);
 			});
 
-			client.onNotification('kuskus.loadSymbols.success', ( { clusterUri, authId, database }: { clusterUri: string, authId: string, database: string } ) => {
-				window.showInformationMessage(`[Kuskus] Successfully loaded symbols from ${clusterUri}/${authId}/${database}`);
+			client.onNotification('kuskus.loadSymbols.success', ( { clusterUri, tenantId, database }: { clusterUri: string, tenantId: string, database: string } ) => {
+				window.showInformationMessage(`[Kuskus] Successfully loaded symbols from ${clusterUri}/${tenantId}/${database}`);
 			});
 		}
 	});
@@ -105,13 +105,13 @@ commands.registerCommand('kuskus.loadSymbols', async () => {
 			return;
 		}
 
-		const authId = await window.showInputBox({
+		const tenantId = await window.showInputBox({
 			ignoreFocusOut: true,
 			value: 'common',
-			prompt: 'Authority/Tenant ID - this can be found in Azure Portal / Azure Active Directory.'
+			prompt: 'Tenant ID / Authority ID - this can be found in Azure Portal / Azure Active Directory.'
 		});
-		if (!authId) {
-			window.showErrorMessage('Default authority id not provided, couldn\'t load symbols');
+		if (!tenantId) {
+			window.showErrorMessage('Tenant ID not provided, couldn\'t load symbols');
 			return;
 		}
 
@@ -125,7 +125,7 @@ commands.registerCommand('kuskus.loadSymbols', async () => {
 			return;
 		}
 		
-		client.sendRequest('kuskus.loadSymbols', { clusterUri, authId, database });
+		client.sendRequest('kuskus.loadSymbols', { clusterUri, tenantId, database });
 	} else {
 		window.showErrorMessage('Extension not yet loaded. Hold your horses. Please wait a moment and try again.');
 	}

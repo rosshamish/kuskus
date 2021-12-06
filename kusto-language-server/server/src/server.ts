@@ -85,20 +85,20 @@ connection.onInitialized(async () => {
     }
 });
 
-connection.onRequest('kuskus.loadSymbols', async ({ clusterUri, authId, database }: { clusterUri: string, authId: string, database: string }) => {
-	let kustoClient = getKustoClient(clusterUri, authId, (tokenResponse: TokenResponse) => {
-		connection.sendRequest('kuskus.loadSymbols.auth', { clusterUri, authId, database, verificationUrl: tokenResponse.verificationUrl, verificationCode: tokenResponse.userCode });
+connection.onRequest('kuskus.loadSymbols', async ({ clusterUri, tenantId, database }: { clusterUri: string, tenantId: string, database: string }) => {
+	let kustoClient = getKustoClient(clusterUri, tenantId, (tokenResponse: TokenResponse) => {
+		connection.sendRequest('kuskus.loadSymbols.auth', { clusterUri, tenantId, database, verificationUrl: tokenResponse.verificationUrl, verificationCode: tokenResponse.userCode });
 	});
 
 	try {
 		kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
-		connection.sendNotification('kuskus.loadSymbols.auth.complete.success', { clusterUri, database });
+		connection.sendNotification('kuskus.loadSymbols.auth.complete.success', { clusterUri, tenantId, database });
 		connection.sendNotification('kuskus.loadSymbols.success', { clusterUri, database });
 		kustoCodeScripts.forEach((value, key) => {
 			kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
 		});
 	} catch {
-		connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, database });
+		connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, tenantId, database });
 	}
 });
 
