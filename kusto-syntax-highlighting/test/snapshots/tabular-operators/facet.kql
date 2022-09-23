@@ -1,0 +1,11 @@
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/facetoperator
+
+StormEvents
+| where State startswith "A" and EventType has "Heavy"
+| facet by State, EventType
+  with 
+  (
+  where StartTime between(datetime(2007-01-04) .. 7d) 
+  | project StartTime, Source, EpisodeId, EventType
+  | take 5
+  )

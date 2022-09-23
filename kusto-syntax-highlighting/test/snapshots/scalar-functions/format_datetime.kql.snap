@@ -1,0 +1,85 @@
+>// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/format-datetimefunction
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>
+>format_datetime(datetime(2015-12-14 02:03:04.12345), 'y-M-d h:m:s.fffffff') == "15-12-14 2:3:4.1234500"
+#^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto support.function.kusto
+#               ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                ^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto storage.type.kusto
+#                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                                                   ^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                                                     ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                                                      ^^^^^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto
+#                                                                         ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                                                                          ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                                                                           ^^^^ source.kusto
+#                                                                               ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                                                ^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                                                                      ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+>format_datetime(datetime(2015-12-14 02:03:04.12345), "y-M-d h:m:s.fffffff") == "15-12-14 2:3:4.1234500"
+#^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto support.function.kusto
+#               ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                ^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto storage.type.kusto
+#                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                                                   ^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                                                     ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                      ^^^^^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.double.kusto
+#                                                                         ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                                          ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                                                                           ^^^^ source.kusto
+#                                                                               ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                                                ^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                                                                      ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+>
+>let dt = datetime(2017-01-29 09:00:05);
+#^^^ source.kusto keyword.control.kusto
+#   ^^^^^^ source.kusto
+#         ^^^^^^^^ source.kusto storage.type.kusto
+#                 ^ source.kusto
+#                  ^^^^ source.kusto constant.numeric.kusto
+#                      ^ source.kusto
+#                       ^^ source.kusto constant.numeric.kusto
+#                         ^ source.kusto
+#                          ^^ source.kusto constant.numeric.kusto
+#                            ^ source.kusto
+#                             ^^ source.kusto constant.numeric.kusto
+#                               ^ source.kusto
+#                                ^^ source.kusto constant.numeric.kusto
+#                                  ^ source.kusto
+#                                   ^^ source.kusto constant.numeric.kusto
+#                                     ^^^ source.kusto
+>print 
+#^^^^^ source.kusto keyword.other.query.kusto
+#     ^^ source.kusto
+>v1=format_datetime(dt,'yy-MM-dd [HH:mm:ss]'), 
+#^^^ source.kusto
+#   ^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto support.function.kusto
+#                  ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                   ^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                     ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                      ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                       ^^^^^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto
+#                                          ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                                           ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                                            ^^^ source.kusto
+>v2=format_datetime(dt, 'yyyy-M-dd [H:mm:ss]'),
+#^^^ source.kusto
+#   ^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto support.function.kusto
+#                  ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                   ^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                     ^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                       ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                        ^^^^^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto
+#                                           ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                                            ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                                             ^^ source.kusto
+>v3=format_datetime(dt, 'yy-MM-dd [hh:mm:ss tt]')
+#^^^ source.kusto
+#   ^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto support.function.kusto
+#                  ^ source.kusto meta.scalar.function.format_datetime.kusto
+#                   ^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                     ^^ source.kusto meta.scalar.function.format_datetime.kusto
+#                       ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                        ^^^^^^^^^^^^^^^^^^^^^^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto
+#                                              ^ source.kusto meta.scalar.function.format_datetime.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                                               ^ source.kusto meta.scalar.function.format_datetime.kusto
+>

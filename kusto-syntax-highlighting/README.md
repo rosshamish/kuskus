@@ -21,8 +21,9 @@ Manually-taken visual snapshots of how the syntax highlighting looks with certai
 - Monokai
 - Dark+ (default dark)
 - Light+ (default light)
+- [Base16 Default Dark](https://marketplace.visualstudio.com/items?itemName=golf1052.base16-generator)
 
-Please update the visual snapshots when making tmLanguage changes. To take new snapshots, run the "All (Extension Pack)" target (see root `launch.json`), enable a particular Theme, and use the [Polacode extension](https://marketplace.visualstudio.com/items?itemName=pnp.polacode) to take the screenshot.
+Please update the visual snapshots when making tmLanguage changes. To take new snapshots, run the "All (Extension Pack)" target (see root `launch.json`), enable a particular Theme, and use the [CodeSnap extension](https://marketplace.visualstudio.com/items?itemName=adpyke.codesnap) to take the screenshot.
 
 ## Changelog
 

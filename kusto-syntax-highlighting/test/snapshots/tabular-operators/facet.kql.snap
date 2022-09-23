@@ -1,0 +1,62 @@
+>// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/facetoperator
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>
+>StormEvents
+#^^^^^^^^^^^^ source.kusto
+>| where State startswith "A" and EventType has "Heavy"
+#^^ source.kusto
+#  ^^^^^ source.kusto keyword.other.query.kusto
+#       ^^^^^^^ source.kusto
+#              ^^^^^^^^^^ source.kusto keyword.other.operator.kusto
+#                        ^ source.kusto
+#                         ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                          ^ source.kusto string.quoted.double.kusto
+#                           ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                            ^ source.kusto
+#                             ^^^ source.kusto keyword.other.operator.kusto
+#                                ^^^^^^^^^^^ source.kusto
+#                                           ^^^ source.kusto keyword.other.operator.kusto
+#                                              ^ source.kusto
+#                                               ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                ^^^^^ source.kusto string.quoted.double.kusto
+#                                                     ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+>| facet by State, EventType
+#^^ source.kusto
+#  ^^^^^ source.kusto meta.query.facet.kusto keyword.other.query.kusto
+#       ^ source.kusto meta.query.facet.kusto
+#        ^^ source.kusto meta.query.facet.kusto keyword.other.operator.kusto
+#          ^^^^^^^^^^^^^^^^^^ source.kusto
+>  with 
+#^^ source.kusto
+#  ^^^^ source.kusto keyword.other.operator.kusto
+#      ^^ source.kusto
+>  (
+#^^^^ source.kusto
+>  where StartTime between(datetime(2007-01-04) .. 7d) 
+#^^ source.kusto
+#  ^^^^^ source.kusto keyword.other.query.kusto
+#       ^^^^^^^^^^^ source.kusto
+#                  ^^^^^^^ source.kusto keyword.other.operator.kusto
+#                         ^ source.kusto
+#                          ^^^^^^^^ source.kusto storage.type.kusto
+#                                  ^ source.kusto
+#                                   ^^^^ source.kusto constant.numeric.kusto
+#                                       ^ source.kusto
+#                                        ^^ source.kusto constant.numeric.kusto
+#                                          ^ source.kusto
+#                                           ^^ source.kusto constant.numeric.kusto
+#                                             ^^^^^ source.kusto
+#                                                  ^^ source.kusto constant.numeric.kusto
+#                                                    ^^^ source.kusto
+>  | project StartTime, Source, EpisodeId, EventType
+#^^^^ source.kusto
+#    ^^^^^^^ source.kusto keyword.other.query.kusto
+#           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
+>  | take 5
+#^^^^ source.kusto
+#    ^^^^ source.kusto meta.query.take.kusto keyword.other.query.kusto
+#        ^ source.kusto meta.query.take.kusto
+#         ^ source.kusto meta.query.take.kusto constant.numeric.kusto
+>  )
+#^^^^ source.kusto
+>

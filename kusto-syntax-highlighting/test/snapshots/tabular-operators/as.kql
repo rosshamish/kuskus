@@ -1,0 +1,22 @@
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/asoperator
+
+// 1. In the following 2 example the union's generated TableName column will consist of 'T1' and 'T2'
+range x from 1 to 10 step 1 
+| as T1 
+| union withsource=TableName (range x from 1 to 10 step 1 | as T2)
+
+// Alternatively, you can write the same example, as follows:
+union withsource=TableName (range x from 1 to 10 step 1 | as T1), (range x from 1 to 10 step 1 | as T2)
+
+// 2. In the following example, the 'left side' of the join will be: 
+//      MyLogTable filtered by type == "Event" and Name == "Start"
+//    and the 'right side' of the join will be: 
+//      MyLogTable filtered by type == "Event" and Name == "Stop"
+MyLogTable  
+| where type == "Event"
+| as T
+| where Name == "Start"
+| join (
+    T
+    | where Name == "Stop"
+) on ActivityId

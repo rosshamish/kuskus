@@ -1,0 +1,9 @@
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction
+
+T | extend r = range(1, 8, 3);
+
+T | extend r = range(datetime(2015-01-01), datetime(2015-12-31), 1d);
+
+range(1, 3);
+
+print r = range(1,1000000000) | mv-expand r | count
