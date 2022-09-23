@@ -304,7 +304,7 @@ patterns:
 
   - include: '#Numeric'
 
-  - match: \b(true|false)\b
+  - match: \b(true|false|null)\b
     name: constant.language.kusto
 
   - match: \b(anyif|any|array_strcat|base64_decodestring|base64_encodestring|make_dictionary|makelist|makeset|mvexpand|todynamic|parse_json|replace|weekofyear)(?=\W*\(|\b)
