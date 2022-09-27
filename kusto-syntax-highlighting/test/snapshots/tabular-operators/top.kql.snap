@@ -1,0 +1,98 @@
+>// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topoperator
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>
+>T | top 5 by Name desc nulls last
+#^^^^ source.kusto
+#    ^^^ source.kusto meta.query.top.kusto keyword.other.query.kusto
+#       ^ source.kusto meta.query.top.kusto
+#        ^ source.kusto meta.query.top.kusto constant.numeric.kusto
+#         ^ source.kusto meta.query.top.kusto
+#          ^^ source.kusto meta.query.top.kusto keyword.other.operator.kusto
+#            ^ source.kusto meta.query.top.kusto
+#             ^^^^ source.kusto meta.query.top.kusto variable.other.column.kusto
+#                 ^ source.kusto
+#                  ^^^^ source.kusto keyword.other.kusto
+#                      ^ source.kusto
+#                       ^^^^^^^^^^ source.kusto keyword.other.kusto
+>
+>// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topnestedoperator
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>
+>StormEvents
+#^^^^^^^^^^^^ source.kusto
+>| top-nested 2 of State with others = "All Other States" by sum(BeginLat),
+#^^ source.kusto
+#  ^^^^^^^^^^ source.kusto keyword.other.query.kusto
+#            ^ source.kusto
+#             ^ source.kusto constant.numeric.kusto
+#              ^ source.kusto
+#               ^^ source.kusto keyword.other.operator.kusto
+#                 ^^^^^^^ source.kusto
+#                        ^^^^ source.kusto keyword.other.operator.kusto
+#                            ^^^^^^^^^^ source.kusto
+#                                      ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                       ^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                       ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                        ^ source.kusto
+#                                                         ^^ source.kusto keyword.other.operator.kusto
+#                                                           ^ source.kusto
+#                                                            ^^^ source.kusto support.function.kusto
+#                                                               ^^^^^^^^^^^^ source.kusto
+>  top-nested 3 of Source by sum(BeginLat),
+#^^ source.kusto
+#  ^^^^^^^^^^ source.kusto keyword.other.query.kusto
+#            ^ source.kusto
+#             ^ source.kusto constant.numeric.kusto
+#              ^ source.kusto
+#               ^^ source.kusto keyword.other.operator.kusto
+#                 ^^^^^^^^ source.kusto
+#                         ^^ source.kusto keyword.other.operator.kusto
+#                           ^ source.kusto
+#                            ^^^ source.kusto support.function.kusto
+#                               ^^^^^^^^^^^^ source.kusto
+>  top-nested 1 of EndLocation with others = "All Other End Locations" by sum(BeginLat)
+#^^ source.kusto
+#  ^^^^^^^^^^ source.kusto keyword.other.query.kusto
+#            ^ source.kusto
+#             ^ source.kusto constant.numeric.kusto
+#              ^ source.kusto
+#               ^^ source.kusto keyword.other.operator.kusto
+#                 ^^^^^^^^^^^^^ source.kusto
+#                              ^^^^ source.kusto keyword.other.operator.kusto
+#                                  ^^^^^^^^^^ source.kusto
+#                                            ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                             ^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                                    ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                                     ^ source.kusto
+#                                                                      ^^ source.kusto keyword.other.operator.kusto
+#                                                                        ^ source.kusto
+#                                                                         ^^^ source.kusto support.function.kusto
+#                                                                            ^^^^^^^^^^^ source.kusto
+>
+>// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/tophittersoperator
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>
+>Events | top-hitters 5 of EventId
+#^^^^^^^^^ source.kusto
+#         ^^^^^^^^^^^ source.kusto meta.query.top-hitters.kusto keyword.other.query.kusto
+#                    ^ source.kusto meta.query.top-hitters.kusto
+#                     ^ source.kusto meta.query.top-hitters.kusto constant.numeric.kusto
+#                      ^ source.kusto meta.query.top-hitters.kusto
+#                       ^^ source.kusto meta.query.top-hitters.kusto keyword.other.operator.kusto
+#                         ^ source.kusto meta.query.top-hitters.kusto
+#                          ^^^^^^^ source.kusto meta.query.top-hitters.kusto variable.other.column.kusto
+>
+>PageViews | top-hitters 25 of Page by NumViews
+#^^^^^^^^^^^^ source.kusto
+#            ^^^^^^^^^^^ source.kusto meta.query.top-hitters.kusto keyword.other.query.kusto
+#                       ^ source.kusto meta.query.top-hitters.kusto
+#                        ^^ source.kusto meta.query.top-hitters.kusto constant.numeric.kusto
+#                          ^ source.kusto meta.query.top-hitters.kusto
+#                           ^^ source.kusto meta.query.top-hitters.kusto keyword.other.operator.kusto
+#                             ^ source.kusto meta.query.top-hitters.kusto
+#                              ^^^^ source.kusto meta.query.top-hitters.kusto variable.other.column.kusto
+#                                  ^ source.kusto meta.query.top-hitters.kusto
+#                                   ^^ source.kusto meta.query.top-hitters.kusto keyword.other.operator.kusto
+#                                     ^ source.kusto meta.query.top-hitters.kusto
+#                                      ^^^^^^^^ source.kusto meta.query.top-hitters.kusto variable.other.column.kusto
+>

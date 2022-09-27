@@ -1,23 +1,27 @@
 >.create-or-alter function with (folder='foo/bar', docstring='foobar')
 #^^^^^^^^^^^^^^^^ source.kusto keyword.control.kusto
 #                ^ source.kusto
-#                 ^^^^^^^^ source.kusto variable.language
+#                 ^^^^^^^^ source.kusto storage.type.kusto
 #                         ^ source.kusto
-#                          ^^^^ source.kusto keyword.operator.kusto
+#                          ^^^^ source.kusto keyword.other.operator.kusto
 #                              ^^ source.kusto
-#                                ^^^^^^ source.kusto keyword.operator.kusto
+#                                ^^^^^^ source.kusto keyword.other.operator.kusto
 #                                      ^ source.kusto
-#                                       ^^^^^^^^^ source.kusto string.quoted.single
+#                                       ^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                                        ^^^^^^^ source.kusto string.quoted.single.kusto
+#                                               ^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
 #                                                ^^ source.kusto
-#                                                  ^^^^^^^^^ source.kusto keyword.operator.kusto
+#                                                  ^^^^^^^^^ source.kusto keyword.other.operator.kusto
 #                                                           ^ source.kusto
-#                                                            ^^^^^^^^ source.kusto string.quoted.single
+#                                                            ^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                                                             ^^^^^^ source.kusto string.quoted.single.kusto
+#                                                                   ^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
 #                                                                    ^^ source.kusto
 >fooBar(a:int, b:string) {
 #^^^^^^^^^ source.kusto
-#         ^^^ source.kusto storage.type
+#         ^^^ source.kusto storage.type.kusto
 #            ^^^^ source.kusto
-#                ^^^^^^ source.kusto storage.type
+#                ^^^^^^ source.kusto storage.type.kusto
 #                      ^^^^ source.kusto
 >    let b = c;
 #^^^^ source.kusto
@@ -27,36 +31,36 @@
 #^^^^^^ source.kusto
 >    | where foo == 1234 and bar and baz !in beer
 #^^^^^^ source.kusto
-#      ^^^^^ source.kusto keyword.operator.special.kusto
+#      ^^^^^ source.kusto keyword.other.query.kusto
 #           ^^^^^^^^ source.kusto
-#                   ^^^^ source.kusto constant.numeric
+#                   ^^^^ source.kusto constant.numeric.kusto
 #                       ^ source.kusto
-#                        ^^^ source.kusto keyword.operator.kusto
+#                        ^^^ source.kusto keyword.other.operator.kusto
 #                           ^^^^^ source.kusto
-#                                ^^^ source.kusto keyword.operator.kusto
-#                                   ^^^^^^ source.kusto
-#                                         ^^ source.kusto keyword.operator.kusto
+#                                ^^^ source.kusto keyword.other.operator.kusto
+#                                   ^^^^^ source.kusto
+#                                        ^^^ source.kusto keyword.other.operator.kusto
 #                                           ^^^^^^ source.kusto
 >    | join kind=innerunique hint.strategy=broadcast (
 #^^^^^^ source.kusto
-#      ^^^^ source.kusto keyword.operator.special.kusto
+#      ^^^^ source.kusto keyword.other.query.kusto
 #          ^ source.kusto
-#           ^^^^ source.kusto keyword.operator.kusto
+#           ^^^^ source.kusto keyword.other.operator.kusto
 #               ^ source.kusto
 #                ^^^^^^^^^^^ source.kusto keyword.other.kusto
 #                           ^ source.kusto
-#                            ^^^^^^^^^^^^^ source.kusto keyword.operator.kusto
+#                            ^^^^^^^^^^^^^ source.kusto keyword.other.operator.kusto
 #                                         ^ source.kusto
 #                                          ^^^^^^^^^ source.kusto keyword.other.kusto
 #                                                   ^^^ source.kusto
 >        A | where b=2
 #^^^^^^^^^^^^ source.kusto
-#            ^^^^^ source.kusto keyword.operator.special.kusto
+#            ^^^^^ source.kusto keyword.other.query.kusto
 #                 ^^^ source.kusto
-#                    ^ source.kusto constant.numeric
+#                    ^ source.kusto constant.numeric.kusto
 >    ) on $left.a == $right.b
 #^^^^^^ source.kusto
-#      ^^ source.kusto keyword.operator.kusto
+#      ^^ source.kusto keyword.other.operator.kusto
 #        ^ source.kusto
 #         ^^^^^ source.kusto keyword.other.kusto
 #              ^^^^^^ source.kusto
@@ -64,37 +68,43 @@
 #                          ^^^ source.kusto
 >    | parse kind=regex textField with "Abc=" abc, "Xyz=" xyz
 #^^^^^^ source.kusto
-#      ^^^^^ source.kusto keyword.operator.special.kusto
+#      ^^^^^ source.kusto keyword.other.query.kusto
 #           ^ source.kusto
-#            ^^^^ source.kusto keyword.operator.kusto
+#            ^^^^ source.kusto keyword.other.operator.kusto
 #                ^ source.kusto
-#                 ^^^^^ source.kusto keyword.operator.kusto
+#                 ^^^^^ source.kusto keyword.other.operator.kusto
 #                      ^^^^^^^^^^^ source.kusto
-#                                 ^^^^ source.kusto keyword.operator.kusto
+#                                 ^^^^ source.kusto keyword.other.operator.kusto
 #                                     ^ source.kusto
-#                                      ^^^^^^ source.kusto string.quoted.double
+#                                      ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                       ^^^^ source.kusto string.quoted.double.kusto
+#                                           ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
 #                                            ^^^^^^ source.kusto
-#                                                  ^^^^^^ source.kusto string.quoted.double
+#                                                  ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                   ^^^^ source.kusto string.quoted.double.kusto
+#                                                       ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
 #                                                        ^^^^^ source.kusto
 >    | where acos(b) == acosb
 #^^^^^^ source.kusto
-#      ^^^^^ source.kusto keyword.operator.special.kusto
+#      ^^^^^ source.kusto keyword.other.query.kusto
 #           ^ source.kusto
-#            ^^^^ source.kusto support.function
+#            ^^^^ source.kusto support.function.kusto
 #                ^^^^^^^^^^^^^ source.kusto
 >    | evaluate sql_request()
 #^^^^^^ source.kusto
-#      ^^^^^^^^ source.kusto keyword.operator.special.kusto
+#      ^^^^^^^^ source.kusto keyword.other.query.kusto
 #              ^ source.kusto
-#               ^^^^^^^^^^^ source.kusto support.function
+#               ^^^^^^^^^^^ source.kusto support.function.kusto
 #                          ^^^ source.kusto
 >    | sort by a desc null last;
 #^^^^^^ source.kusto
-#      ^^^^ source.kusto keyword.operator.special.kusto
-#          ^ source.kusto
-#           ^^ source.kusto keyword.operator.word
+#      ^^^^ source.kusto meta.query.sort.kusto keyword.other.query.kusto
+#          ^ source.kusto meta.query.sort.kusto
+#           ^^ source.kusto meta.query.sort.kusto keyword.other.operator.kusto
 #             ^^^ source.kusto
 #                ^^^^ source.kusto keyword.other.kusto
-#                    ^^^^^^^^^^^^ source.kusto
+#                    ^ source.kusto
+#                     ^^^^ source.kusto constant.language.kusto
+#                         ^^^^^^^ source.kusto
 >}
 #^^ source.kusto

@@ -1,0 +1,16 @@
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topoperator
+
+T | top 5 by Name desc nulls last
+
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topnestedoperator
+
+StormEvents
+| top-nested 2 of State with others = "All Other States" by sum(BeginLat),
+  top-nested 3 of Source by sum(BeginLat),
+  top-nested 1 of EndLocation with others = "All Other End Locations" by sum(BeginLat)
+
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/tophittersoperator
+
+Events | top-hitters 5 of EventId
+
+PageViews | top-hitters 25 of Page by NumViews

@@ -1,40 +1,44 @@
 >let Events = MyLogTable | where A=B;
 #^^^ source.kusto keyword.control.kusto
 #   ^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
-#                          ^^^^^ source.kusto keyword.operator.special.kusto
+#                          ^^^^^ source.kusto keyword.other.query.kusto
 #                               ^^^^^^ source.kusto
 >
 >Events
 #^^^^^^^ source.kusto
 >| where Name == "Start"
 #^^ source.kusto
-#  ^^^^^ source.kusto keyword.operator.special.kusto
+#  ^^^^^ source.kusto keyword.other.query.kusto
 #       ^^^^^^^^^ source.kusto
-#                ^^^^^^^ source.kusto string.quoted.double
+#                ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                 ^^^^^ source.kusto string.quoted.double.kusto
+#                      ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
 >| project Name, CIty, SessionId, StartTime=timestamp
 #^^ source.kusto
-#  ^^^^^^^ source.kusto keyword.operator.special.kusto
+#  ^^^^^^^ source.kusto keyword.other.query.kusto
 #         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
 >| join (
 #^^ source.kusto
-#  ^^^^ source.kusto keyword.operator.special.kusto
+#  ^^^^ source.kusto keyword.other.query.kusto
 #      ^^^ source.kusto
 >    Events
 #^^^^^^^^^^^ source.kusto
 >    | where Name="Stop"
 #^^^^^^ source.kusto
-#      ^^^^^ source.kusto keyword.operator.special.kusto
+#      ^^^^^ source.kusto keyword.other.query.kusto
 #           ^^^^^^ source.kusto
-#                 ^^^^^^ source.kusto string.quoted.double
+#                 ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                  ^^^^ source.kusto string.quoted.double.kusto
+#                      ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
 >    | project StopTime=timestamp, SessionId
 #^^^^^^ source.kusto
-#      ^^^^^^^ source.kusto keyword.operator.special.kusto
+#      ^^^^^^^ source.kusto keyword.other.query.kusto
 #             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
 >) on SessionId
 #^^ source.kusto
-#  ^^ source.kusto keyword.operator.kusto
+#  ^^ source.kusto keyword.other.operator.kusto
 #    ^^^^^^^^^^^ source.kusto
 >| project City, SessionId, StopTime, Duration = StopTime - StartTime
 #^^ source.kusto
-#  ^^^^^^^ source.kusto keyword.operator.special.kusto
+#  ^^^^^^^ source.kusto keyword.other.query.kusto
 #         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto

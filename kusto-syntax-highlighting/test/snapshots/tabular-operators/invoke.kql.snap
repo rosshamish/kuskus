@@ -1,0 +1,77 @@
+>// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/invokeoperator
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>
+>// clipped_average(): calculates percentiles limits, and then makes another 
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>//                    pass over the data to calculate average with values inside the percentiles
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>let clipped_average = (T:(x: long), lowPercentile:double, upPercentile:double)
+#^^^ source.kusto keyword.control.kusto
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
+#                             ^^^^ source.kusto storage.type.kusto
+#                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
+>{
+#^^ source.kusto
+>   let high = toscalar(T | summarize percentiles(x, upPercentile));
+#^^^ source.kusto
+#   ^^^ source.kusto keyword.control.kusto
+#      ^^^^^^^^ source.kusto
+#              ^^^^^^^^ source.kusto support.function.kusto
+#                      ^^^^^ source.kusto
+#                           ^^^^^^^^^ source.kusto keyword.other.query.kusto
+#                                    ^ source.kusto
+#                                     ^^^^^^^^^^^ source.kusto support.function.kusto
+#                                                ^^^^^^^^^^^^^^^^^^^^ source.kusto
+>   let low = toscalar(T | summarize percentiles(x, lowPercentile));
+#^^^ source.kusto
+#   ^^^ source.kusto keyword.control.kusto
+#      ^^^^^^^ source.kusto
+#             ^^^^^^^^ source.kusto support.function.kusto
+#                     ^^^^^ source.kusto
+#                          ^^^^^^^^^ source.kusto keyword.other.query.kusto
+#                                   ^ source.kusto
+#                                    ^^^^^^^^^^^ source.kusto support.function.kusto
+#                                               ^^^^^^^^^^^^^^^^^^^^^ source.kusto
+>   T 
+#^^^^^^ source.kusto
+>   | where x > low and x < high
+#^^^^^ source.kusto
+#     ^^^^^ source.kusto keyword.other.query.kusto
+#          ^^^^^^^^^ source.kusto
+#                   ^^^ source.kusto keyword.other.operator.kusto
+#                      ^^^^^^^^^^ source.kusto
+>   | summarize avg(x) 
+#^^^^^ source.kusto
+#     ^^^^^^^^^ source.kusto keyword.other.query.kusto
+#              ^ source.kusto
+#               ^^^ source.kusto support.function.kusto
+#                  ^^^^^ source.kusto
+>};
+#^^^ source.kusto
+>range x from 1 to 100 step 1
+#^^^^^ source.kusto meta.query.range.kusto keyword.other.query.kusto
+#     ^ source.kusto meta.query.range.kusto
+#      ^ source.kusto meta.query.range.kusto variable.other.column.kusto
+#       ^ source.kusto meta.query.range.kusto
+#        ^^^^ source.kusto meta.query.range.kusto keyword.other.operator.kusto
+#            ^ source.kusto meta.query.range.kusto
+#             ^ source.kusto meta.query.range.kusto constant.numeric.kusto
+#              ^ source.kusto meta.query.range.kusto
+#               ^^ source.kusto meta.query.range.kusto keyword.other.operator.kusto
+#                 ^ source.kusto meta.query.range.kusto
+#                  ^^^ source.kusto meta.query.range.kusto constant.numeric.kusto
+#                     ^ source.kusto meta.query.range.kusto
+#                      ^^^^ source.kusto meta.query.range.kusto keyword.other.operator.kusto
+#                          ^ source.kusto meta.query.range.kusto
+#                           ^ source.kusto meta.query.range.kusto constant.numeric.kusto
+>| invoke clipped_average(5, 99)
+#^^ source.kusto
+#  ^^^^^^ source.kusto meta.query.invoke.kusto keyword.other.query.kusto
+#        ^ source.kusto meta.query.invoke.kusto
+#         ^^^^^^^^^^^^^^^ source.kusto meta.query.invoke.kusto entity.name.function.kusto
+#                        ^ source.kusto
+#                         ^ source.kusto constant.numeric.kusto
+#                          ^^ source.kusto
+#                            ^^ source.kusto constant.numeric.kusto
+#                              ^^ source.kusto
+>

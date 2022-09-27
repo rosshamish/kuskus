@@ -1,0 +1,4 @@
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/projectawayoperator
+
+print a2='a2', b = 'b', a3='a3', a1='a1'
+| project-away a*

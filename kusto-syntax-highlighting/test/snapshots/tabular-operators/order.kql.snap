@@ -1,0 +1,15 @@
+>// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/orderoperator
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>
+>T | order by country asc, price desc
+#^^^^ source.kusto
+#    ^^^^^ source.kusto meta.query.order.kusto keyword.other.query.kusto
+#         ^ source.kusto meta.query.order.kusto
+#          ^^ source.kusto meta.query.order.kusto keyword.other.operator.kusto
+#            ^ source.kusto meta.query.order.kusto
+#             ^^^^^^^ source.kusto meta.query.order.kusto variable.other.column.kusto
+#                    ^ source.kusto
+#                     ^^^ source.kusto keyword.other.kusto
+#                        ^^^^^^^^ source.kusto
+#                                ^^^^ source.kusto keyword.other.kusto
+>

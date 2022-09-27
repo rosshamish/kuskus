@@ -1,0 +1,37 @@
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/scalar-data-types/string
+
+print strlen("Hello"', '@"world!"); // Nothing between them
+
+print strlen("Hello" ', ' @"world!"); // Separated by whitespace only
+
+print strlen("Hello"
+  // Comment
+  ', '@"world!"); // Separated by whitespace and a comment
+
+// Simple string notation
+print s1 = 'some string', s2 = "some other string"
+
+// Strings that include single or double-quotes can be defined as follows
+print s1 = 'string with " (double quotes)',
+          s2 = "string with ' (single quotes)"
+
+// Strings with '\' can be prefixed with '@' (as in c#)
+print myPath1 = @'C:\Folder\filename.txt'
+
+// Escaping using '\' notation
+print s = '\\n.*(>|\'|=|\")[a-zA-Z0-9/+]{86}=='
+
+// Encode a C# program in a Kusto multi-line string
+print program=```
+  public class Program {
+    public static void Main() {
+      System.Console.WriteLine("Hello!");
+    }
+  }```
+
+h'hello'
+h@'world'
+h"hello"
+
+print x="https://contoso.blob.core.windows.net/container/blob.txt?"
+  h'sv=2012-02-12&se=2013-04-13T0...'

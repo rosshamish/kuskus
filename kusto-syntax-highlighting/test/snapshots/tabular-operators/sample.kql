@@ -1,0 +1,9 @@
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sampleoperator
+
+let _data = range x from 1 to 100 step 1;
+let _sample = _data | sample 1;
+union (_sample), (_sample);
+
+// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sampledistinctoperator
+
+StormEvents | sample-distinct 10 of EpisodeId

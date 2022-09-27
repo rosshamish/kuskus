@@ -1,0 +1,98 @@
+>// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/datatableoperator
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>
+>datatable(Date:datetime, Event:string, MoreData:dynamic) [
+#^^^^^^^^^ source.kusto keyword.other.query.kusto
+#         ^^^^^^ source.kusto
+#               ^^^^^^^^ source.kusto storage.type.kusto
+#                       ^^^^^^^^ source.kusto
+#                               ^^^^^^ source.kusto storage.type.kusto
+#                                     ^^^^^^^^^^^ source.kusto
+#                                                ^^^^^^^ source.kusto storage.type.kusto
+#                                                       ^^^^ source.kusto
+>    datetime(1910-06-11), "Born", dynamic({"key1":"value1", "key2":"value2"}),
+#^^^^ source.kusto
+#    ^^^^^^^^ source.kusto storage.type.kusto
+#            ^ source.kusto
+#             ^^^^ source.kusto constant.numeric.kusto
+#                 ^ source.kusto
+#                  ^^ source.kusto constant.numeric.kusto
+#                    ^ source.kusto
+#                     ^^ source.kusto constant.numeric.kusto
+#                       ^^^ source.kusto
+#                          ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                           ^^^^ source.kusto string.quoted.double.kusto
+#                               ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                ^^ source.kusto
+#                                  ^^^^^^^ source.kusto storage.type.kusto
+#                                         ^ source.kusto
+#                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.other.kusto
+#                                                                            ^^^ source.kusto
+>    datetime(1930-01-01), "Enters Ecole Navale", dynamic({"key1":"value3", "key2":"value4"}),
+#^^^^ source.kusto
+#    ^^^^^^^^ source.kusto storage.type.kusto
+#            ^ source.kusto
+#             ^^^^ source.kusto constant.numeric.kusto
+#                 ^ source.kusto
+#                  ^^ source.kusto constant.numeric.kusto
+#                    ^ source.kusto
+#                     ^^ source.kusto constant.numeric.kusto
+#                       ^^^ source.kusto
+#                          ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                           ^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                              ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                               ^^ source.kusto
+#                                                 ^^^^^^^ source.kusto storage.type.kusto
+#                                                        ^ source.kusto
+#                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.other.kusto
+#                                                                                           ^^^ source.kusto
+>    datetime(1953-01-01), "Published first book", dynamic({"key1":"value5", "key2":"value6"}),
+#^^^^ source.kusto
+#    ^^^^^^^^ source.kusto storage.type.kusto
+#            ^ source.kusto
+#             ^^^^ source.kusto constant.numeric.kusto
+#                 ^ source.kusto
+#                  ^^ source.kusto constant.numeric.kusto
+#                    ^ source.kusto
+#                     ^^ source.kusto constant.numeric.kusto
+#                       ^^^ source.kusto
+#                          ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                           ^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                               ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                ^^ source.kusto
+#                                                  ^^^^^^^ source.kusto storage.type.kusto
+#                                                         ^ source.kusto
+#                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.other.kusto
+#                                                                                            ^^^ source.kusto
+>    datetime(1997-06-25), "Died", dynamic({"key1":"value7", "key2":"value8"}),
+#^^^^ source.kusto
+#    ^^^^^^^^ source.kusto storage.type.kusto
+#            ^ source.kusto
+#             ^^^^ source.kusto constant.numeric.kusto
+#                 ^ source.kusto
+#                  ^^ source.kusto constant.numeric.kusto
+#                    ^ source.kusto
+#                     ^^ source.kusto constant.numeric.kusto
+#                       ^^^ source.kusto
+#                          ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                           ^^^^ source.kusto string.quoted.double.kusto
+#                               ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                ^^ source.kusto
+#                                  ^^^^^^^ source.kusto storage.type.kusto
+#                                         ^ source.kusto
+#                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.other.kusto
+#                                                                            ^^^ source.kusto
+>]
+#^^ source.kusto
+>| where strlen(Event) > 4
+#^^ source.kusto
+#  ^^^^^ source.kusto keyword.other.query.kusto
+#       ^ source.kusto
+#        ^^^^^^ source.kusto support.function.kusto
+#              ^^^^^^^^^^ source.kusto
+#                        ^ source.kusto constant.numeric.kusto
+>| extend key2 = MoreData.key2
+#^^ source.kusto
+#  ^^^^^^ source.kusto keyword.other.query.kusto
+#        ^^^^^^^^^^^^^^^^^^^^^^ source.kusto
+>
