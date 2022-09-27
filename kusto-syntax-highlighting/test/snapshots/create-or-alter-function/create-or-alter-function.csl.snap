@@ -103,6 +103,8 @@
 #           ^^ source.kusto meta.query.sort.kusto keyword.other.operator.kusto
 #             ^^^ source.kusto
 #                ^^^^ source.kusto keyword.other.kusto
-#                    ^^^^^^^^^^^^ source.kusto
+#                    ^ source.kusto
+#                     ^^^^ source.kusto constant.language.kusto
+#                         ^^^^^^^ source.kusto
 >}
 #^^ source.kusto
