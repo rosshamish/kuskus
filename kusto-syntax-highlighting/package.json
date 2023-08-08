@@ -41,7 +41,11 @@
           ".kusto",
           ".kql"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/kusto_logo.png",
+          "dark": "./images/kusto_logo_dark.png"
+        }
       }
     ],
     "grammars": [
@@ -49,6 +53,16 @@
         "language": "kusto",
         "scopeName": "source.kusto",
         "path": "./syntaxes/kusto.tmLanguage.json"
+      },
+      {
+        "scopeName": "markdown.kusto.codeblock",
+        "path": "./syntaxes/kusto-markdown-codeblock.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.kusto": "kusto"
+        }
       }
     ]
   },
