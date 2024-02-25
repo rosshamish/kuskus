@@ -10,7 +10,7 @@
     "fenced_code_block_kusto": {
       "name": "markup.fenced_code.block.markdown",
       "begin": "(^|\\G)(\\s*)(\\`{3,}|~{3,})\\s*(?i:(kusto|kql|csl)(\\s+[^`~]*)?$)",
-      "end": "(^|\\G)(?=\\s*[`~]{3,}\\s*$)",
+      "end": "(^|\\G)(\\2|\\s{0,3})(\\3)\\s*$",
       "beginCaptures": {
         "3": {
           "name": "punctuation.definition.markdown"
