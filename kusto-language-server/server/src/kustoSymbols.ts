@@ -1,16 +1,10 @@
-/// <reference path="./typings/refs.d.ts" />
-/// <reference path="../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
-/// <reference path="./typings/MissingFromBridge.d.ts" />
-import './bridge.min';
-import './Kusto.Language.Bridge.min';
-
 interface DatabaseMetadata { DatabaseName:string, PrettyName:string };
 interface TableMetadata { TableName:string, DatabaseName:string, Folder:string, DocString:string };
 interface TableSchema { TableName:string, Schema:string, DatabaseName:string, Folder:string, DocString:string };
 interface FunctionMetadata { Name:string, Parameters:string, Folder:string, DocString: string };
 interface ColumnInfo {Name:string, Type:string, CslType:string};
 
-export async function getSymbolsOnCluster(kustoClient: any, defaultDatabaseName: string) : Promise<Kusto.Language.GlobalState>  {
+export async function getSymbolsOnCluster(kustoClient: any, defaultDatabaseName: string) : Promise<Kusto.Language.GlobalState | null>  {
 	// const databasesMetadata = await getDatabasesOnCluster(kustoClient, defaultDatabaseName);
 	// for (let databaseNames of databasesMetadata) {
 	// 	const functionMetadatas = await getFunctionsOnDatabase(kustoClient, defaultDatabaseName);
@@ -21,17 +15,23 @@ export async function getSymbolsOnCluster(kustoClient: any, defaultDatabaseName:
 	const tableMetadata = await getTableMetadata(kustoClient, defaultDatabaseName);
 	const functionMetadata = await getFunctionMetadata(kustoClient, defaultDatabaseName);
 	const globalState = Kusto.Language.GlobalState.Default;
+	if (!globalState) {
+		return null;
+	}
 	let symbols = [];
 	symbols.push(...getTableSymbols(tableMetadata));
 	symbols.push(...getFunctionSymbols(functionMetadata, globalState));
 	return globalState.WithDatabase(new Kusto.Language.Symbols.DatabaseSymbol.ctor(defaultDatabaseName, symbols));
 }
 
-export async function getSymbolsOnTable(kustoClient: any, defaultDatabaseName: string, tableName: string, globalState: Kusto.Language.GlobalState) : Promise<Kusto.Language.GlobalState>  {
+export async function getSymbolsOnTable(kustoClient: any, defaultDatabaseName: string, tableName: string, globalState: Kusto.Language.GlobalState) : Promise<Kusto.Language.GlobalState | null>  {
 	const tableSchema = await getTableSchema(kustoClient, defaultDatabaseName, tableName);
 	const columns = getTableColumns(tableSchema);
-	const newTable = new Kusto.Language.Symbols.TableSymbol.$ctor3(tableName, columns);
-	return globalState.WithDatabase(globalState.Database.AddSymbols([newTable]));
+	const newTable = new Kusto.Language.Symbols.TableSymbol.$ctor4(tableName, columns);
+	if (!globalState.Database) {
+		return null;
+	}
+	return globalState.WithDatabase(globalState.Database.AddMembers([newTable]));
 }
 
 function getTableColumns(tableSchemas: TableSchema): Kusto.Language.Symbols.ColumnSymbol[] {
@@ -41,7 +41,7 @@ function getTableColumns(tableSchemas: TableSchema): Kusto.Language.Symbols.Colu
 	let orderedColumns : ColumnInfo[] = schema.OrderedColumns;
 
 	orderedColumns.forEach(column => {
-		columns.push(new Kusto.Language.Symbols.ColumnSymbol(column.Name, getTypeSymbol(column.CslType)));
+		columns.push(new Kusto.Language.Symbols.ColumnSymbol(column.Name, getTypeSymbol(column.CslType), null, null, null, null));
 	});
 
 	return columns;
@@ -178,7 +178,7 @@ function getTableSchema(kustoClient: any, databaseName: string, tableName: strin
 function getTableSymbols(metadata: TableMetadata[]) : Kusto.Language.Symbols.TableSymbol[] {
 	let symbols: Kusto.Language.Symbols.TableSymbol[] = [];
 	for (let m of metadata) {
-		symbols.push(new Kusto.Language.Symbols.TableSymbol.$ctor3(m.TableName, []));
+		symbols.push(new Kusto.Language.Symbols.TableSymbol.$ctor4(m.TableName, []));
 	}
 	return symbols;
 }
@@ -188,8 +188,8 @@ function getFunctionSymbols(metadata: FunctionMetadata[], globalState: Kusto.Lan
 
 	for (let m of metadata) {
 		// TODO return type, signature types etc. Will require additional calls to cluster.
-		let signature = new Kusto.Language.Symbols.Signature.$ctor4(Kusto.Language.Symbols.ReturnTypeKind.Common, getParameters(m.Parameters));
-		symbols.push(new Kusto.Language.Symbols.FunctionSymbol.$ctor6(m.Name, [signature]));
+		let signature = new Kusto.Language.Symbols.Signature.$ctor2(Kusto.Language.Symbols.ReturnTypeKind.Common, getParameters(m.Parameters));
+		symbols.push(new Kusto.Language.Symbols.FunctionSymbol.$ctor4(m.Name, [signature]));
 	}
 
 	return symbols;
@@ -212,6 +212,6 @@ function getSingleParameter(parameter: string) : Kusto.Language.Symbols.Paramete
 	return new Kusto.Language.Symbols.Parameter.$ctor2(paramSplit[0], getTypeSymbol(paramSplit[1]));
 }
 
-function getTypeSymbol(type: string) : Kusto.Language.Symbols.ScalarSymbol {
-	return new Kusto.Language.Symbols.ScalarSymbol(type, [], 0, []);
+function getTypeSymbol(type: string) : Kusto.Language.Symbols.ScalarSymbol | null {
+	return Kusto.Language.Symbols.ScalarSymbol.From(type);
 }

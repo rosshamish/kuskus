@@ -1,16 +1,10 @@
-/// <reference path="../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
-/// <reference path="./typings/MissingFromBridge.d.ts" />
-/// <reference path="./typings/refs.d.ts" />
-import './bridge.min';
-import './Kusto.Language.Bridge.min';
-
 import { CompletionItemKind, CompletionItem } from 'vscode-languageserver';
 
 export function getVSCodeCompletionItemsAtPosition(kustoCodeScript: Kusto.Language.Editor.CodeScript, line: number, character: number): CompletionItem[] {
 	let completionItems: Kusto.Language.Editor.CompletionItem[] = getCompletionItemsAtPosition(kustoCodeScript, line, character);
 	let vsCodeCompletionItems: CompletionItem[] = completionItems.map(completionItem => {
 		return {
-			label: completionItem.DisplayText,
+			label: completionItem.DisplayText || '',
 			kind: _getVSCodeCompletionItemKind(completionItem)
 		}
 	});
@@ -24,8 +18,17 @@ function getCompletionItemsAtPosition(kustoCodeScript: Kusto.Language.Editor.Cod
 		throw new Error(`Position (${line},${character}) not valid, cannot get completion items`);
 	}
 	const kustoCodeBlock = kustoCodeScript.GetBlockAtPosition(position.v);
-	const completionItems = kustoCodeBlock.Service.GetCompletionItems(position.v).Items;
-	return completionItems.Items._items;
+    if (!kustoCodeBlock || !kustoCodeBlock.Service) {
+		throw new Error(`Code block at position (${line},${character}) not valid, cannot get completion items`);
+    }
+
+	const completionItems = kustoCodeBlock.Service.GetCompletionItems(position.v);
+    if (!completionItems) {
+		throw new Error(`Completion items at position (${line},${character}) not valid, cannot get completion items`);
+    }
+
+    // @ts-ignore
+	return completionItems.Items.Items._items;
 }
 
 function _getVSCodeCompletionItemKind(completionItem: Kusto.Language.Editor.CompletionItem) : CompletionItemKind {
@@ -38,14 +41,13 @@ function _getVSCodeCompletionItemKind(completionItem: Kusto.Language.Editor.Comp
             return CompletionItemKind.Enum;
         case Kusto.Language.Editor.CompletionKind.Column:
             return CompletionItemKind.EnumMember;
-        case Kusto.Language.Editor.CompletionKind.ScalarFunction:
-        case Kusto.Language.Editor.CompletionKind.TabularFunction:
+        case Kusto.Language.Editor.CompletionKind.BuiltInFunction:
+        case Kusto.Language.Editor.CompletionKind.LocalFunction:
+        case Kusto.Language.Editor.CompletionKind.DatabaseFunction:
         case Kusto.Language.Editor.CompletionKind.AggregateFunction:
             return CompletionItemKind.Function;
         case Kusto.Language.Editor.CompletionKind.Parameter:
             return CompletionItemKind.TypeParameter;
-        case Kusto.Language.Editor.CompletionKind.Literal:
-            return CompletionItemKind.Constant;
         case Kusto.Language.Editor.CompletionKind.Variable:
         case Kusto.Language.Editor.CompletionKind.Identifier:
             return CompletionItemKind.Variable;
