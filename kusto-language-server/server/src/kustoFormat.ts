@@ -1,19 +1,21 @@
-/// <reference path="../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
-/// <reference path="./typings/MissingFromBridge.d.ts" />
-/// <reference path="./typings/refs.d.ts" />
-import './bridge.min';
-import './Kusto.Language.Bridge.min';
-
-export function formatCodeScript(kustoCodeScript: Kusto.Language.Editor.CodeScript): string {
+export function formatCodeScript(kustoCodeScript: Kusto.Language.Editor.CodeScript): string | null {
 	let formattedBlocks: string[] = [];
 
 	let formattedText: string = '';
 	let hasSeenFirstQueryBlock: boolean = false;
 	let indentSize: number = 0;
 	const blocks = kustoCodeScript.Blocks;
+	if (!blocks) {
+		return null;
+	}
+
 	for (let i = 0; i < blocks.Count; i++) {
-		let block = blocks._items[i];
-		({ formattedText, hasSeenFirstQueryBlock, indentSize } = formatBlock(block, hasSeenFirstQueryBlock, indentSize));
+		let block = blocks.getItem(i);
+		let formattedBlock = formatBlock(block, hasSeenFirstQueryBlock, indentSize);
+		if (!formattedBlock) {
+			continue;
+		}
+		({ formattedText, hasSeenFirstQueryBlock, indentSize } = formattedBlock);
 		// Remove empty blocks
 		if (/\S/.test(formattedText)) {
 			formattedBlocks.push(formattedText);
@@ -27,8 +29,17 @@ export function formatCodeScript(kustoCodeScript: Kusto.Language.Editor.CodeScri
 const NEWLINE: string = '\r\n';
 const NEWLINE_REGEX: RegExp = /\r\n/g;
 
-function formatBlock(block: Kusto.Language.Editor.CodeBlock, hasSeenFirstQueryBlock: boolean, indentSize: number): { formattedText: string, hasSeenFirstQueryBlock: boolean, indentSize: number } {
-	let formattedText = block.Service.GetFormattedText().Text;
+function formatBlock(block: Kusto.Language.Editor.CodeBlock, hasSeenFirstQueryBlock: boolean, indentSize: number): { formattedText: string, hasSeenFirstQueryBlock: boolean, indentSize: number } | null {
+	if (!block.Service) {
+		return null;
+	}
+	
+	let formattedTextObject = block.Service.GetFormattedText();
+	if (!formattedTextObject || !formattedTextObject.Text) {
+		return null;
+	}
+	
+	let formattedText = formattedTextObject.Text;
 	if (block.Kind == 'Query') {
 		// Read the indent size from the first query block in the document
 		if (!hasSeenFirstQueryBlock) {

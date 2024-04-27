@@ -1,8 +1,5 @@
-/// <reference path="../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
-/// <reference path="./typings/MissingFromBridge.d.ts" />
-/// <reference path="./typings/refs.d.ts" />
-import './bridge.min';
-import './Kusto.Language.Bridge.min';
+import '../node_modules/@kusto/language-service-next/bridge';
+import '../node_modules/@kusto/language-service-next/Kusto.Language.Bridge';
 
 import {
     createConnection,
@@ -17,8 +14,7 @@ import {
     TextDocumentPositionParams,
     Hover,
     TextEdit,
-    DocumentFormattingParams,
-    Position
+    DocumentFormattingParams
 } from 'vscode-languageserver';
 
 import { getClient as getKustoClient, TokenResponse, getFirstOrDefaultClient } from './kustoConnection';
@@ -36,8 +32,8 @@ let documents: TextDocuments = new TextDocuments();
 
 // Create a collection of Kusto code services, one for each document
 type documentURI = string;
-let kustoGlobalState: Kusto.Language.GlobalState = Kusto.Language.GlobalState.Default;
-let kustoCodeScripts: Map<documentURI, Kusto.Language.Editor.CodeScript> = new Map();
+let kustoGlobalState = Kusto.Language.GlobalState.Default;
+let kustoCodeScripts: Map<documentURI, Kusto.Language.Editor.CodeScript | null> = new Map();
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -95,7 +91,9 @@ connection.onRequest('kuskus.loadSymbols', async ({ clusterUri, tenantId, databa
 		connection.sendNotification('kuskus.loadSymbols.auth.complete.success', { clusterUri, tenantId, database });
 		connection.sendNotification('kuskus.loadSymbols.success', { clusterUri, database });
 		kustoCodeScripts.forEach((value, key) => {
-			kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+            if (value) {
+			    kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+            }
 		});
 	} catch {
 		connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, tenantId, database });
@@ -103,18 +101,30 @@ connection.onRequest('kuskus.loadSymbols', async ({ clusterUri, tenantId, databa
 });
 
 connection.onRequest('kuskus.loadTable', async ( tableName : string) => {
-	
 	let clusterUri: string = "";
 	let kustoClient = null;
 	 ( {clusterUri, kustoClient} = getFirstOrDefaultClient());
-	 let database: string = kustoGlobalState.Database.Name;
+
+    if (!kustoGlobalState || !kustoGlobalState.Database) {
+		connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, database: '' });
+        return;
+    }
+
+	let database = kustoGlobalState.Database.Name;
 	
+    if (!database) {
+	    connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, database });
+        return;
+    }
+
 	try {
 		kustoGlobalState = await getSymbolsOnTable(kustoClient, database, tableName, kustoGlobalState);
 		connection.sendNotification('kuskus.loadSymbols.auth.complete.success', { clusterUri, database });
 		connection.sendNotification('kuskus.loadSymbols.success', { clusterUri, database });
 		kustoCodeScripts.forEach((value, key) => {
-			kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+            if (value) {
+			    kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+            }
 		});
 	} catch {
 		connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, database });
@@ -178,12 +188,14 @@ documents.onDidChangeContent(change => {
         kustoCodeScripts.set(change.document.uri, _getCodeScriptForDocumentOrNewCodeScript(change.document));
     } else {
         const beforeChange = _getCodeScriptForDocumentOrNewCodeScript(change.document);
-        kustoCodeScripts.set(change.document.uri, beforeChange.WithText(change.document.getText()));
+        if (beforeChange) {
+            kustoCodeScripts.set(change.document.uri, beforeChange.WithText(change.document.getText()));
+        }
     }
     validateTextDocument(change.document);
 });
 
-function _getCodeScriptForDocumentOrNewCodeScript(document: TextDocument) : Kusto.Language.Editor.CodeScript {
+function _getCodeScriptForDocumentOrNewCodeScript(document: TextDocument) : Kusto.Language.Editor.CodeScript | null {
     return (
         kustoCodeScripts.get(document.uri) || 
         Kusto.Language.Editor.CodeScript.From$1(document.getText(), kustoGlobalState)
@@ -198,21 +210,34 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	}
 
 	const kustoCodeScript = _getCodeScriptForDocumentOrNewCodeScript(textDocument);
+    if (!kustoCodeScript) {
+        return;
+    }
+
 	let documentDiagnostics: Diagnostic[] = [];
 
 	const blocks = kustoCodeScript.Blocks;
+    if (!blocks) {
+        return;
+    }
 	for (let i=0; i < blocks.Count; i++) {
-		let block = blocks._items[i];
+		let block = blocks.getItem(i);
+        if (!block.Service) {
+            continue;
+        }
 		let diagnostics = block.Service.GetDiagnostics();
+        if (!diagnostics) {
+            continue;
+        }
 		for (let j=0; j < diagnostics.Count; j++) {
-			let diagnostic = diagnostics.Items._items[j];
+			let diagnostic = diagnostics.getItem(j);
 			documentDiagnostics.push({
 				severity: DiagnosticSeverity.Error,
 				range: {
 				  start: textDocument.positionAt(diagnostic.Start),
 				  end: textDocument.positionAt(diagnostic.End)
 				},
-				message: diagnostic.Message
+				message: diagnostic.Message || 'unknown error'
 			})
 		}
 	}
@@ -234,14 +259,18 @@ connection.onCompletion(
         // info and always provide the same completion items.
 
         const kustoCodeScript = kustoCodeScripts.get(_textDocumentPosition.textDocument.uri);
-        if (kustoCodeScript === undefined) {
+        if (!kustoCodeScript) {
             return [];
         }
 
         try {
             return getVSCodeCompletionItemsAtPosition(kustoCodeScript, _textDocumentPosition.position.line + 1, _textDocumentPosition.position.character + 1)
         } catch (e) {
-            connection.console.error(e);
+            if (e instanceof Error) {
+                connection.console.error(e.message);
+            } else if (typeof e === 'string') {
+                connection.console.error(e);
+            }
             return [];
         }
     }
@@ -258,26 +287,39 @@ connection.onCompletionResolve(
 connection.onHover(
     (params: TextDocumentPositionParams): Hover | null => {
         const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
-        if (kustoCodeScript !== undefined) {
-            let position = {v:-1};
-            let positionValid = kustoCodeScript.TryGetTextPosition(params.position.line + 1, params.position.character + 1, position);
-            const kustoCodeBlock = kustoCodeScript.GetBlockAtPosition(position.v);
-            const quickInfo = kustoCodeBlock.Service.GetQuickInfo(position.v);
-
-            return {contents: quickInfo.Text};
+        if (!kustoCodeScript) {
+            return null;
         }
-        return null;
+
+        let position = {v:-1};
+        let positionValid = kustoCodeScript.TryGetTextPosition(params.position.line + 1, params.position.character + 1, position);
+        const kustoCodeBlock = kustoCodeScript.GetBlockAtPosition(position.v);
+        if (!kustoCodeBlock || !kustoCodeBlock.Service) {
+            return null;
+        }
+
+        const quickInfo = kustoCodeBlock.Service.GetQuickInfo(position.v);
+
+        if (!quickInfo || !quickInfo.Text) {
+            return null;
+        }
+
+        return {contents: quickInfo.Text || ''};
     }
 )
 
 connection.onDocumentFormatting(
     (params: DocumentFormattingParams): TextEdit[] | null => {
         const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
-        if (kustoCodeScript === undefined) {
+        if (!kustoCodeScript) {
             return null;
         }
 
-        let formatted: string = formatCodeScript(kustoCodeScript);
+        let formatted = formatCodeScript(kustoCodeScript);
+        if (!formatted) {
+            return null;
+        }
+
         let changes:TextEdit[] = [TextEdit.replace({
             start: {line: 0, character: 0},
             end: {line: Number.MAX_VALUE, character: Number.MAX_VALUE}
