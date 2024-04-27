@@ -87,7 +87,7 @@
     "dependencies": {
         "@types/lodash": "^4.17.0",
         "azure-kusto-data": "^5.2.3",
-        "clipboardy": "^2.1.0",
+        "clipboardy": "^4.0.0",
         "lodash": "^4.17.19",
         "open": "^6.4.0"
     }
