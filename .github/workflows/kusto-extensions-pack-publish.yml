@@ -19,7 +19,7 @@ jobs:
         working-directory: kusto-extensions-pack
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name:  'Automated Version Bump'
         uses:  ./.github/actions/gh-action-bump-version-master
@@ -34,7 +34,7 @@ jobs:
           push: false
 
       - name: Publish VS Code Extension
-        uses: HaaLeo/publish-vscode-extension@v0
+        uses: HaaLeo/publish-vscode-extension@v1
         with:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
