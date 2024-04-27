@@ -11,7 +11,7 @@
 			},
 			"problemMatcher": [
 				"$tsc"
-			],
+			]
 		},
 		{
 			"type": "npm",
