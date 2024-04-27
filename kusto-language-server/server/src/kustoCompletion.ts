@@ -1,8 +1,12 @@
 import { CompletionItemKind, CompletionItem } from 'vscode-languageserver';
 
 export function getVSCodeCompletionItemsAtPosition(kustoCodeScript: Kusto.Language.Editor.CodeScript, line: number, character: number): CompletionItem[] {
-	let completionItems: Kusto.Language.Editor.CompletionItem[] = getCompletionItemsAtPosition(kustoCodeScript, line, character);
-	let vsCodeCompletionItems: CompletionItem[] = completionItems.map(completionItem => {
+	let completionItems = getCompletionItemsAtPosition(kustoCodeScript, line, character);
+    if (!completionItems || !completionItems.Count) {
+        return [];
+    }
+
+	let vsCodeCompletionItems: CompletionItem[] = (Bridge as any).toArray(completionItems).map((completionItem: Kusto.Language.Editor.CompletionItem) => {
 		return {
 			label: completionItem.DisplayText || '',
 			kind: _getVSCodeCompletionItemKind(completionItem)
@@ -11,7 +15,7 @@ export function getVSCodeCompletionItemsAtPosition(kustoCodeScript: Kusto.Langua
 	return vsCodeCompletionItems;
 }
 
-function getCompletionItemsAtPosition(kustoCodeScript: Kusto.Language.Editor.CodeScript, line: number, character: number): Kusto.Language.Editor.CompletionItem[] {
+function getCompletionItemsAtPosition(kustoCodeScript: Kusto.Language.Editor.CodeScript, line: number, character: number): System.Collections.Generic.IReadOnlyList$1<Kusto.Language.Editor.CompletionItem> | null {
 	let position = {v:-1};
 	let positionValid = kustoCodeScript.TryGetTextPosition(line, character, position);
 	if (!positionValid) {
@@ -27,8 +31,7 @@ function getCompletionItemsAtPosition(kustoCodeScript: Kusto.Language.Editor.Cod
 		throw new Error(`Completion items at position (${line},${character}) not valid, cannot get completion items`);
     }
 
-    // @ts-ignore
-	return completionItems.Items.Items._items;
+	return completionItems.Items;
 }
 
 function _getVSCodeCompletionItemKind(completionItem: Kusto.Language.Editor.CompletionItem) : CompletionItemKind {

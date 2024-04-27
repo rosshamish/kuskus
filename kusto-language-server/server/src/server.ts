@@ -1,3 +1,6 @@
+import '../node_modules/@kusto/language-service-next/bridge';
+import '../node_modules/@kusto/language-service-next/Kusto.Language.Bridge';
+
 import {
     createConnection,
     TextDocuments,
@@ -11,8 +14,7 @@ import {
     TextDocumentPositionParams,
     Hover,
     TextEdit,
-    DocumentFormattingParams,
-    Position
+    DocumentFormattingParams
 } from 'vscode-languageserver';
 
 import { getClient as getKustoClient, TokenResponse, getFirstOrDefaultClient } from './kustoConnection';
