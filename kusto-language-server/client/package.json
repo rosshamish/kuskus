@@ -24,7 +24,9 @@
 		"vscode-languageclient": "^4.1.4"
 	},
 	"devDependencies": {
+		"@types/mocha": "^10.0.6",
+		"@types/vscode": "^1.88.0",
 		"@vscode/test-electron": "*",
-		"@types/vscode": "^1.88.0"
+		"mocha": "^10.4.0"
 	}
 }
