@@ -6,13 +6,107 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directories:
-    - "/kusto-color-themes"
-    - "/kusto-extensions-pack"
-    - "/kusto-language-server"
-    - "/kusto-language-server/client"
-    - "/kusto-language-server/server"
-    - "/kusto-syntax-highlighting"
+    directory: "/kusto-color-themes"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "16:00"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "npm"
+        update-types: [ "version-update:semver-major" ]
+  - package-ecosystem: "npm"
+    directory: "/kusto-extensions-pack"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "16:00"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "npm"
+        update-types: [ "version-update:semver-major" ]
+  - package-ecosystem: "npm"
+    directory: "/kusto-language-server"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "16:00"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "npm"
+        update-types: [ "version-update:semver-major" ]
+  - package-ecosystem: "npm"
+    directory: "/kusto-language-server/client"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "16:00"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "npm"
+        update-types: [ "version-update:semver-major" ]
+  - package-ecosystem: "npm"
+    directory: "/kusto-language-server/server"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "16:00"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "npm"
+        update-types: [ "version-update:semver-major" ]
+  - package-ecosystem: "npm"
+    directory: "/kusto-syntax-highlighting"
     schedule:
       interval: "weekly"
       day: "sunday"
