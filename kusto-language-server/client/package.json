@@ -25,6 +25,6 @@
 	},
 	"devDependencies": {
 		"@vscode/test-electron": "*",
-		"@types/vscode": "^1.33.0"
+		"@types/vscode": "^1.88.0"
 	}
 }
