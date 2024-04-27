@@ -3,11 +3,12 @@
 		"target": "es6",
 		"module": "commonjs",
 		"moduleResolution": "node",
+		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
 		"outDir": "out",
 		"rootDir": "src",
-		"types": ["vscode-languageserver-types", "@kusto/language-service", "@kusto/language-service-next"]
+		"types": ["@kusto/language-service-next"]
 	},
 	"include": ["src"],
 	"exclude": ["node_modules", ".vscode-test"]
