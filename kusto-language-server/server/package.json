@@ -16,9 +16,9 @@
 		"vscode": "^1.33.0"
 	},
 	"dependencies": {
-		"@kusto/language-service": "0.0.23-alpha",
+		"@kusto/language-service": "0.0.278",
 		"@kusto/language-service-next": "0.0.28-rc.1",
-		"monaco-editor-core": "^0.17.0",
+		"monaco-editor-core": "^0.48.0",
 		"vscode-languageserver": "^4.4.2",
 		"azure-kusto-data": "^5.2.3"
 	},
