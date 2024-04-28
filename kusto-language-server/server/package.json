@@ -17,13 +17,19 @@
 	},
 	"dependencies": {
 		"@kusto/language-service-next": "^11.5.3",
-		"vscode-languageserver": "^4.4.2",
-		"azure-kusto-data": "^5.2.3"
+		"azure-kusto-data": "^5.2.3",
+		"vscode-languageserver": "^4.4.2"
 	},
-	"scripts": {},
+	"scripts": {
+		"lint": "eslint --config .eslintrc.json src package.json .eslintrc.json tsconfig.json",
+		"lint:fix": "eslint --config --fix .eslintrc.json src package.json .eslintrc.json tsconfig.json"
+	},
 	"devDependencies": {
-		"eslint": "^5.16.0",
+		"@typescript-eslint/eslint-plugin": "^7.7.1",
+		"eslint": "^8.57.0",
 		"eslint-config-airbnb-base": "^15.0.0",
-		"eslint-plugin-import": "^2.29.1"
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-import": "^2.29.1",
+		"prettier": "3.2.5"
 	}
 }
