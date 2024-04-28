@@ -298,7 +298,6 @@ function getTableSymbols(
 function getFunctionSymbols(
   metadata: FunctionMetadata[],
   // TODO: use globalState to get return type, signature types, etc of the functions
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   globalState: Kusto.Language.GlobalState,
 ): Array<Kusto.Language.Symbols.FunctionSymbol> {
   const symbols: Kusto.Language.Symbols.FunctionSymbol[] = [];
