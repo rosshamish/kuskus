@@ -70,6 +70,8 @@
         ]
     },
     "scripts": {
+        "lint": "cd client && npm run lint && cd ../server && npm run lint && cd ..",
+        "lint:fix": "cd client && npm run lint:fix && cd ../server && npm run lint:fix && cd ..",
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -b",
         "watch": "tsc -b -w",

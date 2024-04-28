@@ -1,332 +1,433 @@
-import '../node_modules/@kusto/language-service-next/bridge';
-import '../node_modules/@kusto/language-service-next/Kusto.Language.Bridge';
+import "../node_modules/@kusto/language-service-next/bridge";
+import "../node_modules/@kusto/language-service-next/Kusto.Language.Bridge";
 
 import {
-    createConnection,
-    TextDocuments,
-    TextDocument,
-    Diagnostic,
-    DiagnosticSeverity,
-    ProposedFeatures,
-    InitializeParams,
-    DidChangeConfigurationNotification,
-    CompletionItem,
-    TextDocumentPositionParams,
-    Hover,
-    TextEdit,
-    DocumentFormattingParams
-} from 'vscode-languageserver';
+  createConnection,
+  TextDocuments,
+  TextDocument,
+  Diagnostic,
+  DiagnosticSeverity,
+  ProposedFeatures,
+  InitializeParams,
+  DidChangeConfigurationNotification,
+  CompletionItem,
+  TextDocumentPositionParams,
+  Hover,
+  TextEdit,
+  DocumentFormattingParams,
+} from "vscode-languageserver";
 
-import { getClient as getKustoClient, TokenResponse, getFirstOrDefaultClient } from './kustoConnection';
-import { getSymbolsOnCluster, getSymbolsOnTable } from './kustoSymbols';
-import { formatCodeScript } from './kustoFormat';
-import { getVSCodeCompletionItemsAtPosition } from './kustoCompletion';
+import {
+  getClient as getKustoClient,
+  TokenResponse,
+  getFirstOrDefaultClient,
+} from "./kustoConnection";
+import { getSymbolsOnCluster, getSymbolsOnTable } from "./kustoSymbols";
+import { formatCodeScript } from "./kustoFormat";
+import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion";
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-let connection = createConnection(ProposedFeatures.all);
+const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-let documents: TextDocuments = new TextDocuments();
+const documents: TextDocuments = new TextDocuments();
 
 // Create a collection of Kusto code services, one for each document
 type documentURI = string;
 let kustoGlobalState = Kusto.Language.GlobalState.Default;
-let kustoCodeScripts: Map<documentURI, Kusto.Language.Editor.CodeScript | null> = new Map();
+const kustoCodeScripts: Map<
+  documentURI,
+  Kusto.Language.Editor.CodeScript | null
+> = new Map();
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
 
 connection.onInitialize((params: InitializeParams) => {
-    let capabilities = params.capabilities;
+  const capabilities = params.capabilities;
 
-    // Does the client support the `workspace/configuration` request?
-    // If not, we will fall back using global settings
-    hasConfigurationCapability = !!(
-        capabilities.workspace && !!capabilities.workspace.configuration
-    );
+  // Does the client support the `workspace/configuration` request?
+  // If not, we will fall back using global settings
+  hasConfigurationCapability = !!(
+    capabilities.workspace && !!capabilities.workspace.configuration
+  );
 
-    hasWorkspaceFolderCapability = !!(
-        capabilities.workspace && !!capabilities.workspace.workspaceFolders
-    );
-    hasDiagnosticRelatedInformationCapability = !!(
-        capabilities.textDocument &&
-        capabilities.textDocument.publishDiagnostics &&
-        capabilities.textDocument.publishDiagnostics.relatedInformation
-    );
+  hasWorkspaceFolderCapability = !!(
+    capabilities.workspace && !!capabilities.workspace.workspaceFolders
+  );
+  hasDiagnosticRelatedInformationCapability = !!(
+    capabilities.textDocument &&
+    capabilities.textDocument.publishDiagnostics &&
+    capabilities.textDocument.publishDiagnostics.relatedInformation
+  );
 
-    return {
-        capabilities: {
-            textDocumentSync: documents.syncKind,
-            completionProvider: {
-                resolveProvider: true
-            },
-            hoverProvider: true,
-            documentFormattingProvider: true,
-        }
-    };
+  return {
+    capabilities: {
+      textDocumentSync: documents.syncKind,
+      completionProvider: {
+        resolveProvider: true,
+      },
+      hoverProvider: true,
+      documentFormattingProvider: true,
+    },
+  };
 });
 
 connection.onInitialized(async () => {
-    if (hasConfigurationCapability) {
-        // Register for all configuration changes.
-        connection.client.register(DidChangeConfigurationNotification.type, undefined);
-    }
-    if (hasWorkspaceFolderCapability) {
-        connection.workspace.onDidChangeWorkspaceFolders(_event => {
-            connection.console.log('Workspace folder change event received.');
+  if (hasConfigurationCapability) {
+    // Register for all configuration changes.
+    connection.client.register(
+      DidChangeConfigurationNotification.type,
+      undefined,
+    );
+  }
+  if (hasWorkspaceFolderCapability) {
+    connection.workspace.onDidChangeWorkspaceFolders((_event) => {
+      connection.console.log(
+        `Workspace folder change event received. ${_event.added.length} added, ${_event.removed.length} removed`,
+      );
+    });
+  }
+  if (hasDiagnosticRelatedInformationCapability) {
+    // TODO: support diagnostics
+  }
+});
+
+connection.onRequest(
+  "kuskus.loadSymbols",
+  async ({
+    clusterUri,
+    tenantId,
+    database,
+  }: {
+    clusterUri: string;
+    tenantId: string;
+    database: string;
+  }) => {
+    const kustoClient = getKustoClient(
+      clusterUri,
+      tenantId,
+      (tokenResponse: TokenResponse) => {
+        connection.sendRequest("kuskus.loadSymbols.auth", {
+          clusterUri,
+          tenantId,
+          database,
+          verificationUrl: tokenResponse.verificationUrl,
+          verificationCode: tokenResponse.userCode,
         });
+      },
+    );
+
+    try {
+      kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
+      connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
+        clusterUri,
+        tenantId,
+        database,
+      });
+      connection.sendNotification("kuskus.loadSymbols.success", {
+        clusterUri,
+        database,
+      });
+      kustoCodeScripts.forEach((value, key) => {
+        if (value) {
+          kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+        }
+      });
+    } catch {
+      connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+        clusterUri,
+        tenantId,
+        database,
+      });
     }
+  },
+);
+
+connection.onRequest("kuskus.loadTable", async (tableName: string) => {
+  let clusterUri: string = "";
+  let kustoClient = null;
+  ({ clusterUri, kustoClient } = getFirstOrDefaultClient());
+
+  if (!kustoGlobalState || !kustoGlobalState.Database) {
+    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+      clusterUri,
+      database: "",
+    });
+    return;
+  }
+
+  const database = kustoGlobalState.Database.Name;
+
+  if (!database) {
+    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+      clusterUri,
+      database,
+    });
+    return;
+  }
+
+  try {
+    kustoGlobalState = await getSymbolsOnTable(
+      kustoClient,
+      database,
+      tableName,
+      kustoGlobalState,
+    );
+    connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
+      clusterUri,
+      database,
+    });
+    connection.sendNotification("kuskus.loadSymbols.success", {
+      clusterUri,
+      database,
+    });
+    kustoCodeScripts.forEach((value, key) => {
+      if (value) {
+        kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+      }
+    });
+  } catch {
+    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+      clusterUri,
+      database,
+    });
+  }
 });
-
-connection.onRequest('kuskus.loadSymbols', async ({ clusterUri, tenantId, database }: { clusterUri: string, tenantId: string, database: string }) => {
-	let kustoClient = getKustoClient(clusterUri, tenantId, (tokenResponse: TokenResponse) => {
-		connection.sendRequest('kuskus.loadSymbols.auth', { clusterUri, tenantId, database, verificationUrl: tokenResponse.verificationUrl, verificationCode: tokenResponse.userCode });
-	});
-
-	try {
-		kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
-		connection.sendNotification('kuskus.loadSymbols.auth.complete.success', { clusterUri, tenantId, database });
-		connection.sendNotification('kuskus.loadSymbols.success', { clusterUri, database });
-		kustoCodeScripts.forEach((value, key) => {
-            if (value) {
-			    kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
-            }
-		});
-	} catch {
-		connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, tenantId, database });
-	}
-});
-
-connection.onRequest('kuskus.loadTable', async ( tableName : string) => {
-	let clusterUri: string = "";
-	let kustoClient = null;
-	 ( {clusterUri, kustoClient} = getFirstOrDefaultClient());
-
-    if (!kustoGlobalState || !kustoGlobalState.Database) {
-		connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, database: '' });
-        return;
-    }
-
-	let database = kustoGlobalState.Database.Name;
-	
-    if (!database) {
-	    connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, database });
-        return;
-    }
-
-	try {
-		kustoGlobalState = await getSymbolsOnTable(kustoClient, database, tableName, kustoGlobalState);
-		connection.sendNotification('kuskus.loadSymbols.auth.complete.success', { clusterUri, database });
-		connection.sendNotification('kuskus.loadSymbols.success', { clusterUri, database });
-		kustoCodeScripts.forEach((value, key) => {
-            if (value) {
-			    kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
-            }
-		});
-	} catch {
-		connection.sendNotification('kuskus.loadSymbols.auth.complete.error', { clusterUri, database });
-	}
-})
 
 // The example settings
 interface Settings {
-	diagnosticsEnabled: boolean;
+  diagnosticsEnabled: boolean;
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
 // Please note that this is not the case when using this server with the client provided in this example
 // but could happen with other clients.
-const defaultSettings: Settings = { 
-	diagnosticsEnabled: false
+const defaultSettings: Settings = {
+  diagnosticsEnabled: false,
 };
 let globalSettings: Settings = defaultSettings;
 
 // Cache the settings of all open documents
-let documentSettings: Map<string, Thenable<Settings>> = new Map();
+const documentSettings: Map<string, Thenable<Settings>> = new Map();
 
-connection.onDidChangeConfiguration(change => {
-	if (hasConfigurationCapability) {
-		// Reset all cached document settings
-		documentSettings.clear();
-	} else {
-		globalSettings = <Settings>(
-			(change.settings.languageServerExample || defaultSettings)
-		);
-	}
+connection.onDidChangeConfiguration((change) => {
+  if (hasConfigurationCapability) {
+    // Reset all cached document settings
+    documentSettings.clear();
+  } else {
+    globalSettings = <Settings>(
+      (change.settings.languageServerExample || defaultSettings)
+    );
+  }
 
-	// Revalidate all open text documents
-	documents.all().forEach(validateTextDocument);
+  // Revalidate all open text documents
+  documents.all().forEach(validateTextDocument);
 });
 
 function getDocumentSettings(resource: string): Thenable<Settings> {
-	if (!hasConfigurationCapability) {
-		return Promise.resolve(globalSettings);
-	}
-	let result = documentSettings.get(resource);
-	if (!result) {
-		result = connection.workspace.getConfiguration({
-			scopeUri: resource,
-			section: 'kuskusLanguageServer'
-		});
-		documentSettings.set(resource, result);
-	}
-	return result;
+  if (!hasConfigurationCapability) {
+    return Promise.resolve(globalSettings);
+  }
+  let result = documentSettings.get(resource);
+  if (!result) {
+    result = connection.workspace.getConfiguration({
+      scopeUri: resource,
+      section: "kuskusLanguageServer",
+    });
+    documentSettings.set(resource, result);
+  }
+  return result;
 }
 
 // Only keep settings for open documents
-documents.onDidClose(e => {
-    documentSettings.delete(e.document.uri);
+documents.onDidClose((e) => {
+  documentSettings.delete(e.document.uri);
 });
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-documents.onDidChangeContent(change => {
-    if (!kustoCodeScripts.has(change.document.uri)) {
-        kustoCodeScripts.set(change.document.uri, _getCodeScriptForDocumentOrNewCodeScript(change.document));
-    } else {
-        const beforeChange = _getCodeScriptForDocumentOrNewCodeScript(change.document);
-        if (beforeChange) {
-            kustoCodeScripts.set(change.document.uri, beforeChange.WithText(change.document.getText()));
-        }
+documents.onDidChangeContent((change) => {
+  if (!kustoCodeScripts.has(change.document.uri)) {
+    kustoCodeScripts.set(
+      change.document.uri,
+      _getCodeScriptForDocumentOrNewCodeScript(change.document),
+    );
+  } else {
+    const beforeChange = _getCodeScriptForDocumentOrNewCodeScript(
+      change.document,
+    );
+    if (beforeChange) {
+      kustoCodeScripts.set(
+        change.document.uri,
+        beforeChange.WithText(change.document.getText()),
+      );
     }
-    validateTextDocument(change.document);
+  }
+  validateTextDocument(change.document);
 });
 
-function _getCodeScriptForDocumentOrNewCodeScript(document: TextDocument) : Kusto.Language.Editor.CodeScript | null {
-    return (
-        kustoCodeScripts.get(document.uri) || 
-        Kusto.Language.Editor.CodeScript.From$1(document.getText(), kustoGlobalState)
-    );
+function _getCodeScriptForDocumentOrNewCodeScript(
+  document: TextDocument,
+): Kusto.Language.Editor.CodeScript | null {
+  return (
+    kustoCodeScripts.get(document.uri) ||
+    Kusto.Language.Editor.CodeScript.From$1(
+      document.getText(),
+      kustoGlobalState,
+    )
+  );
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-	const settings = await getDocumentSettings(textDocument.uri);
-	if (!settings.diagnosticsEnabled) {
-		connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
-		return;
-	}
+  const settings = await getDocumentSettings(textDocument.uri);
+  if (!settings.diagnosticsEnabled) {
+    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
+    return;
+  }
 
-	const kustoCodeScript = _getCodeScriptForDocumentOrNewCodeScript(textDocument);
-    if (!kustoCodeScript) {
-        return;
+  const kustoCodeScript =
+    _getCodeScriptForDocumentOrNewCodeScript(textDocument);
+  if (!kustoCodeScript) {
+    return;
+  }
+
+  const documentDiagnostics: Diagnostic[] = [];
+
+  const blocks = kustoCodeScript.Blocks;
+  if (!blocks) {
+    return;
+  }
+  for (let i = 0; i < blocks.Count; i++) {
+    const block = blocks.getItem(i);
+    if (!block.Service) {
+      continue;
     }
-
-	let documentDiagnostics: Diagnostic[] = [];
-
-	const blocks = kustoCodeScript.Blocks;
-    if (!blocks) {
-        return;
+    const diagnostics = block.Service.GetDiagnostics();
+    if (!diagnostics) {
+      continue;
     }
-	for (let i=0; i < blocks.Count; i++) {
-		let block = blocks.getItem(i);
-        if (!block.Service) {
-            continue;
-        }
-		let diagnostics = block.Service.GetDiagnostics();
-        if (!diagnostics) {
-            continue;
-        }
-		for (let j=0; j < diagnostics.Count; j++) {
-			let diagnostic = diagnostics.getItem(j);
-			documentDiagnostics.push({
-				severity: DiagnosticSeverity.Error,
-				range: {
-				  start: textDocument.positionAt(diagnostic.Start),
-				  end: textDocument.positionAt(diagnostic.End)
-				},
-				message: diagnostic.Message || 'unknown error'
-			})
-		}
-	}
+    for (let j = 0; j < diagnostics.Count; j++) {
+      const diagnostic = diagnostics.getItem(j);
+      documentDiagnostics.push({
+        severity: DiagnosticSeverity.Error,
+        range: {
+          start: textDocument.positionAt(diagnostic.Start),
+          end: textDocument.positionAt(diagnostic.End),
+        },
+        message: diagnostic.Message || "unknown error",
+      });
+    }
+  }
 
-	// Send the computed diagnostics to VSCode.
-	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: documentDiagnostics });
+  // Send the computed diagnostics to VSCode.
+  connection.sendDiagnostics({
+    uri: textDocument.uri,
+    diagnostics: documentDiagnostics,
+  });
 }
 
-connection.onDidChangeWatchedFiles(_change => {
-    // Monitored files have change in VSCode
-    connection.console.log('We received an file change event');
+connection.onDidChangeWatchedFiles((_change) => {
+  // Monitored files have change in VSCode
+  connection.console.log(
+    `We received a file change event. ${_change.changes.length} file changes`,
+  );
 });
 
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
-    (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-        // The pass parameter contains the position of the text document in
-        // which code complete got requested. For the example we ignore this
-        // info and always provide the same completion items.
+  (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
+    // The pass parameter contains the position of the text document in
+    // which code complete got requested. For the example we ignore this
+    // info and always provide the same completion items.
 
-        const kustoCodeScript = kustoCodeScripts.get(_textDocumentPosition.textDocument.uri);
-        if (!kustoCodeScript) {
-            return [];
-        }
-
-        try {
-            return getVSCodeCompletionItemsAtPosition(kustoCodeScript, _textDocumentPosition.position.line + 1, _textDocumentPosition.position.character + 1)
-        } catch (e) {
-            if (e instanceof Error) {
-                connection.console.error(e.message);
-            } else if (typeof e === 'string') {
-                connection.console.error(e);
-            }
-            return [];
-        }
+    const kustoCodeScript = kustoCodeScripts.get(
+      _textDocumentPosition.textDocument.uri,
+    );
+    if (!kustoCodeScript) {
+      return [];
     }
+
+    try {
+      return getVSCodeCompletionItemsAtPosition(
+        kustoCodeScript,
+        _textDocumentPosition.position.line + 1,
+        _textDocumentPosition.position.character + 1,
+      );
+    } catch (e) {
+      if (e instanceof Error) {
+        connection.console.error(e.message);
+      } else if (typeof e === "string") {
+        connection.console.error(e);
+      }
+      return [];
+    }
+  },
 );
 
 // This handler resolves additional information for the item selected in
 // the completion list.
-connection.onCompletionResolve(
-    (item: CompletionItem): CompletionItem => {
-        return item;
-    }
-);
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
+  return item;
+});
 
-connection.onHover(
-    (params: TextDocumentPositionParams): Hover | null => {
-        const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
-        if (!kustoCodeScript) {
-            return null;
-        }
+connection.onHover((params: TextDocumentPositionParams): Hover | null => {
+  const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
+  if (!kustoCodeScript) {
+    return null;
+  }
 
-        let position = {v:-1};
-        let positionValid = kustoCodeScript.TryGetTextPosition(params.position.line + 1, params.position.character + 1, position);
-        const kustoCodeBlock = kustoCodeScript.GetBlockAtPosition(position.v);
-        if (!kustoCodeBlock || !kustoCodeBlock.Service) {
-            return null;
-        }
+  const position = { v: -1 };
+  const positionValid = kustoCodeScript.TryGetTextPosition(
+    params.position.line + 1,
+    params.position.character + 1,
+    position,
+  );
+  if (!positionValid) {
+    return null;
+  }
 
-        const quickInfo = kustoCodeBlock.Service.GetQuickInfo(position.v);
+  const kustoCodeBlock = kustoCodeScript.GetBlockAtPosition(position.v);
+  if (!kustoCodeBlock || !kustoCodeBlock.Service) {
+    return null;
+  }
 
-        if (!quickInfo || !quickInfo.Text) {
-            return null;
-        }
+  const quickInfo = kustoCodeBlock.Service.GetQuickInfo(position.v);
 
-        return {contents: quickInfo.Text || ''};
-    }
-)
+  if (!quickInfo || !quickInfo.Text) {
+    return null;
+  }
+
+  return { contents: quickInfo.Text || "" };
+});
 
 connection.onDocumentFormatting(
-    (params: DocumentFormattingParams): TextEdit[] | null => {
-        const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
-        if (!kustoCodeScript) {
-            return null;
-        }
-
-        let formatted = formatCodeScript(kustoCodeScript);
-        if (!formatted) {
-            return null;
-        }
-
-        let changes:TextEdit[] = [TextEdit.replace({
-            start: {line: 0, character: 0},
-            end: {line: Number.MAX_VALUE, character: Number.MAX_VALUE}
-        }, formatted)];
-        return changes;
+  (params: DocumentFormattingParams): TextEdit[] | null => {
+    const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
+    if (!kustoCodeScript) {
+      return null;
     }
-)
+
+    const formatted = formatCodeScript(kustoCodeScript);
+    if (!formatted) {
+      return null;
+    }
+
+    const changes: TextEdit[] = [
+      TextEdit.replace(
+        {
+          start: { line: 0, character: 0 },
+          end: { line: Number.MAX_VALUE, character: Number.MAX_VALUE },
+        },
+        formatted,
+      ),
+    ];
+    return changes;
+  },
+);
 
 /*
 connection.onDidOpenTextDocument((params) => {
