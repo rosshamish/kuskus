@@ -21,8 +21,8 @@
 		"vscode-languageserver": "^4.4.2"
 	},
 	"scripts": {
-		"lint": "eslint --config .eslintrc.json src package.json .eslintrc.json tsconfig.json",
-		"lint:fix": "eslint --config --fix .eslintrc.json src package.json .eslintrc.json tsconfig.json"
+		"lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
+		"lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
 	},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^7.7.1",
@@ -30,6 +30,7 @@
 		"eslint-config-airbnb-base": "^15.0.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-import": "^2.29.1",
+		"eslint-plugin-prettier": "^5.1.3",
 		"prettier": "3.2.5"
 	}
 }
