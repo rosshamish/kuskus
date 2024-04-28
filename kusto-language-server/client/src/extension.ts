@@ -6,7 +6,7 @@
 import * as path from "path";
 import { workspace, ExtensionContext, commands, window } from "vscode";
 import clipboardy from "clipboardy";
-import * as open from "open";
+import open from "open";
 
 import {
   LanguageClient,
