@@ -15,6 +15,7 @@
   "engines": {
     "vscode": "^1.33.0"
   },
+  "type": "module",
   "dependencies": {
     "@kusto/language-service-next": "^11.5.3",
     "azure-kusto-data": "^5.2.3",

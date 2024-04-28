@@ -15,6 +15,7 @@
   "engines": {
     "vscode": "^1.33.0"
   },
+  "type": "module",
   "scripts": {
     "test": "node ./out/test/runTest.js",
     "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
