@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "js-yaml": "^4.1.0",
-    "vscode-tmgrammar-test": "^0.0.11"
+    "vscode-tmgrammar-test": "^0.1.3"
   },
   "scripts": {
     "convert": "npx js-yaml syntaxes/kusto.tmLanguage.yml > syntaxes/kusto.tmLanguage.json",
