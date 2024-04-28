@@ -23,7 +23,7 @@
   "dependencies": {
     "clipboardy": "^4.0.0",
     "open": "^10.1.0",
-    "vscode-languageclient": "^4.1.4"
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",

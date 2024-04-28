@@ -18,7 +18,7 @@
   "dependencies": {
     "@kusto/language-service-next": "^11.5.3",
     "azure-kusto-data": "^5.2.3",
-    "vscode-languageserver": "^4.4.2"
+    "vscode-languageserver": "^9.0.1"
   },
   "scripts": {
     "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
