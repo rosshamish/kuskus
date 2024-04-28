@@ -12,7 +12,7 @@ import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
-    TransportKind,
+  TransportKind,
 } from "vscode-languageclient";
 
 let client: LanguageClient;
