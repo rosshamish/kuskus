@@ -1,15 +1,15 @@
 {
-	"compilerOptions": {
-		"target": "es6",
-		"module": "commonjs",
-		"moduleResolution": "node",
-		"skipLibCheck": true,
-		"sourceMap": true,
-		"strict": true,
-		"outDir": "out",
-		"rootDir": "src",
-		"types": ["@kusto/language-service-next"]
-	},
-	"include": ["src"],
-	"exclude": ["node_modules", ".vscode-test"]
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "out",
+    "rootDir": "src",
+    "types": ["@kusto/language-service-next"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", ".vscode-test"]
 }
