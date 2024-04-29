@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "clipboardy": "^2.3.0",
-    "open": "^8.4.2",
+    "open": "^10.1.0",
     "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
