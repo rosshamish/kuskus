@@ -1,9 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const KustoClient = require("azure-kusto-data").Client;
-
-const KustoConnectionStringBuilder =
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require("azure-kusto-data").KustoConnectionStringBuilder;
+import {
+  Client as KustoClient,
+  KustoConnectionStringBuilder,
+} from "azure-kusto-data";
 
 export interface TokenResponse {
   verificationUrl: string;
@@ -17,17 +15,25 @@ const clients: Map<string, any> = new Map();
 
 export function getClient(
   clusterUri: string,
-  tenantId: string,
+  tenantId: string | undefined,
   authCallback: (tokenResponse: TokenResponse) => void,
 ) {
   if (clients.has(clusterUri)) {
     return clients.get(clusterUri);
   } else {
+    // If tenant id is empty in the input, consider it undefined when building the connection string
+    if (!tenantId) {
+      tenantId = undefined;
+    }
+
     const kcsb = KustoConnectionStringBuilder.withAadDeviceAuthentication(
       clusterUri,
       tenantId,
-      (tokenResponse: TokenResponse) => {
-        authCallback(tokenResponse);
+      (deviceCodeInfo) => {
+        authCallback({
+          verificationUrl: deviceCodeInfo.verificationUri,
+          userCode: deviceCodeInfo.userCode,
+        });
       },
     );
     const kustoClient = new KustoClient(kcsb);

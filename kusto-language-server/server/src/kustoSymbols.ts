@@ -1,3 +1,5 @@
+import KustoClient from "azure-kusto-data/types/src/client";
+
 interface DatabaseMetadata {
   DatabaseName: string;
   PrettyName: string;
@@ -118,20 +120,19 @@ function getTableColumns(
 // TODO: use this function
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getDatabasesOnCluster(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  kustoClient: any,
+  kustoClient: KustoClient,
   defaultDatabaseName: string,
 ): Promise<DatabaseMetadata[]> {
   return new Promise((resolve, reject) => {
     const databaseNames: { DatabaseName: string; PrettyName: string }[] = [];
-    kustoClient.execute(
-      defaultDatabaseName,
-      ".show cluster databases",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (err: any, results: any) => {
-        if (err) {
-          return reject(err);
+    kustoClient
+      .execute(defaultDatabaseName, ".show cluster databases")
+      .catch(reject)
+      .then((results) => {
+        if (!results) {
+          return reject("void results");
         }
+
         console.log(results);
         if (!results.primaryResults || !results.primaryResults[0]) {
           return reject("Failed to fetch databases in cluster");
@@ -143,9 +144,8 @@ function getDatabasesOnCluster(
             PrettyName: primaryResults[i].PrettyName,
           });
         }
-        resolve(databaseNames);
-      },
-    );
+        return resolve(databaseNames);
+      });
   });
 }
 
@@ -160,8 +160,7 @@ function getDatabasesOnCluster(
  * @param defaultDatabaseName
  */
 function getFunctionMetadata(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  kustoClient: any,
+  kustoClient: KustoClient,
   databaseName: string,
 ): Promise<FunctionMetadata[]> {
   return new Promise((resolve, reject) => {
@@ -171,14 +170,14 @@ function getFunctionMetadata(
       Folder: string;
       DocString: string;
     }[] = [];
-    kustoClient.execute(
-      databaseName,
-      ".show functions",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (err: any, results: any) => {
-        if (err) {
-          return reject(err);
+    kustoClient
+      .execute(databaseName, ".show functions")
+      .catch(reject)
+      .then((results) => {
+        if (!results) {
+          return reject("void results");
         }
+
         console.log(results);
         if (!results.primaryResults || !results.primaryResults[0]) {
           return reject("Failed to fetch functions in cluster");
@@ -192,9 +191,8 @@ function getFunctionMetadata(
             DocString: primaryResults[i].DocString,
           });
         }
-        resolve(functionMetadatas);
-      },
-    );
+        return resolve(functionMetadatas);
+      });
   });
 }
 
@@ -210,8 +208,7 @@ function getFunctionMetadata(
  * @param databaseName
  */
 function getTableMetadata(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  kustoClient: any,
+  kustoClient: KustoClient,
   databaseName: string,
 ): Promise<TableMetadata[]> {
   return new Promise((resolve, reject) => {
@@ -221,14 +218,14 @@ function getTableMetadata(
       Folder: string;
       DocString: string;
     }[] = [];
-    kustoClient.execute(
-      databaseName,
-      ".show tables",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (err: any, results: any) => {
-        if (err) {
-          return reject(err);
+    kustoClient
+      .execute(databaseName, ".show tables")
+      .catch(reject)
+      .then((results) => {
+        if (!results) {
+          return reject("void results");
         }
+
         console.log(results);
         if (!results.primaryResults || !results.primaryResults[0]) {
           return reject("Failed to fetch tables in cluster");
@@ -242,27 +239,25 @@ function getTableMetadata(
             DocString: primaryResults[i].DocString,
           });
         }
-        resolve(tableMetadatas);
-      },
-    );
+        return resolve(tableMetadatas);
+      });
   });
 }
 
 function getTableSchema(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  kustoClient: any,
+  kustoClient: KustoClient,
   databaseName: string,
   tableName: string,
 ): Promise<TableSchema> {
   return new Promise((resolve, reject) => {
-    kustoClient.execute(
-      databaseName,
-      `.show table ${tableName} schema as json`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (err: any, results: any) => {
-        if (err) {
-          return reject(err);
+    kustoClient
+      .execute(databaseName, `.show table ${tableName} schema as json`)
+      .catch(reject)
+      .then((results) => {
+        if (!results) {
+          return reject("void results");
         }
+
         console.log(results);
         if (!results.primaryResults || !results.primaryResults[0]) {
           return reject("Failed to fetch tables in cluster");
@@ -277,9 +272,8 @@ function getTableSchema(
           DocString: primaryResults[0].DocString,
         };
 
-        resolve(tableMetadata);
-      },
-    );
+        return resolve(tableMetadata);
+      });
   });
 }
 

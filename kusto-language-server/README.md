@@ -44,3 +44,36 @@ Diagnostics are also available, but are not yet fully supported and are disabled
 - Run the launch config.
 - If you want to debug the server as well use the launch configuration `Attach to Server`
 - In the [Extension Development Host] instance of VSCode, open a `.csl` document
+
+## Manual tests
+
+Scenario 1: extension loads without crashing
+- Open a .kusto file
+- Verify extension loads successfully ("Kuskus loaded!" notification appears)
+
+Scenario 2: extension can format a kusto query
+- Open a .kusto file
+- Run "Format Document"
+- Verify document is formatted
+- Verify no errors in language server logs (Output > [Kuskus] Kusto Language Server)
+
+Scenario 3: extension can load symbols from the publically available sample cluster
+- Open a .kusto file
+- Run "[Kuskus] Load Symbols from Cluster"
+- Use parameters:
+    - Cluster: https://help.kusto.windows.net
+    - Database: SampleLogs
+    - Tenant ID: (empty)
+- Log in with your personal MSA account
+- Verify authentication succeeds ("[Kuskus] Successfully authenticated to https://help.kusto.windows.net//SampleLogs")
+- Verify symbols are loaded successfully ("[Kuskus] Successfully loaded symbols from https://help.kusto.windows.net/undefined/SampleLogs")
+
+Scenario 4: autocomplete
+- Open a .kusto file
+- Trigger autocomplete (keyboard shortcut Ctrl+Space)
+- Verify autocomplete list includes kusto builtin functions
+
+Scenario 5: hover info
+- Open a .kusto file
+- Hover the mouse over a few symbols, e.g. table names, string literals
+- Verify at least some hover info shows up

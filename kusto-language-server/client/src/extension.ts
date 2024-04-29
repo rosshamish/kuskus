@@ -12,8 +12,9 @@ import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
+  State,
   TransportKind,
-} from "vscode-languageclient";
+} from "vscode-languageclient/node";
 
 let client: LanguageClient;
 
@@ -58,8 +59,7 @@ export function activate(context: ExtensionContext) {
   client.start();
 
   client.onDidChangeState((listener) => {
-    // TODO, what is state 2? listening I think? where is the enum for this?
-    if (listener.newState == 2) {
+    if (listener.newState == State.Running) {
       window.showInformationMessage("Kuskus loaded!");
 
       client.onRequest(
@@ -83,12 +83,29 @@ export function activate(context: ExtensionContext) {
           verificationUrl: string;
           verificationCode: string;
         }) => {
-          // window.showInformationMessage(`[kuskus.loadSymbols.auth] cluster ${clusterUri} database ${database} verificationUrl ${verificationUrl} verificationCode ${verificationCode}`);
-          clipboardy.writeSync(verificationCode);
           window.showInformationMessage(
-            `Login with code ${verificationCode} (it's already on your clipboard)`,
+            `[kuskus.loadSymbols.auth] cluster ${clusterUri} database ${database} verificationUrl ${verificationUrl} verificationCode ${verificationCode}`,
           );
-          open(verificationUrl);
+          let clipboardWriteSucceeded = false;
+          try {
+            clipboardy.writeSync(verificationCode);
+            clipboardWriteSucceeded = true;
+          } catch (e) {
+            window.showErrorMessage(
+              "Failed to write login code to clipboard -- This is expected in a remote connection, e.g. a Github codespace.",
+            );
+          }
+          window.showInformationMessage(
+            `Login with code ${verificationCode}${clipboardWriteSucceeded ? " (it's already on your clipboard)" : ""}`,
+          );
+
+          try {
+            open(verificationUrl);
+          } catch (e) {
+            window.showErrorMessage(
+              `Failed to open the login URL ${verificationUrl} -- This is expected in a remote connection, e.g. a Github codespace. Navigate to the URL manually.`,
+            );
+          }
         },
       );
 
@@ -157,8 +174,8 @@ commands.registerCommand("kuskus.loadSymbols", async () => {
   if (client) {
     const clusterUri = await window.showInputBox({
       ignoreFocusOut: true,
-      value: "https://clustername.kusto.windows.net",
-      valueSelection: ["https://".length, "https://clustername".length],
+      value: "https://help.kusto.windows.net",
+      valueSelection: ["https://".length, "https://help".length],
       prompt: "Cluster URI",
     });
     if (!clusterUri) {
@@ -168,20 +185,9 @@ commands.registerCommand("kuskus.loadSymbols", async () => {
       return;
     }
 
-    const tenantId = await window.showInputBox({
-      ignoreFocusOut: true,
-      value: "common",
-      prompt:
-        "Tenant ID / Authority ID - this can be found in Azure Portal / Azure Active Directory.",
-    });
-    if (!tenantId) {
-      window.showErrorMessage("Tenant ID not provided, couldn't load symbols");
-      return;
-    }
-
     const database = await window.showInputBox({
       ignoreFocusOut: true,
-      placeHolder: "DatabaseName",
+      value: "SampleLogs",
       prompt: "Default Database Name",
     });
     if (!database) {
@@ -190,6 +196,13 @@ commands.registerCommand("kuskus.loadSymbols", async () => {
       );
       return;
     }
+
+    const tenantId = await window.showInputBox({
+      ignoreFocusOut: true,
+      value: "",
+      prompt:
+        "Tenant ID of the AAD/Entra tenant you wish to log into. For a public MSA account, or if you're unsure, leave this empty.",
+    });
 
     client.sendRequest("kuskus.loadSymbols", {
       clusterUri,
