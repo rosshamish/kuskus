@@ -68,11 +68,11 @@
   },
   "devDependencies": {
     "js-yaml": "^4.1.0",
-    "vscode-tmgrammar-test": "^0.0.11"
+    "vscode-tmgrammar-test": "^0.1.3"
   },
   "scripts": {
     "convert": "npx js-yaml syntaxes/kusto.tmLanguage.yml > syntaxes/kusto.tmLanguage.json",
-    "test": "vscode-tmgrammar-snap --grammar syntaxes/kusto.tmLanguage.json --scope source.kusto --testcases \"test/snapshots/**/*.{csl,kusto,kql}\"",
-    "test:update-snapshots": "npm run convert && vscode-tmgrammar-snap --updateSnapshot --grammar syntaxes/kusto.tmLanguage.json --scope source.kusto --testcases \"test/snapshots/**/*.{csl,kusto,kql}\""
+    "test": "vscode-tmgrammar-snap --grammar syntaxes/kusto.tmLanguage.json --scope source.kusto \"test/snapshots/**/*.{csl,kusto,kql}\"",
+    "test:update-snapshots": "npm run convert && vscode-tmgrammar-snap --updateSnapshot --grammar syntaxes/kusto.tmLanguage.json --scope source.kusto \"test/snapshots/**/*.{csl,kusto,kql}\""
   }
 }
