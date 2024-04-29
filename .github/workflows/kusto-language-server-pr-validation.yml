@@ -26,3 +26,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run vscode:prepublish
+      - name: Publish VS Code Extension
+        uses: HaaLeo/publish-vscode-extension@v1
+        with:
+          packagePath: ./kusto-language-server
+          dryRun: true
