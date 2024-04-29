@@ -15,11 +15,11 @@
   "engines": {
     "vscode": "^1.33.0"
   },
-  "type": "module",
   "dependencies": {
     "@kusto/language-service-next": "^11.5.3",
     "azure-kusto-data": "^5.2.3",
-    "vscode-languageserver": "^9.0.1"
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.11"
   },
   "scripts": {
     "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",

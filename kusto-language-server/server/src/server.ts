@@ -4,7 +4,6 @@ import "../node_modules/@kusto/language-service-next/Kusto.Language.Bridge";
 import {
   createConnection,
   TextDocuments,
-  TextDocument,
   Diagnostic,
   DiagnosticSeverity,
   ProposedFeatures,
@@ -15,7 +14,9 @@ import {
   Hover,
   TextEdit,
   DocumentFormattingParams,
-} from "vscode-languageserver";
+  TextDocumentSyncKind,
+} from "vscode-languageserver/node";
+import { TextDocument } from "vscode-languageserver-textdocument";
 
 import {
   getClient as getKustoClient,
@@ -32,7 +33,7 @@ const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-const documents: TextDocuments = new TextDocuments();
+const documents = new TextDocuments(TextDocument);
 
 // Create a collection of Kusto code services, one for each document
 type documentURI = string;
@@ -66,7 +67,7 @@ connection.onInitialize((params: InitializeParams) => {
 
   return {
     capabilities: {
-      textDocumentSync: documents.syncKind,
+      textDocumentSync: TextDocumentSyncKind.Full,
       completionProvider: {
         resolveProvider: true,
       },
@@ -104,7 +105,7 @@ connection.onRequest(
     database,
   }: {
     clusterUri: string;
-    tenantId: string;
+    tenantId: string | undefined;
     database: string;
   }) => {
     const kustoClient = getKustoClient(
