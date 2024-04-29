@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
-    "@types/vscode": "^1.88.0",
+    "@types/vscode": "^1.33.0",
     "@vscode/test-electron": "*",
     "mocha": "^10.4.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",

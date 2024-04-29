@@ -13,7 +13,7 @@
     "url": "https://github.com/rosshamish/kuskus/issues"
   },
   "engines": {
-    "vscode": "^1.33.0"
+    "vscode": "^1.88.0"
   },
   "dependencies": {
     "@kusto/language-service-next": "^11.5.3",
