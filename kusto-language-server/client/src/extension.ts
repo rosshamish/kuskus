@@ -83,9 +83,9 @@ export function activate(context: ExtensionContext) {
           verificationUrl: string;
           verificationCode: string;
         }) => {
-          window.showInformationMessage(
-            `[kuskus.loadSymbols.auth] cluster ${clusterUri} database ${database} verificationUrl ${verificationUrl} verificationCode ${verificationCode}`,
-          );
+          // window.showInformationMessage(
+          //   `[kuskus.loadSymbols.auth] cluster ${clusterUri} database ${database} verificationUrl ${verificationUrl} verificationCode ${verificationCode}`,
+          // );
           let clipboardWriteSucceeded = false;
           try {
             clipboardy.writeSync(verificationCode);

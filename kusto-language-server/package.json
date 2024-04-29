@@ -31,7 +31,8 @@
         "kql"
     ],
     "activationEvents": [
-        "onLanguage:kusto"
+        "onLanguage:kusto",
+        "onCommand:kuskus.loadSymbols"
     ],
     "main": "./client/out/extension",
     "contributes": {
