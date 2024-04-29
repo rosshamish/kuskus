@@ -32,7 +32,7 @@
     ],
     "activationEvents": [
         "onLanguage:kusto",
-        "onCommand:kuskus:loadSymbols"
+        "onCommand:kuskus.loadSymbols"
     ],
     "main": "./client/out/extension",
     "contributes": {
