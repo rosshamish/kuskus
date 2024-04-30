@@ -30,8 +30,7 @@ interface ColumnInfo {
 }
 
 export async function getSymbolsOnCluster(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  kustoClient: any,
+  kustoClient: KustoClient,
   defaultDatabaseName: string,
 ): Promise<Kusto.Language.GlobalState | null> {
   // TODO use this functionality
@@ -66,8 +65,7 @@ export async function getSymbolsOnCluster(
 }
 
 export async function getSymbolsOnTable(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  kustoClient: any,
+  kustoClient: KustoClient,
   defaultDatabaseName: string,
   tableName: string,
   globalState: Kusto.Language.GlobalState,

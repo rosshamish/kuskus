@@ -132,13 +132,15 @@ export function activate(context: ExtensionContext) {
           clusterUri,
           tenantId,
           database,
+          errorMessage,
         }: {
           clusterUri: string;
           tenantId: string;
           database: string;
+          errorMessage: string | undefined;
         }) => {
           window.showErrorMessage(
-            `[Kuskus] Failed to authenticate to ${clusterUri}/${tenantId}/${database}`,
+            `[Kuskus] Failed to authenticate to ${clusterUri}/${tenantId}/${database} with error ${errorMessage}`,
           );
         },
       );
