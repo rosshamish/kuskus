@@ -139,10 +139,10 @@ connection.onRequest(
         }
       });
     } catch (e) {
-      let errorMessage = 'unknown';
+      let errorMessage = "unknown";
       if (e instanceof Error) {
         errorMessage = e.message;
-      } else if (typeof e === 'string') {
+      } else if (typeof e === "string") {
         errorMessage = e;
       }
       connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
@@ -164,7 +164,7 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
       clusterUri,
       database: "",
-      errorMessage: 'No database'
+      errorMessage: "No database",
     });
     return;
   }
@@ -175,7 +175,7 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
       clusterUri,
       database,
-      errorMessage: 'No database name',
+      errorMessage: "No database name",
     });
     return;
   }
@@ -201,16 +201,16 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
       }
     });
   } catch (e) {
-    let errorMessage = 'unknown';
+    let errorMessage = "unknown";
     if (e instanceof Error) {
       errorMessage = e.message;
-    } else if (typeof e === 'string') {
+    } else if (typeof e === "string") {
       errorMessage = e;
     }
     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
       clusterUri,
       database,
-      errorMessage
+      errorMessage,
     });
   }
 });
