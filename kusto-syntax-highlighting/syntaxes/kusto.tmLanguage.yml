@@ -337,7 +337,7 @@ repository:
         comment: https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/scalar-data-types/string
   Escapes:
     patterns:
-      - match: \\['"]
+      - match: (\\['"]|\\\\)
         name: constant.character.escape.kusto
   Numeric:
     patterns:

@@ -1,0 +1,109 @@
+>let scannerId = "9d632724-5c18-43e9-9314-555e9587b30c";
+#^^^ source.kusto keyword.control.kusto
+#   ^^^^^^^^^^^^^ source.kusto
+#                ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                     ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                      ^^ source.kusto
+>cluster("foo").database("bar").table("baz")
+#^^^^^^^ source.kusto meta.special.database.kusto support.function.kusto
+#       ^ source.kusto meta.special.database.kusto
+#        ^ source.kusto meta.special.database.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#         ^^^ source.kusto meta.special.database.kusto string.quoted.double.kusto
+#            ^ source.kusto meta.special.database.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#             ^ source.kusto meta.special.database.kusto
+#              ^ source.kusto
+#               ^^^^^^^^ source.kusto meta.special.database.kusto support.function.kusto
+#                       ^ source.kusto meta.special.database.kusto
+#                        ^ source.kusto meta.special.database.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                         ^^^ source.kusto meta.special.database.kusto string.quoted.double.kusto
+#                            ^ source.kusto meta.special.database.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                             ^ source.kusto meta.special.database.kusto
+#                              ^ source.kusto
+#                               ^^^^^ source.kusto support.function.kusto
+#                                    ^ source.kusto
+#                                     ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                      ^^^ source.kusto string.quoted.double.kusto
+#                                         ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                          ^^ source.kusto
+>| extend ScannerName = tostring(todynamic(Properties).scannerConfigurationName)
+#^^ source.kusto
+#  ^^^^^^ source.kusto keyword.other.query.kusto
+#        ^^^^^^^^^^^^^^^ source.kusto
+#                       ^^^^^^^^ source.kusto support.function.kusto
+#                               ^ source.kusto
+#                                ^^^^^^^^^ source.kusto invalid.deprecated.kusto
+#                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
+>| where Name matches regex "Skipping comment creation for file" and Name matches regex "as the scanner rule is in silent mode"
+#^^ source.kusto
+#  ^^^^^ source.kusto keyword.other.query.kusto
+#       ^^^^^^ source.kusto
+#             ^^^^^^^ source.kusto keyword.other.operator.kusto
+#                    ^ source.kusto
+#                     ^^^^^ source.kusto keyword.other.operator.kusto
+#                          ^ source.kusto
+#                           ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                              ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                               ^ source.kusto
+#                                                                ^^^ source.kusto keyword.other.operator.kusto
+#                                                                   ^^^^^^ source.kusto
+#                                                                         ^^^^^^^ source.kusto keyword.other.operator.kusto
+#                                                                                ^ source.kusto
+#                                                                                 ^^^^^ source.kusto keyword.other.operator.kusto
+#                                                                                      ^ source.kusto
+#                                                                                       ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                                                                                             ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+>| extend FullFileName = extract("Skipping comment creation for file (. + ) as the scanner rule is in silent mode", 1, Name)
+#^^ source.kusto
+#  ^^^^^^ source.kusto keyword.other.query.kusto
+#        ^^^^^^^^^^^^^^^^ source.kusto
+#                        ^^^^^^^ source.kusto support.function.kusto
+#                               ^ source.kusto
+#                                ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                                                                                ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                                                                                 ^^ source.kusto
+#                                                                                                                   ^ source.kusto constant.numeric.kusto
+#                                                                                                                    ^^^^^^^^ source.kusto
+>| extend FileNameParts = split(FullFileName, "Modified\\")
+#^^ source.kusto
+#  ^^^^^^ source.kusto keyword.other.query.kusto
+#        ^^^^^^^^^^^^^^^^^ source.kusto
+#                         ^^^^^ source.kusto support.function.kusto
+#                              ^^^^^^^^^^^^^^^ source.kusto
+#                                             ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                              ^^^^^^^^ source.kusto string.quoted.double.kusto
+#                                                      ^^ source.kusto string.quoted.double.kusto constant.character.escape.kusto
+#                                                        ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                         ^^ source.kusto
+>| extend FileName = iff(isempty(FileNameParts[1]), FullFileName, strcat("\\", FileNameParts[1])) //FullFileName was added on 2/2/24
+#^^ source.kusto
+#  ^^^^^^ source.kusto keyword.other.query.kusto
+#        ^^^^^^^^^^^^ source.kusto
+#                    ^^^ source.kusto support.function.kusto
+#                       ^ source.kusto
+#                        ^^^^^^^ source.kusto support.function.kusto
+#                               ^^^^^^^^^^^^^^^ source.kusto
+#                                              ^ source.kusto constant.numeric.kusto
+#                                               ^^^^^^^^^^^^^^^^^^ source.kusto
+#                                                                 ^^^^^^ source.kusto support.function.kusto
+#                                                                       ^ source.kusto
+#                                                                        ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                                         ^^ source.kusto string.quoted.double.kusto constant.character.escape.kusto
+#                                                                           ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                                                                            ^^^^^^^^^^^^^^^^ source.kusto
+#                                                                                            ^ source.kusto constant.numeric.kusto
+#                                                                                             ^^^^ source.kusto
+#                                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>| extend FileName = trim("'", FileName)
+#^^ source.kusto
+#  ^^^^^^ source.kusto keyword.other.query.kusto
+#        ^^^^^^^^^^^^ source.kusto
+#                    ^^^^ source.kusto support.function.kusto
+#                        ^ source.kusto
+#                         ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                          ^ source.kusto string.quoted.double.kusto
+#                           ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                            ^^^^^^^^^^^^ source.kusto
