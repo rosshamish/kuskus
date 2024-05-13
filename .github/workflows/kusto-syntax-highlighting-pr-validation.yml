@@ -21,5 +21,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm ci
-      - run: npm run test:verify-tmlanguage
       - run: npm run test
+      - run: npm run test:verify-tmlanguage
