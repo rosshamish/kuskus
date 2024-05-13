@@ -1,0 +1,4 @@
+let scannerId = "9d632724-5c18-43e9-9314-555e9587b30c";
+cluster("foo").database("bar").table("baz")
+| extend FileNameParts = split(FullFileName, "Modified\\")
+| extend FileName = trim("'", FileName)

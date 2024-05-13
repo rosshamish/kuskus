@@ -98,16 +98,18 @@
 >
 >// Escaping using '\' notation
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
->print s = '\\n.*(>|\'|=|\")[a-zA-Z0-9/+]{86}=='
+>print s = '\\n.*(>|\'|=|\")[a-zA-Z0-9/+]{86}==\\'
 #^^^^^ source.kusto keyword.other.query.kusto
 #     ^^^^^ source.kusto
 #          ^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
-#           ^^^^^^^^ source.kusto string.quoted.single.kusto
+#           ^^ source.kusto string.quoted.single.kusto constant.character.escape.kusto
+#             ^^^^^^ source.kusto string.quoted.single.kusto
 #                   ^^ source.kusto string.quoted.single.kusto constant.character.escape.kusto
 #                     ^^^ source.kusto string.quoted.single.kusto
 #                        ^^ source.kusto string.quoted.single.kusto constant.character.escape.kusto
 #                          ^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.single.kusto
-#                                              ^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
+#                                              ^^ source.kusto string.quoted.single.kusto constant.character.escape.kusto
+#                                                ^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
 >
 >// Encode a C# program in a Kusto multi-line string
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
