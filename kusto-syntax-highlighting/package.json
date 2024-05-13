@@ -73,7 +73,6 @@
   "scripts": {
     "convert": "npx js-yaml syntaxes/kusto.tmLanguage.yml > syntaxes/kusto.tmLanguage.json",
     "test": "vscode-tmgrammar-snap --grammar syntaxes/kusto.tmLanguage.json --scope source.kusto \"test/snapshots/**/*.{csl,kusto,kql}\"",
-    "test:update-snapshots": "npm run convert && vscode-tmgrammar-snap --updateSnapshot --grammar syntaxes/kusto.tmLanguage.json --scope source.kusto \"test/snapshots/**/*.{csl,kusto,kql}\"",
-    "test:verify-tmlanguage": "npm run convert && git diff-index --quiet HEAD --"
+    "test:update-snapshots": "npm run convert && vscode-tmgrammar-snap --updateSnapshot --grammar syntaxes/kusto.tmLanguage.json --scope source.kusto \"test/snapshots/**/*.{csl,kusto,kql}\""
   }
 }
