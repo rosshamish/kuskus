@@ -115,21 +115,19 @@
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
 >print program=```
 #^^^^^ source.kusto keyword.other.query.kusto
-#     ^^^^^^^^^^^^^ source.kusto
+#     ^^^^^^^^^ source.kusto
+#              ^^^ source.kusto string.quoted.multi.kusto punctuation.definition.string.kusto
 >  public class Program {
-#^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
+#^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.multi.kusto
 >    public static void Main() {
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.multi.kusto
 >      System.Console.WriteLine("Hello!");
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
-#                               ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
-#                                ^^^^^^ source.kusto string.quoted.double.kusto
-#                                      ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
-#                                       ^^^ source.kusto
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.multi.kusto
 >    }
-#^^^^^^ source.kusto
+#^^^^^^ source.kusto string.quoted.multi.kusto
 >  }```
-#^^^^^^^ source.kusto
+#^^^ source.kusto string.quoted.multi.kusto
+#   ^^^ source.kusto string.quoted.multi.kusto punctuation.definition.string.kusto
 >
 >h'hello'
 #^^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
