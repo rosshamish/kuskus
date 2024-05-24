@@ -8,9 +8,9 @@ The syntax is originally based on [TextmateBundleInstaller's Kusto syntax](https
 
 ![Kusto language syntax](https://github.com/rosshamish/kuskus/raw/master/kusto-syntax-highlighting/images/screenshot2.png)
 
-## Changelog
+## Contributing
 
-See CHANGELOG.md
+See CONTRIBUTING.md
 
 ## Bugs
 

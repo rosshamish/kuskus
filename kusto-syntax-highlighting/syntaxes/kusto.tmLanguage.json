@@ -614,6 +614,27 @@
           ],
           "name": "string.quoted.single.kusto",
           "comment": "https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/scalar-data-types/string"
+        },
+        {
+          "begin": "([@h]?```)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.kusto"
+            }
+          },
+          "end": "```",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.kusto"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#Escapes"
+            }
+          ],
+          "name": "string.quoted.multi.kusto",
+          "comment": "https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/scalar-data-types/string#multi-line-string-literals"
         }
       ]
     },
