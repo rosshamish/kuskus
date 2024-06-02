@@ -8,9 +8,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/kusto-color-themes"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "16:00"
+      interval: "monthly"
     groups:
       dev-dependencies:
         dependency-type: "development"
@@ -28,9 +26,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/kusto-extensions-pack"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "16:00"
+      interval: "monthly"
     groups:
       dev-dependencies:
         dependency-type: "development"
@@ -48,9 +44,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/kusto-language-server"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "16:00"
+      interval: "monthly"
     groups:
       dev-dependencies:
         dependency-type: "development"
@@ -68,9 +62,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/kusto-language-server/client"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "16:00"
+      interval: "monthly"
     groups:
       dev-dependencies:
         dependency-type: "development"
@@ -88,9 +80,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/kusto-language-server/server"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "16:00"
+      interval: "monthly"
     groups:
       dev-dependencies:
         dependency-type: "development"
@@ -108,9 +98,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/kusto-syntax-highlighting"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "16:00"
+      interval: "monthly"
     groups:
       dev-dependencies:
         dependency-type: "development"
@@ -128,9 +116,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "16:00"
+      interval: "monthly"
     groups:
       all-actions:
         patterns: [ "*" ]
