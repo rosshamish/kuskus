@@ -80,7 +80,7 @@
         "test": "sh ./scripts/e2e.sh"
     },
     "devDependencies": {
-        "@types/node": "^22.0.2",
+        "@types/node": "^22.5.2",
         "tslint": "^6.1.3",
         "typescript": "^5.5.4"
     }
