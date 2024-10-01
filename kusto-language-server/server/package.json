@@ -16,7 +16,7 @@
     "vscode": "^1.33.0"
   },
   "dependencies": {
-    "@kusto/language-service-next": "^11.6.1",
+    "@kusto/language-service-next": "^11.7.0",
     "azure-kusto-data": "^6.0.2",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.12"
