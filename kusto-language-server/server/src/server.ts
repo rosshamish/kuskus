@@ -18,12 +18,12 @@ import {
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 
-import {
-  getClient as getKustoClient,
-  TokenResponse,
-  getFirstOrDefaultClient,
-} from "./kustoConnection";
-import { getSymbolsOnCluster, getSymbolsOnTable } from "./kustoSymbols";
+// import {
+//   getClient as getKustoClient,
+//   TokenResponse,
+//   getFirstOrDefaultClient,
+// } from "./kustoConnection";
+// import { getSymbolsOnCluster, getSymbolsOnTable } from "./kustoSymbols";
 import { formatCodeScript } from "./kustoFormat";
 import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion";
 
@@ -97,123 +97,123 @@ connection.onInitialized(async () => {
   }
 });
 
-connection.onRequest(
-  "kuskus.loadSymbols",
-  async ({
-    clusterUri,
-    tenantId,
-    database,
-  }: {
-    clusterUri: string;
-    tenantId: string | undefined;
-    database: string;
-  }) => {
-    const kustoClient = getKustoClient(
-      clusterUri,
-      tenantId,
-      (tokenResponse: TokenResponse) => {
-        connection.sendRequest("kuskus.loadSymbols.auth", {
-          clusterUri,
-          tenantId,
-          database,
-          verificationUrl: tokenResponse.verificationUrl,
-          verificationCode: tokenResponse.userCode,
-        });
-      },
-    );
+// connection.onRequest(
+//   "kuskus.loadSymbols",
+//   async ({
+//     clusterUri,
+//     tenantId,
+//     database,
+//   }: {
+//     clusterUri: string;
+//     tenantId: string | undefined;
+//     database: string;
+//   }) => {
+//     const kustoClient = getKustoClient(
+//       clusterUri,
+//       tenantId,
+//       (tokenResponse: TokenResponse) => {
+//         connection.sendRequest("kuskus.loadSymbols.auth", {
+//           clusterUri,
+//           tenantId,
+//           database,
+//           verificationUrl: tokenResponse.verificationUrl,
+//           verificationCode: tokenResponse.userCode,
+//         });
+//       },
+//     );
 
-    try {
-      kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
-      connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
-        clusterUri,
-        tenantId,
-        database,
-      });
-      connection.sendNotification("kuskus.loadSymbols.success", {
-        clusterUri,
-        database,
-      });
-      kustoCodeScripts.forEach((value, key) => {
-        if (value) {
-          kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
-        }
-      });
-    } catch (e) {
-      let errorMessage = "unknown";
-      if (e instanceof Error) {
-        errorMessage = e.message;
-      } else if (typeof e === "string") {
-        errorMessage = e;
-      }
-      connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-        clusterUri,
-        tenantId,
-        database,
-        errorMessage,
-      });
-    }
-  },
-);
+    // try {
+    //   kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
+    //   connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
+    //     clusterUri,
+    //     tenantId,
+    //     database,
+    //   });
+    //   connection.sendNotification("kuskus.loadSymbols.success", {
+    //     clusterUri,
+    //     database,
+    //   });
+    //   kustoCodeScripts.forEach((value, key) => {
+    //     if (value) {
+    //       kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+    //     }
+    //   });
+    // } catch (e) {
+    //   let errorMessage = "unknown";
+    //   if (e instanceof Error) {
+    //     errorMessage = e.message;
+    //   } else if (typeof e === "string") {
+    //     errorMessage = e;
+    //   }
+    //   connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+    //     clusterUri,
+    //     tenantId,
+    //     database,
+    //     errorMessage,
+    //   });
+    // }
+//   },
+// );
 
-connection.onRequest("kuskus.loadTable", async (tableName: string) => {
-  let clusterUri: string = "";
-  let kustoClient = null;
-  ({ clusterUri, kustoClient } = getFirstOrDefaultClient());
+// connection.onRequest("kuskus.loadTable", async (tableName: string) => {
+//   let clusterUri: string = "";
+//   let kustoClient = null;
+//   ({ clusterUri, kustoClient } = getFirstOrDefaultClient());
 
-  if (!kustoGlobalState || !kustoGlobalState.Database) {
-    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-      clusterUri,
-      database: "",
-      errorMessage: "No database",
-    });
-    return;
-  }
+//   if (!kustoGlobalState || !kustoGlobalState.Database) {
+//     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+//       clusterUri,
+//       database: "",
+//       errorMessage: "No database",
+//     });
+//     return;
+//   }
 
-  const database = kustoGlobalState.Database.Name;
+//   const database = kustoGlobalState.Database.Name;
 
-  if (!database) {
-    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-      clusterUri,
-      database,
-      errorMessage: "No database name",
-    });
-    return;
-  }
+//   if (!database) {
+//     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+//       clusterUri,
+//       database,
+//       errorMessage: "No database name",
+//     });
+//     return;
+//   }
 
-  try {
-    kustoGlobalState = await getSymbolsOnTable(
-      kustoClient,
-      database,
-      tableName,
-      kustoGlobalState,
-    );
-    connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
-      clusterUri,
-      database,
-    });
-    connection.sendNotification("kuskus.loadSymbols.success", {
-      clusterUri,
-      database,
-    });
-    kustoCodeScripts.forEach((value, key) => {
-      if (value) {
-        kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
-      }
-    });
-  } catch (e) {
-    let errorMessage = "unknown";
-    if (e instanceof Error) {
-      errorMessage = e.message;
-    } else if (typeof e === "string") {
-      errorMessage = e;
-    }
-    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-      clusterUri,
-      database,
-      errorMessage,
-    });
-  }
-});
+  // try {
+  //   kustoGlobalState = await getSymbolsOnTable(
+  //     kustoClient,
+  //     database,
+  //     tableName,
+  //     kustoGlobalState,
+  //   );
+  //   connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
+  //     clusterUri,
+  //     database,
+  //   });
+  //   connection.sendNotification("kuskus.loadSymbols.success", {
+  //     clusterUri,
+  //     database,
+  //   });
+  //   kustoCodeScripts.forEach((value, key) => {
+  //     if (value) {
+  //       kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+  //     }
+  //   });
+  // } catch (e) {
+  //   let errorMessage = "unknown";
+  //   if (e instanceof Error) {
+  //     errorMessage = e.message;
+  //   } else if (typeof e === "string") {
+  //     errorMessage = e;
+  //   }
+  //   connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+  //     clusterUri,
+  //     database,
+  //     errorMessage,
+  //   });
+  // }
+// });
 
 // The example settings
 interface Settings {
