@@ -12,18 +12,10 @@ import {
   CompletionItem,
   TextDocumentPositionParams,
   Hover,
-  // TextEdit,
-  // DocumentFormattingParams,
   TextDocumentSyncKind,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 
-// import {
-//   getClient as getKustoClient,
-//   TokenResponse,
-//   getFirstOrDefaultClient,
-// } from "./kustoConnection";
-// import { getSymbolsOnCluster, getSymbolsOnTable } from "./kustoSymbols";
 import { formatCodeScript } from "./kustoFormat";
 import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion";
 
@@ -92,128 +84,7 @@ connection.onInitialized(async () => {
       );
     });
   }
-  if (hasDiagnosticRelatedInformationCapability) {
-    // TODO: support diagnostics
-  }
 });
-
-// connection.onRequest(
-//   "kuskus.loadSymbols",
-//   async ({
-//     clusterUri,
-//     tenantId,
-//     database,
-//   }: {
-//     clusterUri: string;
-//     tenantId: string | undefined;
-//     database: string;
-//   }) => {
-//     const kustoClient = getKustoClient(
-//       clusterUri,
-//       tenantId,
-//       (tokenResponse: TokenResponse) => {
-//         connection.sendRequest("kuskus.loadSymbols.auth", {
-//           clusterUri,
-//           tenantId,
-//           database,
-//           verificationUrl: tokenResponse.verificationUrl,
-//           verificationCode: tokenResponse.userCode,
-//         });
-//       },
-//     );
-
-// try {
-//   kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
-//   connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
-//     clusterUri,
-//     tenantId,
-//     database,
-//   });
-//   connection.sendNotification("kuskus.loadSymbols.success", {
-//     clusterUri,
-//     database,
-//   });
-//   kustoCodeScripts.forEach((value, key) => {
-//     if (value) {
-//       kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
-//     }
-//   });
-// } catch (e) {
-//   let errorMessage = "unknown";
-//   if (e instanceof Error) {
-//     errorMessage = e.message;
-//   } else if (typeof e === "string") {
-//     errorMessage = e;
-//   }
-//   connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-//     clusterUri,
-//     tenantId,
-//     database,
-//     errorMessage,
-//   });
-// }
-//   },
-// );
-
-// connection.onRequest("kuskus.loadTable", async (tableName: string) => {
-//   let clusterUri: string = "";
-//   let kustoClient = null;
-//   ({ clusterUri, kustoClient } = getFirstOrDefaultClient());
-
-//   if (!kustoGlobalState || !kustoGlobalState.Database) {
-//     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-//       clusterUri,
-//       database: "",
-//       errorMessage: "No database",
-//     });
-//     return;
-//   }
-
-//   const database = kustoGlobalState.Database.Name;
-
-//   if (!database) {
-//     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-//       clusterUri,
-//       database,
-//       errorMessage: "No database name",
-//     });
-//     return;
-//   }
-
-// try {
-//   kustoGlobalState = await getSymbolsOnTable(
-//     kustoClient,
-//     database,
-//     tableName,
-//     kustoGlobalState,
-//   );
-//   connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
-//     clusterUri,
-//     database,
-//   });
-//   connection.sendNotification("kuskus.loadSymbols.success", {
-//     clusterUri,
-//     database,
-//   });
-//   kustoCodeScripts.forEach((value, key) => {
-//     if (value) {
-//       kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
-//     }
-//   });
-// } catch (e) {
-//   let errorMessage = "unknown";
-//   if (e instanceof Error) {
-//     errorMessage = e.message;
-//   } else if (typeof e === "string") {
-//     errorMessage = e;
-//   }
-//   connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-//     clusterUri,
-//     database,
-//     errorMessage,
-//   });
-// }
-// });
 
 // The example settings
 interface Settings {
@@ -430,51 +301,6 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
 
   return { contents: quickInfo.Text || "" };
 });
-
-// connection.onDocumentFormatting(
-//   (params: DocumentFormattingParams): TextEdit[] | null => {
-//     const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
-//     if (!kustoCodeScript) {
-//       return null;
-//     }
-
-//     const formatted = formatCodeScript(kustoCodeScript);
-//     if (!formatted) {
-//       return null;
-//     }
-
-//     const changes: TextEdit[] = [
-//       TextEdit.replace(
-//         {
-//           start: { line: 0, character: 0 },
-//           end: { line: Number.MAX_VALUE, character: Number.MAX_VALUE },
-//         },
-//         formatted,
-//       ),
-//     ];
-//     return changes;
-//   },
-// );
-
-/*
-connection.onDidOpenTextDocument((params) => {
-    // A text document got opened in VSCode.
-    // params.uri uniquely identifies the document. For documents store on disk this is a file URI.
-    // params.text the initial full content of the document.
-    connection.console.log(`${params.textDocument.uri} opened.`);
-});
-connection.onDidChangeTextDocument((params) => {
-    // The content of a text document did change in VSCode.
-    // params.uri uniquely identifies the document.
-    // params.contentChanges describe the content changes to the document.
-    connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
-});
-connection.onDidCloseTextDocument((params) => {
-    // A text document got closed in VSCode.
-    // params.uri uniquely identifies the document.
-    connection.console.log(`${params.textDocument.uri} closed.`);
-});
-*/
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events

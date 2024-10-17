@@ -33,14 +33,6 @@ export async function getSymbolsOnCluster(
   kustoClient: KustoClient,
   defaultDatabaseName: string,
 ): Promise<Kusto.Language.GlobalState | null> {
-  // TODO use this functionality
-  // const databasesMetadata = await getDatabasesOnCluster(kustoClient, defaultDatabaseName);
-  // for (let databaseNames of databasesMetadata) {
-  // 	const functionMetadatas = await getFunctionsOnDatabase(kustoClient, defaultDatabaseName);
-  // }
-  // for (let databaseNames of databasesMetadata) {
-  // 	const tableMetadatas = await getTablesOnDatabase(kustoClient, defaultDatabaseName);
-  // }
   const tableMetadata = await getTableMetadata(
     kustoClient,
     defaultDatabaseName,
