@@ -12,8 +12,8 @@ import {
   CompletionItem,
   TextDocumentPositionParams,
   Hover,
-  TextEdit,
-  DocumentFormattingParams,
+  // TextEdit,
+  // DocumentFormattingParams,
   TextDocumentSyncKind,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -72,7 +72,7 @@ connection.onInitialize((params: InitializeParams) => {
         resolveProvider: true,
       },
       hoverProvider: true,
-      documentFormattingProvider: true,
+      documentFormattingProvider: false,
     },
   };
 });
@@ -122,36 +122,36 @@ connection.onInitialized(async () => {
 //       },
 //     );
 
-    // try {
-    //   kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
-    //   connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
-    //     clusterUri,
-    //     tenantId,
-    //     database,
-    //   });
-    //   connection.sendNotification("kuskus.loadSymbols.success", {
-    //     clusterUri,
-    //     database,
-    //   });
-    //   kustoCodeScripts.forEach((value, key) => {
-    //     if (value) {
-    //       kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
-    //     }
-    //   });
-    // } catch (e) {
-    //   let errorMessage = "unknown";
-    //   if (e instanceof Error) {
-    //     errorMessage = e.message;
-    //   } else if (typeof e === "string") {
-    //     errorMessage = e;
-    //   }
-    //   connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-    //     clusterUri,
-    //     tenantId,
-    //     database,
-    //     errorMessage,
-    //   });
-    // }
+// try {
+//   kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
+//   connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
+//     clusterUri,
+//     tenantId,
+//     database,
+//   });
+//   connection.sendNotification("kuskus.loadSymbols.success", {
+//     clusterUri,
+//     database,
+//   });
+//   kustoCodeScripts.forEach((value, key) => {
+//     if (value) {
+//       kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+//     }
+//   });
+// } catch (e) {
+//   let errorMessage = "unknown";
+//   if (e instanceof Error) {
+//     errorMessage = e.message;
+//   } else if (typeof e === "string") {
+//     errorMessage = e;
+//   }
+//   connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+//     clusterUri,
+//     tenantId,
+//     database,
+//     errorMessage,
+//   });
+// }
 //   },
 // );
 
@@ -180,39 +180,39 @@ connection.onInitialized(async () => {
 //     return;
 //   }
 
-  // try {
-  //   kustoGlobalState = await getSymbolsOnTable(
-  //     kustoClient,
-  //     database,
-  //     tableName,
-  //     kustoGlobalState,
-  //   );
-  //   connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
-  //     clusterUri,
-  //     database,
-  //   });
-  //   connection.sendNotification("kuskus.loadSymbols.success", {
-  //     clusterUri,
-  //     database,
-  //   });
-  //   kustoCodeScripts.forEach((value, key) => {
-  //     if (value) {
-  //       kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
-  //     }
-  //   });
-  // } catch (e) {
-  //   let errorMessage = "unknown";
-  //   if (e instanceof Error) {
-  //     errorMessage = e.message;
-  //   } else if (typeof e === "string") {
-  //     errorMessage = e;
-  //   }
-  //   connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
-  //     clusterUri,
-  //     database,
-  //     errorMessage,
-  //   });
-  // }
+// try {
+//   kustoGlobalState = await getSymbolsOnTable(
+//     kustoClient,
+//     database,
+//     tableName,
+//     kustoGlobalState,
+//   );
+//   connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
+//     clusterUri,
+//     database,
+//   });
+//   connection.sendNotification("kuskus.loadSymbols.success", {
+//     clusterUri,
+//     database,
+//   });
+//   kustoCodeScripts.forEach((value, key) => {
+//     if (value) {
+//       kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+//     }
+//   });
+// } catch (e) {
+//   let errorMessage = "unknown";
+//   if (e instanceof Error) {
+//     errorMessage = e.message;
+//   } else if (typeof e === "string") {
+//     errorMessage = e;
+//   }
+//   connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+//     clusterUri,
+//     database,
+//     errorMessage,
+//   });
+// }
 // });
 
 // The example settings
@@ -329,6 +329,16 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     }
     for (let j = 0; j < diagnostics.Count; j++) {
       const diagnostic = diagnostics.getItem(j);
+      // Skip errors that are not useful for the user
+      if (
+        diagnostic.Message &&
+        (
+          diagnostic.Message.includes("Missing statement") ||
+          diagnostic.Message.includes("does not refer to any known")
+        )
+      ) {
+        continue;
+      }
       documentDiagnostics.push({
         severity: DiagnosticSeverity.Error,
         range: {
@@ -421,30 +431,30 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
   return { contents: quickInfo.Text || "" };
 });
 
-connection.onDocumentFormatting(
-  (params: DocumentFormattingParams): TextEdit[] | null => {
-    const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
-    if (!kustoCodeScript) {
-      return null;
-    }
+// connection.onDocumentFormatting(
+//   (params: DocumentFormattingParams): TextEdit[] | null => {
+//     const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
+//     if (!kustoCodeScript) {
+//       return null;
+//     }
 
-    const formatted = formatCodeScript(kustoCodeScript);
-    if (!formatted) {
-      return null;
-    }
+//     const formatted = formatCodeScript(kustoCodeScript);
+//     if (!formatted) {
+//       return null;
+//     }
 
-    const changes: TextEdit[] = [
-      TextEdit.replace(
-        {
-          start: { line: 0, character: 0 },
-          end: { line: Number.MAX_VALUE, character: Number.MAX_VALUE },
-        },
-        formatted,
-      ),
-    ];
-    return changes;
-  },
-);
+//     const changes: TextEdit[] = [
+//       TextEdit.replace(
+//         {
+//           start: { line: 0, character: 0 },
+//           end: { line: Number.MAX_VALUE, character: Number.MAX_VALUE },
+//         },
+//         formatted,
+//       ),
+//     ];
+//     return changes;
+//   },
+// );
 
 /*
 connection.onDidOpenTextDocument((params) => {
