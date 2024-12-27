@@ -32,7 +32,9 @@
 >
 >let dt = datetime(2017-01-29 09:00:05);
 #^^^ source.kusto keyword.control.kusto
-#   ^^^^^^ source.kusto
+#   ^ source.kusto
+#    ^^^ source.kusto entity.function.name.lambda.kusto
+#       ^^ source.kusto
 #         ^^^^^^^^ source.kusto storage.type.kusto
 #                 ^ source.kusto
 #                  ^^^^ source.kusto constant.numeric.kusto
