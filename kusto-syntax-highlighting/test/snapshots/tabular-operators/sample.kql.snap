@@ -3,7 +3,9 @@
 >
 >let _data = range x from 1 to 100 step 1;
 #^^^ source.kusto keyword.control.kusto
-#   ^^^^^^^^^ source.kusto
+#   ^ source.kusto
+#    ^^^^^^ source.kusto entity.function.name.lambda.kusto
+#          ^^ source.kusto
 #            ^^^^^ source.kusto meta.query.range.kusto keyword.other.query.kusto
 #                 ^ source.kusto meta.query.range.kusto
 #                  ^ source.kusto meta.query.range.kusto variable.other.column.kusto
@@ -22,7 +24,9 @@
 #                                        ^^ source.kusto
 >let _sample = _data | sample 1;
 #^^^ source.kusto keyword.control.kusto
-#   ^^^^^^^^^^^^^^^^^^^ source.kusto
+#   ^ source.kusto
+#    ^^^^^^^^ source.kusto entity.function.name.lambda.kusto
+#            ^^^^^^^^^^ source.kusto
 #                      ^^^^^^ source.kusto meta.query.sample.kusto keyword.other.query.kusto
 #                            ^ source.kusto meta.query.sample.kusto
 #                             ^ source.kusto meta.query.sample.kusto constant.numeric.kusto

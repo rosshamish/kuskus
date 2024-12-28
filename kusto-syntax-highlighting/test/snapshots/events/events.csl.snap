@@ -1,8 +1,8 @@
 >let Events = MyLogTable | where A=B;
 #^^^ source.kusto keyword.control.kusto
-#   ^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
-#                          ^^^^^ source.kusto keyword.other.query.kusto
-#                               ^^^^^^ source.kusto
+#   ^ source.kusto
+#    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto entity.function.name.lambda.kusto
+#                                 ^^^^ source.kusto
 >
 >Events
 #^^^^^^^ source.kusto

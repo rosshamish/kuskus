@@ -1,6 +1,8 @@
 >let scannerId = "9d632724-5c18-43e9-9314-555e9587b30c";
 #^^^ source.kusto keyword.control.kusto
-#   ^^^^^^^^^^^^^ source.kusto
+#   ^ source.kusto
+#    ^^^^^^^^^^ source.kusto entity.function.name.lambda.kusto
+#              ^^ source.kusto
 #                ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
 #                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.double.kusto
 #                                                     ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto

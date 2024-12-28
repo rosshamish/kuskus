@@ -7,7 +7,9 @@
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
 >let clipped_average = (T:(x: long), lowPercentile:double, upPercentile:double)
 #^^^ source.kusto keyword.control.kusto
-#   ^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
+#   ^ source.kusto
+#    ^^^^^^^^^^^^^^^^ source.kusto entity.function.name.lambda.kusto
+#                    ^^^^^^^^^ source.kusto
 #                             ^^^^ source.kusto storage.type.kusto
 #                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto
 >{
@@ -15,7 +17,9 @@
 >   let high = toscalar(T | summarize percentiles(x, upPercentile));
 #^^^ source.kusto
 #   ^^^ source.kusto keyword.control.kusto
-#      ^^^^^^^^ source.kusto
+#      ^ source.kusto
+#       ^^^^^ source.kusto entity.function.name.lambda.kusto
+#            ^^ source.kusto
 #              ^^^^^^^^ source.kusto support.function.kusto
 #                      ^^^^^ source.kusto
 #                           ^^^^^^^^^ source.kusto keyword.other.query.kusto
@@ -25,7 +29,9 @@
 >   let low = toscalar(T | summarize percentiles(x, lowPercentile));
 #^^^ source.kusto
 #   ^^^ source.kusto keyword.control.kusto
-#      ^^^^^^^ source.kusto
+#      ^ source.kusto
+#       ^^^^ source.kusto entity.function.name.lambda.kusto
+#           ^^ source.kusto
 #             ^^^^^^^^ source.kusto support.function.kusto
 #                     ^^^^^ source.kusto
 #                          ^^^^^^^^^ source.kusto keyword.other.query.kusto
