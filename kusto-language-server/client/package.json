@@ -21,7 +21,7 @@
     "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
   },
   "dependencies": {
-    "clipboardy": "^4.0.0",
+    "clipboardy": "^2.3.0",
     "open": "^8.4.2",
     "vscode-languageclient": "^7.0.0"
   },
