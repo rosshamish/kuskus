@@ -30,7 +30,7 @@
     "@types/vscode": "^1.92.0",
     "@vscode/test-electron": "*",
     "mocha": "^10.7.0",
-    "@typescript-eslint/eslint-plugin": "^7.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^9.1.0",
