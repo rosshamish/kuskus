@@ -10,7 +10,9 @@ VS Code is a lightweight code editor https://code.visualstudio.com/
 
 ## Contributing
 
-This project is not under active development as of June 2020. Contributions are still welcome. I also would welcome a volunteer to take over the project. If you are interested, please open an issue to let me know!
+This project is not under active development as of June 2020. Contributions are still welcome, especially via CodeTriage! https://www.codetriage.com/rosshamish/kuskus [![Open Source Helpers](https://www.codetriage.com/rosshamish/kuskus/badges/users.svg)](https://www.codetriage.com/rosshamish/kuskus)
+
+I also would welcome a volunteer to take over the project. If you are interested, please open an issue to let me know!
 
 ## Extensions
 
