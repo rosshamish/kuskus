@@ -1,4 +1,4 @@
->print bool(null), datetime(null), dynamic(null), guid(null), int(null), long(null), real(null), time(null)
+>print bool(null), boolean(null), datetime(null), dynamic(null), guid(null), int(null), long(null), real(null), time(null)
 #^^^^^ source.kusto keyword.other.query.kusto
 #     ^ source.kusto
 #      ^^^^ source.kusto storage.type.kusto
