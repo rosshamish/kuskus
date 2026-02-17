@@ -23,7 +23,11 @@ import {
   TokenResponse,
   getFirstOrDefaultClient,
 } from "./kustoConnection";
-import { getSymbolsOnCluster, getSymbolsOnTable } from "./kustoSymbols";
+import {
+  getSymbolsOnCluster,
+  getSymbolsOnTable,
+  injectCustomBuiltInFunctions,
+} from "./kustoSymbols";
 import { formatCodeScript } from "./kustoFormat";
 import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion";
 
@@ -37,7 +41,8 @@ const documents = new TextDocuments(TextDocument);
 
 // Create a collection of Kusto code services, one for each document
 type documentURI = string;
-let kustoGlobalState = Kusto.Language.GlobalState.Default;
+let kustoGlobalState: Kusto.Language.GlobalState | null =
+  injectCustomBuiltInFunctions(Kusto.Language.GlobalState.Default);
 const kustoCodeScripts: Map<
   documentURI,
   Kusto.Language.Editor.CodeScript | null

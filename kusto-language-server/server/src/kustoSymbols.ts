@@ -49,7 +49,9 @@ export async function getSymbolsOnCluster(
     kustoClient,
     defaultDatabaseName,
   );
-  const globalState = Kusto.Language.GlobalState.Default;
+  let globalState: Kusto.Language.GlobalState | null =
+    Kusto.Language.GlobalState.Default;
+  globalState = injectCustomBuiltInFunctions(globalState);
   if (!globalState) {
     return null;
   }
@@ -338,4 +340,47 @@ function getTypeSymbol(
   type: string,
 ): Kusto.Language.Symbols.ScalarSymbol | null {
   return Kusto.Language.Symbols.ScalarSymbol.From(type);
+}
+
+/**
+ * Injects custom built-in functions that may not be in the current version of the kusto language service.
+ * This ensures newer Kusto functions are available for autocomplete and validation.
+ * Reference: https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/take-any-aggfunction
+ *
+ * @param globalState The global state to inject custom functions into
+ * @returns The global state with custom built-in functions added, or null if input is null
+ */
+export function injectCustomBuiltInFunctions(
+  globalState: Kusto.Language.GlobalState | null,
+): Kusto.Language.GlobalState | null {
+  if (!globalState) {
+    return null;
+  }
+
+  const customFunctions: Kusto.Language.Symbols.FunctionSymbol[] = [];
+
+  // take_any(expr) - Aggregate function that returns one random row from the specified table
+  // Replaces the deprecated any() function
+  customFunctions.push(
+    new Kusto.Language.Symbols.FunctionSymbol.$ctor4("take_any", [
+      new Kusto.Language.Symbols.Signature.$ctor2(
+        Kusto.Language.Symbols.ReturnTypeKind.Common,
+        [
+          new Kusto.Language.Symbols.Parameter.$ctor2(
+            "expr",
+            Kusto.Language.Symbols.ScalarSymbol.From("dynamic"),
+          ),
+        ],
+      ),
+    ]),
+  );
+
+  // Add the custom functions to the global state's database
+  if (globalState.Database) {
+    return globalState.WithDatabase(
+      globalState.Database.AddMembers(customFunctions),
+    );
+  }
+
+  return globalState;
 }
