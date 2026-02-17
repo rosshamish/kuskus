@@ -136,10 +136,11 @@ function getDatabasesOnCluster(
           return reject("Failed to fetch databases in cluster");
         }
         const primaryResults = results.primaryResults[0];
+        // Access _rows property which contains the actual data array
         for (let i = 0; i < primaryResults._rows.length; i++) {
           databaseNames.push({
-            DatabaseName: primaryResults[i].DatabaseName,
-            PrettyName: primaryResults[i].PrettyName,
+            DatabaseName: primaryResults._rows[i].DatabaseName,
+            PrettyName: primaryResults._rows[i].PrettyName,
           });
         }
         return resolve(databaseNames);
@@ -181,12 +182,13 @@ function getFunctionMetadata(
           return reject("Failed to fetch functions in cluster");
         }
         const primaryResults = results.primaryResults[0];
+        // Access _rows property which contains the actual data array
         for (let i = 0; i < primaryResults._rows.length; i++) {
           functionMetadatas.push({
-            Name: primaryResults[i].Name,
-            Parameters: primaryResults[i].Parameters,
-            Folder: primaryResults[i].Folder,
-            DocString: primaryResults[i].DocString,
+            Name: primaryResults._rows[i].Name,
+            Parameters: primaryResults._rows[i].Parameters,
+            Folder: primaryResults._rows[i].Folder,
+            DocString: primaryResults._rows[i].DocString,
           });
         }
         return resolve(functionMetadatas);
@@ -229,12 +231,13 @@ function getTableMetadata(
           return reject("Failed to fetch tables in cluster");
         }
         const primaryResults = results.primaryResults[0];
+        // Access _rows property which contains the actual data array
         for (let i = 0; i < primaryResults._rows.length; i++) {
           tableMetadatas.push({
-            TableName: primaryResults[i].TableName,
-            DatabaseName: primaryResults[i].DatabaseName,
-            Folder: primaryResults[i].Folder,
-            DocString: primaryResults[i].DocString,
+            TableName: primaryResults._rows[i].TableName,
+            DatabaseName: primaryResults._rows[i].DatabaseName,
+            Folder: primaryResults._rows[i].Folder,
+            DocString: primaryResults._rows[i].DocString,
           });
         }
         return resolve(tableMetadatas);
@@ -262,12 +265,13 @@ function getTableSchema(
         }
         const primaryResults = results.primaryResults[0];
 
+        // Access _rows property which contains the actual data array
         const tableMetadata = {
-          TableName: primaryResults[0].TableName,
-          Schema: primaryResults[0].Schema,
-          DatabaseName: primaryResults[0].DatabaseName,
-          Folder: primaryResults[0].Folder,
-          DocString: primaryResults[0].DocString,
+          TableName: primaryResults._rows[0].TableName,
+          Schema: primaryResults._rows[0].Schema,
+          DatabaseName: primaryResults._rows[0].DatabaseName,
+          Folder: primaryResults._rows[0].Folder,
+          DocString: primaryResults._rows[0].DocString,
         };
 
         return resolve(tableMetadata);
