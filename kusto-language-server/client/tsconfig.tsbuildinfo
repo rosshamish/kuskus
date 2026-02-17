@@ -1,0 +1,1 @@
+{"root":["./src/extension.ts","./src/test/runtest.ts","./src/test/suite/completion.test.ts","./src/test/suite/diagnostics.test.ts","./src/test/suite/helper.ts","./src/test/suite/index.ts"],"version":"5.9.3"}
