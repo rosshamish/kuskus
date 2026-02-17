@@ -59,7 +59,7 @@ export function activate(context: ExtensionContext) {
   client.start();
 
   client.onDidChangeState((listener) => {
-    if (listener.newState == State.Running) {
+    if (listener.newState === State.Running) {
       window.showInformationMessage("Kuskus loaded!");
 
       client.onRequest(

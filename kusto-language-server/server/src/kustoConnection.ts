@@ -20,7 +20,7 @@ export function getClient(
 ) {
   if (clients.has(clusterUri)) {
     return clients.get(clusterUri);
-  } else {
+  } 
     // If tenant id is empty in the input, consider it undefined when building the connection string
     if (!tenantId) {
       tenantId = undefined;
@@ -39,7 +39,7 @@ export function getClient(
     const kustoClient = new KustoClient(kcsb);
     clients.set(clusterUri, kustoClient);
     return kustoClient;
-  }
+  
 }
 
 export function getFirstOrDefaultClient(): {

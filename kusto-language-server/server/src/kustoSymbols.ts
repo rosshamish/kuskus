@@ -96,16 +96,23 @@ function getTableColumns(
   const orderedColumns: ColumnInfo[] = schema.OrderedColumns;
 
   orderedColumns.forEach((column) => {
-    columns.push(
-      new Kusto.Language.Symbols.ColumnSymbol(
-        column.Name,
-        getTypeSymbol(column.CslType),
-        null,
-        null,
-        null,
-        null,
-      ),
-    );
+    // Add null-safety check for column and type symbol
+    if (column && column.Name) {
+      const typeSymbol = getTypeSymbol(column.CslType);
+      // Only add column if we can determine its type
+      if (typeSymbol) {
+        columns.push(
+          new Kusto.Language.Symbols.ColumnSymbol(
+            column.Name,
+            typeSymbol,
+            null,
+            null,
+            null,
+            null,
+          ),
+        );
+      }
+    }
   });
 
   return columns;
@@ -332,6 +339,17 @@ function getSingleParameter(
   // "param1 : param1type"
 
   const paramSplit = parameter.split(/[: ]+/).filter((s) => s !== "");
+  
+  // Add null-safety checks
+  if (!paramSplit || paramSplit.length < 2) {
+    // Fallback: create a parameter with unknown type if parsing fails
+    const paramName = paramSplit && paramSplit.length > 0 ? paramSplit[0] : "unknown";
+    return new Kusto.Language.Symbols.Parameter.$ctor2(
+      paramName,
+      null,
+    );
+  }
+
   return new Kusto.Language.Symbols.Parameter.$ctor2(
     paramSplit[0],
     getTypeSymbol(paramSplit[1]),
@@ -341,5 +359,16 @@ function getSingleParameter(
 function getTypeSymbol(
   type: string,
 ): Kusto.Language.Symbols.ScalarSymbol | null {
-  return Kusto.Language.Symbols.ScalarSymbol.From(type);
+  // Add null-safety check for type parameter
+  if (!type || typeof type !== 'string') {
+    return null;
+  }
+  
+  try {
+    return Kusto.Language.Symbols.ScalarSymbol.From(type);
+  } catch (e) {
+    // Gracefully handle errors when parsing type
+    console.error(`Error parsing type symbol: ${type}`, e);
+    return null;
+  }
 }

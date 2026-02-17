@@ -6,10 +6,18 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
+// eslint-disable-next-line import/no-mutable-exports
 export let doc: vscode.TextDocument;
+// eslint-disable-next-line import/no-mutable-exports
 export let editor: vscode.TextEditor;
+// eslint-disable-next-line import/no-mutable-exports
 export let documentEol: string;
+// eslint-disable-next-line import/no-mutable-exports
 export let platformEol: string;
+
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * Activates the vscode.lsp-sample extension
@@ -23,20 +31,13 @@ export async function activate(docUri: vscode.Uri) {
     editor = await vscode.window.showTextDocument(doc);
     await sleep(2000); // Wait for server activation
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error(e);
   }
 }
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export const getDocPath = (p: string) => {
-  return path.resolve(__dirname, "../../testFixture", p);
-};
-export const getDocUri = (p: string) => {
-  return vscode.Uri.file(getDocPath(p));
-};
+export const getDocPath = (p: string) => path.resolve(__dirname, "../../testFixture", p);
+export const getDocUri = (p: string) => vscode.Uri.file(getDocPath(p));
 
 export async function setTestContent(content: string): Promise<boolean> {
   const all = new vscode.Range(

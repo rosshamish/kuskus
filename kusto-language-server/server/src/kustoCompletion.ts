@@ -18,11 +18,16 @@ export function getVSCodeCompletionItemsAtPosition(
   const vsCodeCompletionItems: CompletionItem[] = (Bridge as any)
     .toArray(completionItems)
     .map((completionItem: Kusto.Language.Editor.CompletionItem) => {
+      // Add null-safety check for completionItem
+      if (!completionItem) {
+        return null;
+      }
       return {
         label: completionItem.DisplayText || "",
         kind: _getVSCodeCompletionItemKind(completionItem),
       };
-    });
+    })
+    .filter((item: CompletionItem | null): item is CompletionItem => item !== null);
   return vsCodeCompletionItems;
 }
 
@@ -62,6 +67,11 @@ function getCompletionItemsAtPosition(
 function _getVSCodeCompletionItemKind(
   completionItem: Kusto.Language.Editor.CompletionItem,
 ): CompletionItemKind {
+  // Defensive check for null/undefined completionItem or missing Kind property
+  if (!completionItem || completionItem.Kind === null || completionItem.Kind === undefined) {
+    return CompletionItemKind.Text;
+  }
+
   switch (completionItem.Kind) {
     case Kusto.Language.Editor.CompletionKind.Cluster:
       return CompletionItemKind.Module;

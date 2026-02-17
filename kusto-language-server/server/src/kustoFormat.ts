@@ -87,11 +87,11 @@ function formatBlock(
       hasSeenFirstQueryBlock,
       indentSize,
     };
-  } else {
+  } 
     return {
-      formattedText: formattedText,
+      formattedText,
       hasSeenFirstQueryBlock,
       indentSize,
     };
-  }
+  
 }

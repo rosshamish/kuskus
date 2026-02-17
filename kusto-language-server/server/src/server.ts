@@ -1,5 +1,5 @@
-import "../node_modules/@kusto/language-service-next/bridge";
-import "../node_modules/@kusto/language-service-next/Kusto.Language.Bridge";
+import "@kusto/language-service-next/bridge";
+import "@kusto/language-service-next/Kusto.Language.Bridge";
 
 import {
   createConnection,
@@ -48,7 +48,7 @@ let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
 
 connection.onInitialize((params: InitializeParams) => {
-  const capabilities = params.capabilities;
+  const {capabilities} = params;
 
   // Does the client support the `workspace/configuration` request?
   // If not, we will fall back using global settings
@@ -369,16 +369,19 @@ connection.onCompletion(
     }
 
     try {
-      return getVSCodeCompletionItemsAtPosition(
+      const completionItems = getVSCodeCompletionItemsAtPosition(
         kustoCodeScript,
         _textDocumentPosition.position.line + 1,
         _textDocumentPosition.position.character + 1,
       );
+      return completionItems || [];
     } catch (e) {
       if (e instanceof Error) {
-        connection.console.error(e.message);
+        connection.console.error(
+          `Error getting completion items: ${e.message}`,
+        );
       } else if (typeof e === "string") {
-        connection.console.error(e);
+        connection.console.error(`Error getting completion items: ${e}`);
       }
       return [];
     }
@@ -387,9 +390,7 @@ connection.onCompletion(
 
 // This handler resolves additional information for the item selected in
 // the completion list.
-connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-  return item;
-});
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => item);
 
 connection.onHover((params: TextDocumentPositionParams): Hover | null => {
   const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
@@ -412,13 +413,29 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
     return null;
   }
 
-  const quickInfo = kustoCodeBlock.Service.GetQuickInfo(position.v);
+  try {
+    const quickInfo = kustoCodeBlock.Service.GetQuickInfo(position.v);
 
-  if (!quickInfo || !quickInfo.Text) {
+    if (!quickInfo || !quickInfo.Text) {
+      return null;
+    }
+
+    // Defensive check: ensure Text property exists and is not null
+    const hoverText = quickInfo.Text ? String(quickInfo.Text) : null;
+    if (!hoverText) {
+      return null;
+    }
+
+    return { contents: hoverText };
+  } catch (e) {
+    // Gracefully handle any errors from GetQuickInfo (e.g., control commands with undefined symbols)
+    connection.console.error(
+      `Error getting hover information: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+    );
     return null;
   }
-
-  return { contents: quickInfo.Text || "" };
 });
 
 connection.onDocumentFormatting(
