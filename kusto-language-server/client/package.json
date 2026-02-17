@@ -17,6 +17,7 @@
   },
   "scripts": {
     "test": "node ./out/test/runTest.js",
+    "test:coverage": "nyc node ./out/test/runTest.js",
     "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
     "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
   },
@@ -36,6 +37,7 @@
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
-    "prettier": "3.8.1"
+    "prettier": "3.8.1",
+    "nyc": "^15.1.0"
   }
 }
