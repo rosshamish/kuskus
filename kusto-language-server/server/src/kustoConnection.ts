@@ -20,26 +20,26 @@ export function getClient(
 ) {
   if (clients.has(clusterUri)) {
     return clients.get(clusterUri);
-  } 
-    // If tenant id is empty in the input, consider it undefined when building the connection string
-    if (!tenantId) {
-      tenantId = undefined;
-    }
+  }
+  // If tenant id is empty in the input, consider it undefined when building the connection string
+  let actualTenantId = tenantId;
+  if (!actualTenantId) {
+    actualTenantId = undefined;
+  }
 
-    const kcsb = KustoConnectionStringBuilder.withAadDeviceAuthentication(
-      clusterUri,
-      tenantId,
-      (deviceCodeInfo) => {
-        authCallback({
-          verificationUrl: deviceCodeInfo.verificationUri,
-          userCode: deviceCodeInfo.userCode,
-        });
-      },
-    );
-    const kustoClient = new KustoClient(kcsb);
-    clients.set(clusterUri, kustoClient);
-    return kustoClient;
-  
+  const kcsb = KustoConnectionStringBuilder.withAadDeviceAuthentication(
+    clusterUri,
+    actualTenantId,
+    (deviceCodeInfo) => {
+      authCallback({
+        verificationUrl: deviceCodeInfo.verificationUri,
+        userCode: deviceCodeInfo.userCode,
+      });
+    },
+  );
+  const kustoClient = new KustoClient(kcsb);
+  clients.set(clusterUri, kustoClient);
+  return kustoClient;
 }
 
 export function getFirstOrDefaultClient(): {

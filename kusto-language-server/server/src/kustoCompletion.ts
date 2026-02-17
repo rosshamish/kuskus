@@ -1,70 +1,6 @@
 import { CompletionItemKind, CompletionItem } from "vscode-languageserver";
 
-export function getVSCodeCompletionItemsAtPosition(
-  kustoCodeScript: Kusto.Language.Editor.CodeScript,
-  line: number,
-  character: number,
-): CompletionItem[] {
-  const completionItems = getCompletionItemsAtPosition(
-    kustoCodeScript,
-    line,
-    character,
-  );
-  if (!completionItems || !completionItems.Count) {
-    return [];
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vsCodeCompletionItems: CompletionItem[] = (Bridge as any)
-    .toArray(completionItems)
-    .map((completionItem: Kusto.Language.Editor.CompletionItem) => {
-      // Add null-safety check for completionItem
-      if (!completionItem) {
-        return null;
-      }
-      return {
-        label: completionItem.DisplayText || "",
-        kind: _getVSCodeCompletionItemKind(completionItem),
-      };
-    })
-    .filter((item: CompletionItem | null): item is CompletionItem => item !== null);
-  return vsCodeCompletionItems;
-}
-
-function getCompletionItemsAtPosition(
-  kustoCodeScript: Kusto.Language.Editor.CodeScript,
-  line: number,
-  character: number,
-): System.Collections.Generic.IReadOnlyList$1<Kusto.Language.Editor.CompletionItem> | null {
-  const position = { v: -1 };
-  const positionValid = kustoCodeScript.TryGetTextPosition(
-    line,
-    character,
-    position,
-  );
-  if (!positionValid) {
-    throw new Error(
-      `Position (${line},${character}) not valid, cannot get completion items`,
-    );
-  }
-  const kustoCodeBlock = kustoCodeScript.GetBlockAtPosition(position.v);
-  if (!kustoCodeBlock || !kustoCodeBlock.Service) {
-    throw new Error(
-      `Code block at position (${line},${character}) not valid, cannot get completion items`,
-    );
-  }
-
-  const completionItems = kustoCodeBlock.Service.GetCompletionItems(position.v);
-  if (!completionItems) {
-    throw new Error(
-      `Completion items at position (${line},${character}) not valid, cannot get completion items`,
-    );
-  }
-
-  return completionItems.Items;
-}
-
-function _getVSCodeCompletionItemKind(
+function getVSCodeCompletionItemKind(
   completionItem: Kusto.Language.Editor.CompletionItem,
 ): CompletionItemKind {
   // Defensive check for null/undefined completionItem or missing Kind property
@@ -105,4 +41,68 @@ function _getVSCodeCompletionItemKind(
     default:
       return CompletionItemKind.Text;
   }
+}
+
+function getCompletionItemsAtPosition(
+  kustoCodeScript: Kusto.Language.Editor.CodeScript,
+  line: number,
+  character: number,
+): System.Collections.Generic.IReadOnlyList$1<Kusto.Language.Editor.CompletionItem> | null {
+  const position = { v: -1 };
+  const positionValid = kustoCodeScript.TryGetTextPosition(
+    line,
+    character,
+    position,
+  );
+  if (!positionValid) {
+    throw new Error(
+      `Position (${line},${character}) not valid, cannot get completion items`,
+    );
+  }
+  const kustoCodeBlock = kustoCodeScript.GetBlockAtPosition(position.v);
+  if (!kustoCodeBlock || !kustoCodeBlock.Service) {
+    throw new Error(
+      `Code block at position (${line},${character}) not valid, cannot get completion items`,
+    );
+  }
+
+  const completionItems = kustoCodeBlock.Service.GetCompletionItems(position.v);
+  if (!completionItems) {
+    throw new Error(
+      `Completion items at position (${line},${character}) not valid, cannot get completion items`,
+    );
+  }
+
+  return completionItems.Items;
+}
+
+export function getVSCodeCompletionItemsAtPosition(
+  kustoCodeScript: Kusto.Language.Editor.CodeScript,
+  line: number,
+  character: number,
+): CompletionItem[] {
+  const completionItems = getCompletionItemsAtPosition(
+    kustoCodeScript,
+    line,
+    character,
+  );
+  if (!completionItems || !completionItems.Count) {
+    return [];
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vsCodeCompletionItems: CompletionItem[] = (Bridge as any)
+    .toArray(completionItems)
+    .map((completionItem: Kusto.Language.Editor.CompletionItem) => {
+      // Add null-safety check for completionItem
+      if (!completionItem) {
+        return null;
+      }
+      return {
+        label: completionItem.DisplayText || "",
+        kind: getVSCodeCompletionItemKind(completionItem),
+      };
+    })
+    .filter((item: CompletionItem | null): item is CompletionItem => item !== null);
+  return vsCodeCompletionItems;
 }

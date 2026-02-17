@@ -1,5 +1,7 @@
 import * as path from "path";
+/* eslint-disable-next-line import/no-extraneous-dependencies */
 import * as Mocha from "mocha";
+/* eslint-disable-next-line import/no-extraneous-dependencies */
 import * as glob from "glob";
 
 export function run(): Promise<void> {
@@ -12,9 +14,10 @@ export function run(): Promise<void> {
   const testsRoot = path.resolve(__dirname, "..");
 
   return new Promise((c, error) => {
-    glob("**/**.test.js", { cwd: testsRoot }, (err, files) => {
-      if (err) {
-        return error(err);
+    glob("**/**.test.js", { cwd: testsRoot }, (globErr, files) => {
+      if (globErr) {
+        error(globErr);
+        return;
       }
 
       // Add files to the test suite

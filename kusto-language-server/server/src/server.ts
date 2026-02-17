@@ -231,19 +231,17 @@ let globalSettings: Settings = defaultSettings;
 // Cache the settings of all open documents
 const documentSettings: Map<string, Thenable<Settings>> = new Map();
 
-connection.onDidChangeConfiguration((change) => {
-  if (hasConfigurationCapability) {
-    // Reset all cached document settings
-    documentSettings.clear();
-  } else {
-    globalSettings = <Settings>(
-      (change.settings.languageServerExample || defaultSettings)
-    );
-  }
-
-  // Revalidate all open text documents
-  documents.all().forEach(validateTextDocument);
-});
+function getCodeScriptForDocumentOrNewCodeScript(
+  document: TextDocument,
+): Kusto.Language.Editor.CodeScript | null {
+  return (
+    kustoCodeScripts.get(document.uri) ||
+    Kusto.Language.Editor.CodeScript.From$1(
+      document.getText(),
+      kustoGlobalState,
+    )
+  );
+}
 
 function getDocumentSettings(resource: string): Thenable<Settings> {
   if (!hasConfigurationCapability) {
@@ -260,45 +258,6 @@ function getDocumentSettings(resource: string): Thenable<Settings> {
   return result;
 }
 
-// Only keep settings for open documents
-documents.onDidClose((e) => {
-  documentSettings.delete(e.document.uri);
-});
-
-// The content of a text document has changed. This event is emitted
-// when the text document first opened or when its content has changed.
-documents.onDidChangeContent((change) => {
-  if (!kustoCodeScripts.has(change.document.uri)) {
-    kustoCodeScripts.set(
-      change.document.uri,
-      _getCodeScriptForDocumentOrNewCodeScript(change.document),
-    );
-  } else {
-    const beforeChange = _getCodeScriptForDocumentOrNewCodeScript(
-      change.document,
-    );
-    if (beforeChange) {
-      kustoCodeScripts.set(
-        change.document.uri,
-        beforeChange.WithText(change.document.getText()),
-      );
-    }
-  }
-  validateTextDocument(change.document);
-});
-
-function _getCodeScriptForDocumentOrNewCodeScript(
-  document: TextDocument,
-): Kusto.Language.Editor.CodeScript | null {
-  return (
-    kustoCodeScripts.get(document.uri) ||
-    Kusto.Language.Editor.CodeScript.From$1(
-      document.getText(),
-      kustoGlobalState,
-    )
-  );
-}
-
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const settings = await getDocumentSettings(textDocument.uri);
   if (!settings.diagnosticsEnabled) {
@@ -306,8 +265,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     return;
   }
 
-  const kustoCodeScript =
-    _getCodeScriptForDocumentOrNewCodeScript(textDocument);
+  const kustoCodeScript = getCodeScriptForDocumentOrNewCodeScript(textDocument);
   if (!kustoCodeScript) {
     return;
   }
@@ -318,16 +276,18 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   if (!blocks) {
     return;
   }
-  for (let i = 0; i < blocks.Count; i++) {
+  for (let i = 0; i < blocks.Count; i += 1) {
     const block = blocks.getItem(i);
     if (!block.Service) {
+      // eslint-disable-next-line no-continue
       continue;
     }
     const diagnostics = block.Service.GetDiagnostics();
     if (!diagnostics) {
+      // eslint-disable-next-line no-continue
       continue;
     }
-    for (let j = 0; j < diagnostics.Count; j++) {
+    for (let j = 0; j < diagnostics.Count; j += 1) {
       const diagnostic = diagnostics.getItem(j);
       documentDiagnostics.push({
         severity: DiagnosticSeverity.Error,
@@ -346,6 +306,47 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     diagnostics: documentDiagnostics,
   });
 }
+
+connection.onDidChangeConfiguration((change) => {
+  if (hasConfigurationCapability) {
+    // Reset all cached document settings
+    documentSettings.clear();
+  } else {
+    globalSettings = <Settings>(
+      (change.settings.languageServerExample || defaultSettings)
+    );
+  }
+
+  // Revalidate all open text documents
+  documents.all().forEach(validateTextDocument);
+});
+
+// Only keep settings for open documents
+documents.onDidClose((e) => {
+  documentSettings.delete(e.document.uri);
+});
+
+// The content of a text document has changed. This event is emitted
+// when the text document first opened or when its content has changed.
+documents.onDidChangeContent((change) => {
+  if (!kustoCodeScripts.has(change.document.uri)) {
+    kustoCodeScripts.set(
+      change.document.uri,
+      getCodeScriptForDocumentOrNewCodeScript(change.document),
+    );
+  } else {
+    const beforeChange = getCodeScriptForDocumentOrNewCodeScript(
+      change.document,
+    );
+    if (beforeChange) {
+      kustoCodeScripts.set(
+        change.document.uri,
+        beforeChange.WithText(change.document.getText()),
+      );
+    }
+  }
+  validateTextDocument(change.document);
+});
 
 connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VSCode

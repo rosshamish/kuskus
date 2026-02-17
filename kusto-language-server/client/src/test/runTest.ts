@@ -1,5 +1,6 @@
 import * as path from "path";
 
+/* eslint-disable-next-line import/no-extraneous-dependencies */
 import { runTests } from "@vscode/test-electron";
 
 async function main() {

@@ -368,7 +368,8 @@ export async function getSymbolsOnCluster(
   symbols.push(...getTableSymbols(tableMetadata));
   symbols.push(...getFunctionSymbols(functionMetadata, globalState));
   return globalState.WithDatabase(
-    new Kusto.Language.Symbols.DatabaseSymbol.Ctor(
+// eslint-disable-next-line new-cap
+    new Kusto.Language.Symbols.DatabaseSymbol.ctor(
       defaultDatabaseName,
       symbols,
     ),
