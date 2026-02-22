@@ -1,44 +1,57 @@
-export function formatCodeScript(
-  kustoCodeScript: Kusto.Language.Editor.CodeScript,
-): string | null {
-  const formattedBlocks: string[] = [];
-
-  let formattedText: string = "";
-  let hasSeenFirstQueryBlock: boolean = false;
-  let indentSize: number = 0;
-  const blocks = kustoCodeScript.Blocks;
-  if (!blocks) {
-    return null;
-  }
-
-  for (let i = 0; i < blocks.Count; i++) {
-    const block = blocks.getItem(i);
-    const formattedBlock = formatBlock(
-      block,
-      hasSeenFirstQueryBlock,
-      indentSize,
-    );
-    if (!formattedBlock) {
-      continue;
-    }
-    ({ formattedText, hasSeenFirstQueryBlock, indentSize } = formattedBlock);
-    // Remove empty blocks
-    if (/\S/.test(formattedText)) {
-      formattedBlocks.push(formattedText);
-    }
-  }
-
-  return formattedBlocks.join("");
-}
-
 // for future crossplat support
 const NEWLINE: string = "\r\n";
 const NEWLINE_REGEX: RegExp = /\r\n/g;
 
-function formatBlock(
-  block: Kusto.Language.Editor.CodeBlock,
+/**
+ * Pure: applies query block indentation to raw bridge-formatted text.
+ * No bridge dependency — testable in isolation.
+ */
+export function applyQueryBlockFormatting(
+  rawText: string,
   hasSeenFirstQueryBlock: boolean,
   indentSize: number,
+): { output: string; hasSeenFirstQueryBlock: boolean; indentSize: number } {
+  let actualHasSeenFirstQueryBlock = hasSeenFirstQueryBlock;
+  let actualIndentSize = indentSize;
+
+  if (!actualHasSeenFirstQueryBlock) {
+    actualIndentSize = rawText.length - rawText.trimLeft().length;
+    actualHasSeenFirstQueryBlock = true;
+  }
+
+  let indentedText: string = (
+    " ".repeat(actualIndentSize) + rawText.trimLeft()
+  )
+    .replace(NEWLINE_REGEX, NEWLINE + " ".repeat(actualIndentSize))
+    .trimRight()
+    .concat(NEWLINE, NEWLINE);
+
+  if (indentedText.trim() === "}") {
+    indentedText = indentedText.trim();
+  }
+
+  if (indentedText.endsWith(NEWLINE)) {
+    const withoutFinalWhitespace: string = indentedText.substring(
+      0,
+      indentedText.lastIndexOf(NEWLINE) + NEWLINE.length,
+    );
+    return {
+      output: withoutFinalWhitespace,
+      hasSeenFirstQueryBlock: actualHasSeenFirstQueryBlock,
+      indentSize: actualIndentSize,
+    };
+  }
+  return {
+    output: indentedText,
+    hasSeenFirstQueryBlock: actualHasSeenFirstQueryBlock,
+    indentSize: actualIndentSize,
+  };
+}
+
+function formatBlock(
+  block: Kusto.Language.Editor.CodeBlock,
+  hasSeenFirstQueryBlockParam: boolean,
+  indentSizeParam: number,
 ): {
   formattedText: string;
   hasSeenFirstQueryBlock: boolean;
@@ -53,45 +66,54 @@ function formatBlock(
     return null;
   }
 
-  const formattedText = formattedTextObject.Text;
-  if (block.Kind == "Query") {
-    // Read the indent size from the first query block in the document
-    if (!hasSeenFirstQueryBlock) {
-      indentSize = formattedText.length - formattedText.trimLeft().length;
-      hasSeenFirstQueryBlock = true;
-    }
-    // Add the indent to all lines
-    let indentedText: string = (
-      " ".repeat(indentSize) + formattedText.trimLeft()
-    )
-      .replace(NEWLINE_REGEX, NEWLINE + " ".repeat(indentSize))
-      .trimRight()
-      .concat(NEWLINE, NEWLINE);
-    // except the final } of a function
-    if (indentedText.trim() === "}") {
-      indentedText = indentedText.trim();
-    }
-    if (indentedText.endsWith("\r\n")) {
-      const withoutFinalWhitespace: string = indentedText.substring(
-        0,
-        indentedText.lastIndexOf(NEWLINE) + NEWLINE.length,
-      );
-      return {
-        formattedText: withoutFinalWhitespace,
-        hasSeenFirstQueryBlock,
-        indentSize,
-      };
-    }
+  const rawText = formattedTextObject.Text;
+
+  if (block.Kind === "Query") {
+    const result = applyQueryBlockFormatting(rawText, hasSeenFirstQueryBlockParam, indentSizeParam);
     return {
-      formattedText: indentedText,
-      hasSeenFirstQueryBlock,
-      indentSize,
-    };
-  } else {
-    return {
-      formattedText: formattedText,
-      hasSeenFirstQueryBlock,
-      indentSize,
+      formattedText: result.output,
+      hasSeenFirstQueryBlock: result.hasSeenFirstQueryBlock,
+      indentSize: result.indentSize,
     };
   }
+
+  return {
+    formattedText: rawText,
+    hasSeenFirstQueryBlock: hasSeenFirstQueryBlockParam,
+    indentSize: indentSizeParam,
+  };
+}
+
+export function formatCodeScript(
+  kustoCodeScript: Kusto.Language.Editor.CodeScript,
+): string | null {
+  const formattedBlocks: string[] = [];
+
+  let formattedText: string = "";
+  let hasSeenFirstQueryBlock: boolean = false;
+  let indentSize: number = 0;
+  const blocks = kustoCodeScript.Blocks;
+  if (!blocks) {
+    return null;
+  }
+
+  for (let i = 0; i < blocks.Count; i += 1) {
+    const block = blocks.getItem(i);
+    const formattedBlock = formatBlock(
+      block,
+      hasSeenFirstQueryBlock,
+      indentSize,
+    );
+    if (!formattedBlock) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+    ({ formattedText, hasSeenFirstQueryBlock, indentSize } = formattedBlock);
+    // Remove empty blocks
+    if (/\S/.test(formattedText)) {
+      formattedBlocks.push(formattedText);
+    }
+  }
+
+  return formattedBlocks.join("");
 }

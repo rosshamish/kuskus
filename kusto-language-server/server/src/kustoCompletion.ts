@@ -1,29 +1,46 @@
 import { CompletionItemKind, CompletionItem } from "vscode-languageserver";
 
-export function getVSCodeCompletionItemsAtPosition(
-  kustoCodeScript: Kusto.Language.Editor.CodeScript,
-  line: number,
-  character: number,
-): CompletionItem[] {
-  const completionItems = getCompletionItemsAtPosition(
-    kustoCodeScript,
-    line,
-    character,
-  );
-  if (!completionItems || !completionItems.Count) {
-    return [];
+export function getVSCodeCompletionItemKind(
+  completionItem: { Kind: Kusto.Language.Editor.CompletionKind | null | undefined } | null | undefined,
+): CompletionItemKind {
+  // Defensive check for null/undefined completionItem or missing Kind property
+  if (!completionItem || completionItem.Kind === null || completionItem.Kind === undefined) {
+    return CompletionItemKind.Text;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vsCodeCompletionItems: CompletionItem[] = (Bridge as any)
-    .toArray(completionItems)
-    .map((completionItem: Kusto.Language.Editor.CompletionItem) => {
-      return {
-        label: completionItem.DisplayText || "",
-        kind: _getVSCodeCompletionItemKind(completionItem),
-      };
-    });
-  return vsCodeCompletionItems;
+  switch (completionItem.Kind) {
+    case Kusto.Language.Editor.CompletionKind.Cluster:
+      return CompletionItemKind.Module;
+    case Kusto.Language.Editor.CompletionKind.Database:
+      return CompletionItemKind.Class;
+    case Kusto.Language.Editor.CompletionKind.Table:
+      return CompletionItemKind.Enum;
+    case Kusto.Language.Editor.CompletionKind.Column:
+      return CompletionItemKind.EnumMember;
+    case Kusto.Language.Editor.CompletionKind.BuiltInFunction:
+    case Kusto.Language.Editor.CompletionKind.LocalFunction:
+    case Kusto.Language.Editor.CompletionKind.DatabaseFunction:
+    case Kusto.Language.Editor.CompletionKind.AggregateFunction:
+      return CompletionItemKind.Function;
+    case Kusto.Language.Editor.CompletionKind.Parameter:
+      return CompletionItemKind.TypeParameter;
+    case Kusto.Language.Editor.CompletionKind.Variable:
+    case Kusto.Language.Editor.CompletionKind.Identifier:
+      return CompletionItemKind.Variable;
+    case Kusto.Language.Editor.CompletionKind.Syntax:
+    case Kusto.Language.Editor.CompletionKind.Keyword:
+    case Kusto.Language.Editor.CompletionKind.ScalarPrefix:
+    case Kusto.Language.Editor.CompletionKind.TabularPrefix:
+    case Kusto.Language.Editor.CompletionKind.TabularSuffix:
+    case Kusto.Language.Editor.CompletionKind.QueryPrefix:
+    case Kusto.Language.Editor.CompletionKind.ScalarInfix:
+      return CompletionItemKind.Keyword;
+    case Kusto.Language.Editor.CompletionKind.Punctuation:
+    case Kusto.Language.Editor.CompletionKind.RenderChart:
+    case Kusto.Language.Editor.CompletionKind.Unknown:
+    default:
+      return CompletionItemKind.Text;
+  }
 }
 
 function getCompletionItemsAtPosition(
@@ -59,40 +76,33 @@ function getCompletionItemsAtPosition(
   return completionItems.Items;
 }
 
-function _getVSCodeCompletionItemKind(
-  completionItem: Kusto.Language.Editor.CompletionItem,
-): CompletionItemKind {
-  switch (completionItem.Kind) {
-    case Kusto.Language.Editor.CompletionKind.Cluster:
-      return CompletionItemKind.Module;
-    case Kusto.Language.Editor.CompletionKind.Database:
-      return CompletionItemKind.Class;
-    case Kusto.Language.Editor.CompletionKind.Table:
-      return CompletionItemKind.Enum;
-    case Kusto.Language.Editor.CompletionKind.Column:
-      return CompletionItemKind.EnumMember;
-    case Kusto.Language.Editor.CompletionKind.BuiltInFunction:
-    case Kusto.Language.Editor.CompletionKind.LocalFunction:
-    case Kusto.Language.Editor.CompletionKind.DatabaseFunction:
-    case Kusto.Language.Editor.CompletionKind.AggregateFunction:
-      return CompletionItemKind.Function;
-    case Kusto.Language.Editor.CompletionKind.Parameter:
-      return CompletionItemKind.TypeParameter;
-    case Kusto.Language.Editor.CompletionKind.Variable:
-    case Kusto.Language.Editor.CompletionKind.Identifier:
-      return CompletionItemKind.Variable;
-    case Kusto.Language.Editor.CompletionKind.Syntax:
-    case Kusto.Language.Editor.CompletionKind.Keyword:
-    case Kusto.Language.Editor.CompletionKind.ScalarPrefix:
-    case Kusto.Language.Editor.CompletionKind.TabularPrefix:
-    case Kusto.Language.Editor.CompletionKind.TabularSuffix:
-    case Kusto.Language.Editor.CompletionKind.QueryPrefix:
-    case Kusto.Language.Editor.CompletionKind.ScalarInfix:
-      return CompletionItemKind.Keyword;
-    case Kusto.Language.Editor.CompletionKind.Punctuation:
-    case Kusto.Language.Editor.CompletionKind.RenderChart:
-    case Kusto.Language.Editor.CompletionKind.Unknown:
-    default:
-      return CompletionItemKind.Text;
+export function getVSCodeCompletionItemsAtPosition(
+  kustoCodeScript: Kusto.Language.Editor.CodeScript,
+  line: number,
+  character: number,
+): CompletionItem[] {
+  const completionItems = getCompletionItemsAtPosition(
+    kustoCodeScript,
+    line,
+    character,
+  );
+  if (!completionItems || !completionItems.Count) {
+    return [];
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vsCodeCompletionItems: CompletionItem[] = (Bridge as any)
+    .toArray(completionItems)
+    .map((completionItem: Kusto.Language.Editor.CompletionItem) => {
+      // Add null-safety check for completionItem
+      if (!completionItem) {
+        return null;
+      }
+      return {
+        label: completionItem.DisplayText || "",
+        kind: getVSCodeCompletionItemKind(completionItem),
+      };
+    })
+    .filter((item: CompletionItem | null): item is CompletionItem => item !== null);
+  return vsCodeCompletionItems;
 }

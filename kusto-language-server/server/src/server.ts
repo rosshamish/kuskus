@@ -1,5 +1,5 @@
-import "../node_modules/@kusto/language-service-next/bridge";
-import "../node_modules/@kusto/language-service-next/Kusto.Language.Bridge";
+import "@kusto/language-service-next/bridge";
+import "@kusto/language-service-next/Kusto.Language.Bridge";
 
 import {
   createConnection,
@@ -15,6 +15,9 @@ import {
   TextEdit,
   DocumentFormattingParams,
   TextDocumentSyncKind,
+  DocumentSymbol,
+  DocumentSymbolParams,
+  SymbolKind,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 
@@ -48,7 +51,7 @@ let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
 
 connection.onInitialize((params: InitializeParams) => {
-  const capabilities = params.capabilities;
+  const {capabilities} = params;
 
   // Does the client support the `workspace/configuration` request?
   // If not, we will fall back using global settings
@@ -73,6 +76,7 @@ connection.onInitialize((params: InitializeParams) => {
       },
       hoverProvider: true,
       documentFormattingProvider: true,
+      documentSymbolProvider: true,
     },
   };
 });
@@ -160,6 +164,15 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
   let kustoClient = null;
   ({ clusterUri, kustoClient } = getFirstOrDefaultClient());
 
+  if (!kustoClient) {
+    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+      clusterUri,
+      database: "",
+      errorMessage: "No active client",
+    });
+    return;
+  }
+
   if (!kustoGlobalState || !kustoGlobalState.Database) {
     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
       clusterUri,
@@ -231,19 +244,17 @@ let globalSettings: Settings = defaultSettings;
 // Cache the settings of all open documents
 const documentSettings: Map<string, Thenable<Settings>> = new Map();
 
-connection.onDidChangeConfiguration((change) => {
-  if (hasConfigurationCapability) {
-    // Reset all cached document settings
-    documentSettings.clear();
-  } else {
-    globalSettings = <Settings>(
-      (change.settings.languageServerExample || defaultSettings)
-    );
-  }
-
-  // Revalidate all open text documents
-  documents.all().forEach(validateTextDocument);
-});
+function getCodeScriptForDocumentOrNewCodeScript(
+  document: TextDocument,
+): Kusto.Language.Editor.CodeScript | null {
+  return (
+    kustoCodeScripts.get(document.uri) ||
+    Kusto.Language.Editor.CodeScript.From$1(
+      document.getText(),
+      kustoGlobalState,
+    )
+  );
+}
 
 function getDocumentSettings(resource: string): Thenable<Settings> {
   if (!hasConfigurationCapability) {
@@ -260,45 +271,6 @@ function getDocumentSettings(resource: string): Thenable<Settings> {
   return result;
 }
 
-// Only keep settings for open documents
-documents.onDidClose((e) => {
-  documentSettings.delete(e.document.uri);
-});
-
-// The content of a text document has changed. This event is emitted
-// when the text document first opened or when its content has changed.
-documents.onDidChangeContent((change) => {
-  if (!kustoCodeScripts.has(change.document.uri)) {
-    kustoCodeScripts.set(
-      change.document.uri,
-      _getCodeScriptForDocumentOrNewCodeScript(change.document),
-    );
-  } else {
-    const beforeChange = _getCodeScriptForDocumentOrNewCodeScript(
-      change.document,
-    );
-    if (beforeChange) {
-      kustoCodeScripts.set(
-        change.document.uri,
-        beforeChange.WithText(change.document.getText()),
-      );
-    }
-  }
-  validateTextDocument(change.document);
-});
-
-function _getCodeScriptForDocumentOrNewCodeScript(
-  document: TextDocument,
-): Kusto.Language.Editor.CodeScript | null {
-  return (
-    kustoCodeScripts.get(document.uri) ||
-    Kusto.Language.Editor.CodeScript.From$1(
-      document.getText(),
-      kustoGlobalState,
-    )
-  );
-}
-
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const settings = await getDocumentSettings(textDocument.uri);
   if (!settings.diagnosticsEnabled) {
@@ -306,8 +278,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     return;
   }
 
-  const kustoCodeScript =
-    _getCodeScriptForDocumentOrNewCodeScript(textDocument);
+  const kustoCodeScript = getCodeScriptForDocumentOrNewCodeScript(textDocument);
   if (!kustoCodeScript) {
     return;
   }
@@ -318,16 +289,18 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   if (!blocks) {
     return;
   }
-  for (let i = 0; i < blocks.Count; i++) {
+  for (let i = 0; i < blocks.Count; i += 1) {
     const block = blocks.getItem(i);
     if (!block.Service) {
+      // eslint-disable-next-line no-continue
       continue;
     }
     const diagnostics = block.Service.GetDiagnostics();
     if (!diagnostics) {
+      // eslint-disable-next-line no-continue
       continue;
     }
-    for (let j = 0; j < diagnostics.Count; j++) {
+    for (let j = 0; j < diagnostics.Count; j += 1) {
       const diagnostic = diagnostics.getItem(j);
       documentDiagnostics.push({
         severity: DiagnosticSeverity.Error,
@@ -346,6 +319,47 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     diagnostics: documentDiagnostics,
   });
 }
+
+connection.onDidChangeConfiguration((change) => {
+  if (hasConfigurationCapability) {
+    // Reset all cached document settings
+    documentSettings.clear();
+  } else {
+    globalSettings = <Settings>(
+      (change.settings.languageServerExample || defaultSettings)
+    );
+  }
+
+  // Revalidate all open text documents
+  documents.all().forEach(validateTextDocument);
+});
+
+// Only keep settings for open documents
+documents.onDidClose((e) => {
+  documentSettings.delete(e.document.uri);
+});
+
+// The content of a text document has changed. This event is emitted
+// when the text document first opened or when its content has changed.
+documents.onDidChangeContent((change) => {
+  if (!kustoCodeScripts.has(change.document.uri)) {
+    kustoCodeScripts.set(
+      change.document.uri,
+      getCodeScriptForDocumentOrNewCodeScript(change.document),
+    );
+  } else {
+    const beforeChange = getCodeScriptForDocumentOrNewCodeScript(
+      change.document,
+    );
+    if (beforeChange) {
+      kustoCodeScripts.set(
+        change.document.uri,
+        beforeChange.WithText(change.document.getText()),
+      );
+    }
+  }
+  validateTextDocument(change.document);
+});
 
 connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VSCode
@@ -369,16 +383,19 @@ connection.onCompletion(
     }
 
     try {
-      return getVSCodeCompletionItemsAtPosition(
+      const completionItems = getVSCodeCompletionItemsAtPosition(
         kustoCodeScript,
         _textDocumentPosition.position.line + 1,
         _textDocumentPosition.position.character + 1,
       );
+      return completionItems || [];
     } catch (e) {
       if (e instanceof Error) {
-        connection.console.error(e.message);
+        connection.console.error(
+          `Error getting completion items: ${e.message}`,
+        );
       } else if (typeof e === "string") {
-        connection.console.error(e);
+        connection.console.error(`Error getting completion items: ${e}`);
       }
       return [];
     }
@@ -387,9 +404,7 @@ connection.onCompletion(
 
 // This handler resolves additional information for the item selected in
 // the completion list.
-connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-  return item;
-});
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => item);
 
 connection.onHover((params: TextDocumentPositionParams): Hover | null => {
   const kustoCodeScript = kustoCodeScripts.get(params.textDocument.uri);
@@ -412,14 +427,75 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
     return null;
   }
 
-  const quickInfo = kustoCodeBlock.Service.GetQuickInfo(position.v);
+  try {
+    const quickInfo = kustoCodeBlock.Service.GetQuickInfo(position.v);
 
-  if (!quickInfo || !quickInfo.Text) {
+    if (!quickInfo || !quickInfo.Text) {
+      return null;
+    }
+
+    // Defensive check: ensure Text property exists and is not null
+    const hoverText = quickInfo.Text ? String(quickInfo.Text) : null;
+    if (!hoverText) {
+      return null;
+    }
+
+    return { contents: hoverText };
+  } catch (e) {
+    // Gracefully handle any errors from GetQuickInfo (e.g., control commands with undefined symbols)
+    connection.console.error(
+      `Error getting hover information: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+    );
     return null;
   }
-
-  return { contents: quickInfo.Text || "" };
 });
+
+connection.onDocumentSymbol(
+  (params: DocumentSymbolParams): DocumentSymbol[] => {
+    const document = documents.get(params.textDocument.uri);
+    if (!document) {
+      return [];
+    }
+
+    const text = document.getText();
+    const symbols: DocumentSymbol[] = [];
+
+    // Match let bindings: `let name = ...` or `let name=(params) { ... }`
+    // Captures the identifier immediately after `let`
+    const letPattern = /^[ \t]*let\s+([A-Za-z_]\w*)\s*=/gm;
+    let match: RegExpExecArray | null;
+
+    // eslint-disable-next-line no-cond-assign
+    while ((match = letPattern.exec(text)) !== null) {
+      const name = match[1];
+      const offset = match.index;
+      const start = document.positionAt(offset);
+      // Determine if this is a function: the value after `=` starts with `(`
+      const afterLet = text.slice(offset + match[0].length);
+      const isFunction = /^\s*\(/.test(afterLet);
+      const kind = isFunction ? SymbolKind.Function : SymbolKind.Variable;
+
+      // Range covers the full `let <name> =` token on that line
+      const lineEnd = text.indexOf('\n', offset);
+      const endOffset = lineEnd === -1 ? text.length : lineEnd;
+      const end = document.positionAt(endOffset);
+
+      symbols.push(
+        DocumentSymbol.create(
+          name,
+          undefined,
+          kind,
+          { start, end },
+          { start, end },
+        ),
+      );
+    }
+
+    return symbols;
+  },
+);
 
 connection.onDocumentFormatting(
   (params: DocumentFormattingParams): TextEdit[] | null => {
