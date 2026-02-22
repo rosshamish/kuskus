@@ -41,6 +41,22 @@ jobs:
           push: false
 
       - run: npm ci
+
+      - name: Inject telemetry key
+        # KUSKUS_AI_KEY is an App Insights connection string stored as a GitHub secret.
+        # Replaces the __KUSKUS_AI_KEY__ placeholder in the compiled client output.
+        # Absent in forks/PRs → placeholder stays → reporter never created → no data sent.
+        env:
+          KUSKUS_AI_KEY: ${{ secrets.KUSKUS_AI_KEY }}
+        run: |
+          if [ -n "$KUSKUS_AI_KEY" ]; then
+            find client/out -name "telemetry.js" -exec \
+              sed -i "s|__KUSKUS_AI_KEY__|${KUSKUS_AI_KEY}|g" {} \;
+            echo "Telemetry key injected."
+          else
+            echo "KUSKUS_AI_KEY not set — App Insights reporting disabled in this build."
+          fi
+
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v1
         with:

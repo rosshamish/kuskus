@@ -17,7 +17,9 @@ import {
 } from "vscode-languageclient/node";
 import {
   createOutputChannel,
+  createReporter,
   disposeChannel,
+  disposeReporter,
   logError,
   type TelemetryErrorEvent,
 } from "./telemetry";
@@ -26,6 +28,7 @@ let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
   createOutputChannel();
+  createReporter();
   // The server is implemented in node
   const serverModule = context.asAbsolutePath(
     path.join("server", "out", "server.js"),
@@ -181,6 +184,7 @@ export function activate(context: ExtensionContext) {
 }
 
 export function deactivate(): Thenable<void> | undefined {
+  disposeReporter();
   disposeChannel();
   if (!client) {
     return undefined;
