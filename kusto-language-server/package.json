@@ -71,7 +71,7 @@
                         "Disable all error logging, including the local output channel."
                     ],
                     "default": "local",
-                    "description": "Controls error logging. 'local' writes to the VS Code output channel only. 'none' disables all logging."
+                    "markdownDescription": "Controls error logging. `local` (default): writes to the VS Code output channel (Output → Kuskus), nothing leaves your machine. `none`: disables all logging."
                 }
             }
         },
