@@ -48,10 +48,10 @@ export function getFirstOrDefaultClient(): {
   kustoClient: any;
 } {
   if (clients.size > 0) {
-    const key = clients.keys().next().value;
+    const key = clients.keys().next().value as string;
     return {
       clusterUri: key,
-      kustoClient: clients.get(clients.keys().next().value),
+      kustoClient: clients.get(key),
     };
   }
   return {
