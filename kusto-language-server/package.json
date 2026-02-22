@@ -61,6 +61,17 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Whether diagnostics are enabled or not (red squiggly underlines, Problems tab)"
+                },
+                "kuskusLanguageServer.telemetry": {
+                    "scope": "application",
+                    "type": "string",
+                    "enum": ["local", "none"],
+                    "enumDescriptions": [
+                        "Log errors to the local VS Code output channel (Output → Kuskus). No data leaves your machine.",
+                        "Disable all error logging, including the local output channel."
+                    ],
+                    "default": "local",
+                    "description": "Controls error logging. 'local' writes to the VS Code output channel only. 'none' disables all logging."
                 }
             }
         },

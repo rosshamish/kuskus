@@ -1,4 +1,4 @@
-import { OutputChannel, window } from "vscode";
+import { OutputChannel, window, workspace } from "vscode";
 
 let channel: OutputChannel | undefined;
 
@@ -23,9 +23,18 @@ export interface TelemetryErrorEvent {
 }
 
 // Called when the server sends a kuskus/telemetry.error notification.
-// Writes to the local VS Code output channel — no network, no phone home.
-// Open Output → "Kuskus" to diagnose errors.
+// Respects kuskusLanguageServer.telemetry:
+//   "local" (default) → write to output channel, nothing leaves the machine
+//   "none"            → silent, nothing logged anywhere
 export function logError(event: TelemetryErrorEvent): void {
+  const level = workspace
+    .getConfiguration("kuskusLanguageServer")
+    .get<string>("telemetry", "local");
+
+  if (level === "none") {
+    return;
+  }
+
   const ts = new Date().toISOString();
   channel?.appendLine(
     `[${ts}] ERROR ${event.eventName} | ${event.errorType}: ${event.sanitizedMessage}`,
