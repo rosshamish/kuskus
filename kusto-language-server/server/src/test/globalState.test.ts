@@ -10,9 +10,7 @@ describe("Global Kusto Built-in Functions", () => {
   // Mock GlobalState structure
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof global !== "undefined" && !(global as any).Kusto) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (global as any).Kusto = {
+    (global as any).Kusto = {
         Language: {
           GlobalState: {
             Default: {
@@ -44,7 +42,6 @@ describe("Global Kusto Built-in Functions", () => {
           },
         },
       };
-    }
   });
 
   describe("take_any() availability", () => {

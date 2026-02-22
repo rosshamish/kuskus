@@ -13,75 +13,72 @@ describe("kustoSymbols", () => {
   // Mock Kusto global for testing
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof global !== "undefined" && !(global as any).Kusto) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (global as any).Kusto = {
-        Language: {
-          Symbols: {
-            ScalarSymbol: {
-              From: (type: string) => {
-                if (type === "string" || type === "int" || type === "bool") {
-                  return { type };
-                }
-                throw new Error(`Unknown type: ${type}`);
-              },
-            },
-            Parameter: {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              $ctor2: (name: string, type: any) => ({
-                name,
-                type,
-              }),
-            },
-                        // eslint-disable-next-line object-shorthand, func-names, @typescript-eslint/no-explicit-any
-            ColumnSymbol: function (
-              name: string,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              type: any,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-              ...args: any[]
-            ) {
-              return { name, type };
-            },
-            TableSymbol: {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              $ctor4: (name: string, columns: any[]) => ({
-                name,
-                columns,
-              }),
-            },
-            DatabaseSymbol: {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ctor: (name: string, symbols: any[]) => ({
-                name,
-                symbols,
-              }),
+    (global as any).Kusto = {
+      Language: {
+        Symbols: {
+          ScalarSymbol: {
+            From: (type: string) => {
+              if (type === "string" || type === "int" || type === "bool") {
+                return { type };
+              }
+              throw new Error(`Unknown type: ${type}`);
             },
           },
-          GlobalState: {
-            Default: {
-              Items: {
-                getItem: (name: string) => {
-                  // Mock native availability of take_any in v12.3.2
-                  if (name === "take_any") {
-                    return { name: "take_any", isCustom: false };
-                  }
-                  return null;
-                },
+          Parameter: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            $ctor2: (name: string, type: any) => ({
+              name,
+              type,
+            }),
+          },
+                        // eslint-disable-next-line object-shorthand, func-names, @typescript-eslint/no-explicit-any
+          ColumnSymbol: function (
+            name: string,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            type: any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+            ...args: any[]
+          ) {
+            return { name, type };
+          },
+          TableSymbol: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            $ctor4: (name: string, columns: any[]) => ({
+              name,
+              columns,
+            }),
+          },
+          DatabaseSymbol: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ctor: (name: string, symbols: any[]) => ({
+              name,
+              symbols,
+            }),
+          },
+        },
+        GlobalState: {
+          Default: {
+            Items: {
+              getItem: (name: string) => {
+                // Mock native availability of take_any in v12.3.2
+                if (name === "take_any") {
+                  return { name: "take_any", isCustom: false };
+                }
+                return null;
               },
-              Database: null,
-              // eslint-disable-next-line object-shorthand, func-names, @typescript-eslint/no-explicit-any
-              WithDatabase(db: any) {
-                return {
-                  ...this,
-                  Database: db,
-                };
-              },
+            },
+            Database: null,
+            // eslint-disable-next-line object-shorthand, func-names, @typescript-eslint/no-explicit-any
+            WithDatabase(db: any) {
+              return {
+                ...this,
+                Database: db,
+              };
             },
           },
         },
-      };
-    }
+      },
+    };
   });
 
   describe("Fix 1: Symbol loading array indexing", () => {

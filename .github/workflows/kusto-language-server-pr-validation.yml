@@ -44,16 +44,19 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npm run test:coverage --workspace=server
+      - run: npm ci
+        working-directory: kusto-language-server/server
+      - run: npm run test:coverage
+        working-directory: kusto-language-server/server
       - name: Check coverage thresholds
         run: |
-          if [ -f ../coverage/coverage-summary.json ]; then
-            cat ../coverage/coverage-summary.json
+          if [ -f kusto-language-server/server/coverage/coverage-summary.json ]; then
+            cat kusto-language-server/server/coverage/coverage-summary.json
           fi
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: ./coverage/lcov.info
+          files: kusto-language-server/server/coverage/lcov.info
           flags: unittests
           fail_ci_if_error: false
       - name: Comment coverage on PR
@@ -62,7 +65,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const coveragePath = 'kusto-language-server/coverage/coverage-summary.json';
+            const coveragePath = 'kusto-language-server/server/coverage/coverage-summary.json';
             
             if (fs.existsSync(coveragePath)) {
               const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
