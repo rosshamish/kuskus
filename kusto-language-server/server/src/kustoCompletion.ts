@@ -92,16 +92,9 @@ export function getVSCodeCompletionItemsAtPosition(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const vsCodeCompletionItems: CompletionItem[] = (Bridge as any)
     .toArray(completionItems)
-    .map((completionItem: Kusto.Language.Editor.CompletionItem) => {
-      // Add null-safety check for completionItem
-      if (!completionItem) {
-        return null;
-      }
-      return {
-        label: completionItem.DisplayText || "",
-        kind: getVSCodeCompletionItemKind(completionItem),
-      };
-    })
-    .filter((item: CompletionItem | null): item is CompletionItem => item !== null);
+    .map((completionItem: Kusto.Language.Editor.CompletionItem) => ({
+      label: completionItem.DisplayText || "",
+      kind: getVSCodeCompletionItemKind(completionItem),
+    }));
   return vsCodeCompletionItems;
 }

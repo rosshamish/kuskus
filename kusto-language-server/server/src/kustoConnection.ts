@@ -18,11 +18,7 @@ export function getClient(
   if (clients.has(clusterUri)) {
     return clients.get(clusterUri)!; // safe: checked .has() above
   }
-  // If tenant id is empty in the input, consider it undefined when building the connection string
-  let actualTenantId = tenantId;
-  if (!actualTenantId) {
-    actualTenantId = undefined;
-  }
+  const actualTenantId = tenantId || undefined;
 
   const kcsb = KustoConnectionStringBuilder.withAadDeviceAuthentication(
     clusterUri,

@@ -6,14 +6,12 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-// eslint-disable-next-line import/no-mutable-exports
+/* eslint-disable import/no-mutable-exports */
 export let doc: vscode.TextDocument;
-// eslint-disable-next-line import/no-mutable-exports
 export let editor: vscode.TextEditor;
-// eslint-disable-next-line import/no-mutable-exports
 export let documentEol: string;
-// eslint-disable-next-line import/no-mutable-exports
 export let platformEol: string;
+/* eslint-enable import/no-mutable-exports */
 
 async function sleep(ms: number) {
   return new Promise<void>((resolve) => {
