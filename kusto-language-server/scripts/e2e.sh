@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export CODE_TESTS_PATH="$(pwd)/client/out/test"
-export CODE_TESTS_WORKSPACE="$(pwd)/client/testFixture"
-
-node "$(pwd)/client/node_modules/vscode/bin/test"
+# Run client integration tests via @vscode/test-electron
+# The test runner is compiled to client/out/test/runTest.js
+cd "$(dirname "$0")/.." || exit 1
+npm run compile && cd client && npm test
