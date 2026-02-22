@@ -1,7 +1,7 @@
 import TelemetryReporter from "@vscode/extension-telemetry";
 import { OutputChannel, window, workspace } from "vscode";
 
-// ── Output channel (always-on, local only) ────────────────────────────────
+// ── Output channel (always-on unless telemetry=none) ─────────────────────
 
 let channel: OutputChannel | undefined;
 
@@ -21,22 +21,19 @@ export function disposeChannel(): void {
 // The placeholder __KUSKUS_AI_KEY__ is never replaced in dev/fork builds,
 // so reporter stays undefined and nothing is sent.
 //
-// Users can additionally opt out via:
-//   VS Code Settings → telemetry.telemetryLevel = off
-// @vscode/extension-telemetry enforces this automatically (GDPR/CCPA).
-//
-// Users can additionally opt IN or OUT of Kuskus-specific reporting via:
-//   kuskusLanguageServer.enableTelemetry (see package.json contributes.configuration)
+// Requires kuskusLanguageServer.telemetry = "opt-in" AND
+// VS Code's telemetry.telemetryLevel to be "error" or higher.
+// @vscode/extension-telemetry enforces the VS Code consent level automatically.
 const AI_KEY = "__KUSKUS_AI_KEY__";
 
 let reporter: TelemetryReporter | undefined;
 
 export function createReporter(): void {
-  const userEnabled: boolean = workspace
+  const level = workspace
     .getConfiguration("kuskusLanguageServer")
-    .get("enableTelemetry", false);
+    .get<string>("telemetry", "local");
 
-  if (!userEnabled || !AI_KEY || AI_KEY.startsWith("__")) {
+  if (level !== "opt-in" || !AI_KEY || AI_KEY.startsWith("__")) {
     return;
   }
   reporter = new TelemetryReporter(AI_KEY);
@@ -57,21 +54,28 @@ export interface TelemetryErrorEvent {
 
 // ── Unified error logging ─────────────────────────────────────────────────
 //
-// Always writes to the local output channel.
-// Also forwards to App Insights when the user has opted in AND VS Code
-// telemetry is enabled. @vscode/extension-telemetry enforces the VS Code
-// consent level — if the user has set telemetry.telemetryLevel = off,
-// nothing is sent regardless of the kuskusLanguageServer.enableTelemetry flag.
+// Respects kuskusLanguageServer.telemetry:
+//   "local"   (default) → output channel only, nothing leaves the machine
+//   "opt-in"            → output channel + App Insights (requires key + VS Code consent)
+//   "none"              → silent, nothing logged anywhere
 export function logError(event: TelemetryErrorEvent): void {
-  // Local — always.
+  const level = workspace
+    .getConfiguration("kuskusLanguageServer")
+    .get<string>("telemetry", "local");
+
+  if (level === "none") {
+    return;
+  }
+
   const ts = new Date().toISOString();
   channel?.appendLine(
     `[${ts}] ERROR ${event.eventName} | ${event.errorType}: ${event.sanitizedMessage}`,
   );
 
-  // Remote — only if user opted in and key is present.
-  reporter?.sendTelemetryErrorEvent(event.eventName, {
-    errorType: event.errorType,
-    message: event.sanitizedMessage,
-  });
+  if (level === "opt-in") {
+    reporter?.sendTelemetryErrorEvent(event.eventName, {
+      errorType: event.errorType,
+      message: event.sanitizedMessage,
+    });
+  }
 }

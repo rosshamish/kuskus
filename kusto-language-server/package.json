@@ -63,11 +63,17 @@
                     "default": false,
                     "description": "Whether diagnostics are enabled or not (red squiggly underlines, Problems tab)"
                 },
-                "kuskusLanguageServer.enableTelemetry": {
+                "kuskusLanguageServer.telemetry": {
                     "scope": "application",
-                    "type": "boolean",
-                    "default": false,
-                    "markdownDescription": "Opt in to sending anonymous error reports to the Kuskus maintainer via Azure Application Insights. **Errors only — no query content, no cluster names, no PII.** Also requires VS Code's `telemetry.telemetryLevel` to be `error` or higher. See the [privacy statement](https://github.com/rosshamish/kuskus/blob/master/PRIVACY.md)."
+                    "type": "string",
+                    "enum": ["local", "none", "opt-in"],
+                    "enumDescriptions": [
+                        "Log errors to the local VS Code output channel (Output → Kuskus). No data leaves your machine.",
+                        "Disable all error logging, including the local output channel.",
+                        "Log locally AND send anonymous error reports to the Kuskus maintainer via Azure Application Insights. Errors only — no query content, no cluster names, no PII. Also requires VS Code's telemetry.telemetryLevel to be 'error' or higher. See the privacy statement."
+                    ],
+                    "default": "local",
+                    "markdownDescription": "Controls error logging. `local` (default): output channel only, nothing leaves your machine. `none`: silent. `opt-in`: local + App Insights (see [privacy statement](https://github.com/rosshamish/kuskus/blob/master/PRIVACY.md))."
                 }
             }
         },
