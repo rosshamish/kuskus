@@ -25,6 +25,7 @@
   ],
   "scripts": {
     "compile": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch",
     "start": "node dist/index.js",
     "lint": "eslint src",
