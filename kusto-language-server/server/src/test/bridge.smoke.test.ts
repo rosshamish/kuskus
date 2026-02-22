@@ -88,8 +88,28 @@ describe("@kusto/language-service-next bridge smoke tests", function () {
     const completions = block.Service.GetCompletionItems(position.v);
     assert.ok(completions, "GetCompletionItems should return a result");
     assert.ok(completions.Items, "Completions should have .Items");
-    // Should suggest operators like where, count, project, etc.
     assert.ok(completions.Items.Count > 0, "Should have at least one completion after pipe");
+  });
+
+  it("completion items have DisplayText string property (guards kustoCompletion.ts label fallback)", () => {
+    const query = "print ";
+    const script = makeCodeScript(query);
+    const position = { v: -1 };
+    script.TryGetTextPosition(1, query.length, position);
+    const block = script.GetBlockAtPosition(position.v);
+    const completions = block.Service.GetCompletionItems(position.v);
+    assert.ok(completions.Items.Count > 0);
+    const first = completions.Items.getItem(0);
+    assert.ok("DisplayText" in first, "CompletionItem should have DisplayText property");
+    assert.ok(typeof (first.DisplayText || "") === "string", "DisplayText should be string or coercible to string");
+  });
+
+  it("GetDiagnostics returns object with Count on valid query (guards null-check in kqlValidate)", () => {
+    const script = makeCodeScript("print 1 + 1");
+    const block = script.Blocks.getItem(0);
+    const diags = block.Service.GetDiagnostics();
+    assert.ok(diags !== null && diags !== undefined, "GetDiagnostics must not return null");
+    assert.ok(typeof diags.Count === "number", "GetDiagnostics result must have numeric Count");
   });
 
   it("GetQuickInfo returns function signature for scalar functions", () => {
