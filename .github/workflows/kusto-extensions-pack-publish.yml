@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name:  'Automated Version Bump'
-        uses: phips28/gh-action-bump-version@v11
+        uses: phips28/gh-action-bump-version@2d294fcd028d7ec0de2fa4e94ad7fe04512cc13a # v11.1.2
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
           PACKAGEJSON_DIR:  'kusto-extensions-pack'

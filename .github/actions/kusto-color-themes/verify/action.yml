@@ -8,18 +8,22 @@ runs:
     - name: Extract contributed themes from package.json
       id: themes
       shell: bash
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}
       run: |
-        value=$(jq '.contributes.themes[].path' "${{ inputs.working-directory }}/package.json" --raw-output)
+        value=$(jq '.contributes.themes[].path' "$WORKING_DIR/package.json" --raw-output)
         echo "value<<EOF" >> $GITHUB_OUTPUT
         echo "$value" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
     - name: Verify each contributed theme exists
       shell: bash
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}
+        THEMES: ${{ steps.themes.outputs.value }}
       run: |
         errors=0
-        themes_in_package_json="${{ steps.themes.outputs.value }}"
-        for theme in $themes_in_package_json; do
-          filepath="${{ inputs.working-directory }}/$theme"
+        for theme in $THEMES; do
+          filepath="$WORKING_DIR/$theme"
           if (!(test -f "$filepath")); then
             echo "ERROR: File not found: $filepath"
             errors+=1
