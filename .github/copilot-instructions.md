@@ -60,6 +60,7 @@ npm test                   # Full test suite (VSCode extension host)
 | Opening or reviewing a PR | **Kuskus-PR-Workflow** |
 | Release, version, publishing | **Kuskus-Release-Process** |
 | Issues, triage, bug reports | **Kuskus-Issue-Triage** |
+| Branch protection, rulesets | **Kuskus-Branch-Protection** |
 
 ---
 
