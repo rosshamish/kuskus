@@ -73,7 +73,7 @@ unless you have a specific reason to go into a subdirectory.
    npm test
    ```
 
-4. **Update `CHANGELOG.md`** under `[Unreleased]` — describe what changed and why
+4. **Describe your change** in the PR body — what changed and why
 
 5. **Open a PR** — the PR template will walk you through the checklist
 
