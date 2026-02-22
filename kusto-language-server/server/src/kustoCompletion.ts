@@ -3,7 +3,6 @@ import { CompletionItemKind, CompletionItem } from "vscode-languageserver";
 export function getVSCodeCompletionItemKind(
   completionItem: { Kind: Kusto.Language.Editor.CompletionKind | null | undefined } | null | undefined,
 ): CompletionItemKind {
-  // Defensive check for null/undefined completionItem or missing Kind property
   if (!completionItem || completionItem.Kind === null || completionItem.Kind === undefined) {
     return CompletionItemKind.Text;
   }

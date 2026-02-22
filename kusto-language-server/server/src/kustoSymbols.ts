@@ -37,7 +37,7 @@ interface ColumnInfo {
  */
 export function parseParameterParts(parameter: string): { name: string; typeStr: string } | null {
   const parts = parameter.split(/[: ]+/).filter((s) => s !== "");
-  if (!parts || parts.length === 0) {
+  if (parts.length === 0) {
     return null;
   }
   if (parts.length < 2) {
@@ -60,7 +60,6 @@ export function parseRawParameters(parameters: string): string[] {
 function getTypeSymbol(
   type: string,
 ): Kusto.Language.Symbols.ScalarSymbol | null {
-  // Add null-safety check for type parameter
   if (!type || typeof type !== "string") {
     return null;
   }
@@ -68,7 +67,6 @@ function getTypeSymbol(
   try {
     return Kusto.Language.Symbols.ScalarSymbol.From(type);
   } catch (e) {
-    // Gracefully handle errors when parsing type
     // eslint-disable-next-line no-console
     console.error(`Error parsing type symbol: ${type}`, e);
     return null;

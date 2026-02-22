@@ -1,4 +1,4 @@
-// for future crossplat support
+// Bridge-formatted text uses CRLF; hardcode to match rather than use os.EOL
 const NEWLINE: string = "\r\n";
 const NEWLINE_REGEX: RegExp = /\r\n/g;
 
@@ -15,15 +15,15 @@ export function applyQueryBlockFormatting(
   let actualIndentSize = indentSize;
 
   if (!actualHasSeenFirstQueryBlock) {
-    actualIndentSize = rawText.length - rawText.trimLeft().length;
+    actualIndentSize = rawText.length - rawText.trimStart().length;
     actualHasSeenFirstQueryBlock = true;
   }
 
   let indentedText: string = (
-    " ".repeat(actualIndentSize) + rawText.trimLeft()
+    " ".repeat(actualIndentSize) + rawText.trimStart()
   )
     .replace(NEWLINE_REGEX, NEWLINE + " ".repeat(actualIndentSize))
-    .trimRight()
+    .trimEnd()
     .concat(NEWLINE, NEWLINE);
 
   if (indentedText.trim() === "}") {
