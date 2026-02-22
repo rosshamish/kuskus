@@ -1,18 +1,16 @@
 import { makeCodeScript } from "./bridge.js";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external WASM bridge global, untyped by design
-declare const Bridge: any;
+import type { KustoResultColumn } from "azure-kusto-data";
 
 const MAX_ROWS = 100;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge collection is .NET interop, no TS type available
-function toArray<T>(collection: any): T[] {
+function toArray<T>(collection: unknown): T[] {
   if (!collection) return [];
-  return Bridge.toArray(collection) as T[];
+  return Bridge.toArray<T>(collection);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge hover is .NET interop, no TS type available
-function extractHoverText(hover: any): string | null {
+function extractHoverText(
+  hover: KustoBridgeHover | null | undefined,
+): string | null {
   if (!hover) return null;
   const text: string = hover.Text || "";
   if (!text) return null;
@@ -44,7 +42,7 @@ export interface ValidateResult {
 export function kqlValidate(query: string): ValidateResult {
   const script = makeCodeScript(query);
   const diagnostics: Diagnostic[] = [];
-  const blocks = script.Blocks;
+  const blocks = script?.Blocks;
   if (!blocks) return { valid: true, diagnostics: [] };
   for (let i = 0; i < blocks.Count; i++) {
     const block = blocks.getItem(i);
@@ -65,7 +63,7 @@ export function kqlValidate(query: string): ValidateResult {
 
 export function kqlFormat(query: string): string | null {
   const script = makeCodeScript(query);
-  const blocks = script.Blocks;
+  const blocks = script?.Blocks;
   if (!blocks) return null;
   const parts: string[] = [];
   for (let i = 0; i < blocks.Count; i++) {
@@ -88,18 +86,17 @@ export function kqlCompletions(partialQuery: string): CompletionItem[] {
   const script = makeCodeScript(partialQuery);
   const lines = partialQuery.split("\n");
   const line = lines.length; // 1-indexed
-  const character = lines[lines.length - 1].length;
-  const position = { v: -1 };
-  if (!script.TryGetTextPosition(line, character, position)) return [];
+  const lastLine = lines[lines.length - 1] ?? "";
+  const character = lastLine.length;
+  const position: KustoBridgePosition = { v: -1 };
+  if (!script?.TryGetTextPosition(line, character, position)) return [];
   const block = script.GetBlockAtPosition(position.v);
   if (!block?.Service) return [];
   const completions = block.Service.GetCompletionItems(position.v);
   if (!completions) return [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge completion items are .NET interop
-  const items = toArray<any>(completions.Items);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge completion item is .NET interop
-  return items.slice(0, 50).map((item: any) => ({
-    label: item.DisplayText || item.MatchText || "",
+  const items = toArray<KustoBridgeCompletionItem>(completions.Items);
+  return items.slice(0, 50).map((item) => ({
+    label: item.DisplayText ?? item.MatchText ?? "",
     kind: item.Kind?.toString() ?? "Unknown",
   }));
 }
@@ -108,8 +105,8 @@ export function kqlExplainOperator(name: string): string | null {
   const exprQuery = `print ${name}()`;
   const exprOffset = exprQuery.indexOf(name);
   const exprScript = makeCodeScript(exprQuery);
-  const exprPos = { v: -1 };
-  if (exprScript.TryGetTextPosition(1, exprOffset + 1, exprPos)) {
+  const exprPos: KustoBridgePosition = { v: -1 };
+  if (exprScript?.TryGetTextPosition(1, exprOffset + 1, exprPos)) {
     const exprBlock = exprScript.GetBlockAtPosition(exprPos.v);
     const exprHover = exprBlock?.Service?.GetQuickInfo(exprPos.v);
     const exprText = extractHoverText(exprHover);
@@ -119,8 +116,8 @@ export function kqlExplainOperator(name: string): string | null {
   const tableQuery = `T | ${name}`;
   const tableOffset = tableQuery.indexOf(name);
   const tableScript = makeCodeScript(tableQuery);
-  const tablePos = { v: -1 };
-  if (tableScript.TryGetTextPosition(1, tableOffset + 1, tablePos)) {
+  const tablePos: KustoBridgePosition = { v: -1 };
+  if (tableScript?.TryGetTextPosition(1, tableOffset + 1, tablePos)) {
     const tableBlock = tableScript.GetBlockAtPosition(tablePos.v);
     const tableHover = tableBlock?.Service?.GetQuickInfo(tablePos.v);
     return extractHoverText(tableHover);
@@ -139,12 +136,11 @@ export async function kqlExecute(
   const client = new Client(kcsb);
   const result = await client.execute(database, query);
   const primaryResults = result.primaryResults[0];
-  const rows = primaryResults._rows ?? [];
+  const rows = primaryResults?._rows ?? [];
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- azure-kusto-data column type is untyped
-    columns: primaryResults.columns.map((c: any) => ({
+    columns: primaryResults?.columns.map((c: KustoResultColumn) => ({
       name: c.name,
-      type: c.columnType,
+      type: c.type,
     })),
     rows: rows.slice(0, MAX_ROWS),
     rowCount: rows.length,

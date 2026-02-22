@@ -6,11 +6,7 @@ const require = createRequire(import.meta.url);
 require("@kusto/language-service-next/bridge");
 require("@kusto/language-service-next/Kusto.Language.Bridge");
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external WASM bridge global, untyped by design
-declare const Kusto: any;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge returns opaque .NET interop objects
-export function makeCodeScript(text: string): any {
+export function makeCodeScript(text: string): KustoBridgeCodeScript | null {
   const globalState = Kusto.Language.GlobalState.Default;
   return Kusto.Language.Editor.CodeScript.From$1(text, globalState);
 }
