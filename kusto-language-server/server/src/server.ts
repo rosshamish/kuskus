@@ -29,6 +29,7 @@ import {
 import { getSymbolsOnCluster, getSymbolsOnTable } from "./kustoSymbols";
 import { formatCodeScript } from "./kustoFormat";
 import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion";
+import { sendTelemetryError } from "./telemetry";
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -149,6 +150,7 @@ connection.onRequest(
       } else if (typeof e === "string") {
         errorMessage = e;
       }
+      sendTelemetryError(connection, "error.loadSymbols", e);
       connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
         clusterUri,
         tenantId,
@@ -220,6 +222,7 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
     } else if (typeof e === "string") {
       errorMessage = e;
     }
+    sendTelemetryError(connection, "error.loadTable", e);
     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
       clusterUri,
       database,
@@ -324,7 +327,7 @@ connection.onDidChangeConfiguration((change) => {
     documentSettings.clear();
   } else {
     globalSettings = <Settings>(
-      (change.settings.languageServerExample || defaultSettings)
+      (change.settings.kuskusLanguageServer || defaultSettings)
     );
   }
 
@@ -395,6 +398,7 @@ connection.onCompletion(
       } else if (typeof e === "string") {
         connection.console.error(`Error getting completion items: ${e}`);
       }
+      sendTelemetryError(connection, "error.completion", e);
       return [];
     }
   },
@@ -442,6 +446,7 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
         e instanceof Error ? e.message : String(e)
       }`,
     );
+    sendTelemetryError(connection, "error.hover", e);
     return null;
   }
 });

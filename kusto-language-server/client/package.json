@@ -22,6 +22,7 @@
     "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
   },
   "dependencies": {
+    "@vscode/extension-telemetry": "^1.5.0",
     "clipboardy": "^2.3.0",
     "open": "^8.4.2",
     "vscode-languageclient": "^7.0.0"

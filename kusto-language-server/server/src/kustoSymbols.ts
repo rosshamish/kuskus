@@ -64,9 +64,7 @@ function getTypeSymbol(
 
   try {
     return Kusto.Language.Symbols.ScalarSymbol.From(type);
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error(`Error parsing type symbol: ${type}`, e);
+  } catch {
     return null;
   }
 }
@@ -141,8 +139,6 @@ function getDatabasesOnCluster(
           return reject(new Error("void results"));
         }
 
-        // eslint-disable-next-line no-console
-        console.log(results);
         if (!results.primaryResults || !results.primaryResults[0]) {
           return reject(new Error("Failed to fetch databases in cluster"));
         }
@@ -187,8 +183,6 @@ function getFunctionMetadata(
           return reject(new Error("void results"));
         }
 
-        // eslint-disable-next-line no-console
-        console.log(results);
         if (!results.primaryResults || !results.primaryResults[0]) {
           return reject(new Error("Failed to fetch functions in cluster"));
         }
@@ -236,8 +230,6 @@ function getTableMetadata(
           return reject(new Error("void results"));
         }
 
-        // eslint-disable-next-line no-console
-        console.log(results);
         if (!results.primaryResults || !results.primaryResults[0]) {
           return reject(new Error("Failed to fetch tables in cluster"));
         }
@@ -269,8 +261,6 @@ function getTableSchema(
           return reject(new Error("void results"));
         }
 
-        // eslint-disable-next-line no-console
-        console.log(results);
         if (!results.primaryResults || !results.primaryResults[0]) {
           return reject(new Error("Failed to fetch tables in cluster"));
         }

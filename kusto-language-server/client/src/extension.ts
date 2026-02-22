@@ -15,10 +15,17 @@ import {
   State,
   TransportKind,
 } from "vscode-languageclient/node";
+import {
+  createReporter,
+  disposeReporter,
+  sendError,
+  type TelemetryErrorEvent,
+} from "./telemetry";
 
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
+  createReporter();
   // The server is implemented in node
   const serverModule = context.asAbsolutePath(
     path.join("server", "out", "server.js"),
@@ -61,6 +68,14 @@ export function activate(context: ExtensionContext) {
   client.onDidChangeState((listener) => {
     if (listener.newState === State.Running) {
       window.showInformationMessage("Kuskus loaded!");
+
+      client.onNotification(
+        "kuskus/telemetry.error",
+        (event: TelemetryErrorEvent) => {
+          sendError(event);
+        },
+      );
+
 
       client.onRequest(
         "kuskus.loadSymbols.auth",
@@ -166,6 +181,7 @@ export function activate(context: ExtensionContext) {
 }
 
 export function deactivate(): Thenable<void> | undefined {
+  disposeReporter();
   if (!client) {
     return undefined;
   }
