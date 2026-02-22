@@ -292,12 +292,10 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   for (let i = 0; i < blocks.Count; i += 1) {
     const block = blocks.getItem(i);
     if (!block.Service) {
-      // eslint-disable-next-line no-continue
       continue;
     }
     const diagnostics = block.Service.GetDiagnostics();
     if (!diagnostics) {
-      // eslint-disable-next-line no-continue
       continue;
     }
     for (let j = 0; j < diagnostics.Count; j += 1) {

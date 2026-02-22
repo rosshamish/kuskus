@@ -21,6 +21,8 @@
     "@typescript-eslint/no-explicit-any": "error",
     "func-names": "error",
     "no-underscore-dangle": "off",
-    "no-restricted-syntax": "off"
+    "no-restricted-syntax": "off",
+    "no-continue": "off",
+    "new-cap": "off"
   }
 }

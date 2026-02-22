@@ -105,7 +105,6 @@ export function formatCodeScript(
       indentSize,
     );
     if (!formattedBlock) {
-      // eslint-disable-next-line no-continue
       continue;
     }
     ({ formattedText, hasSeenFirstQueryBlock, indentSize } = formattedBlock);
