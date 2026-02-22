@@ -1,3 +1,4 @@
+/// <reference path="./kusto-bridge.d.ts" />
 import { makeCodeScript } from "./bridge.js";
 import type { KustoResultColumn } from "azure-kusto-data";
 

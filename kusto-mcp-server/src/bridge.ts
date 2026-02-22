@@ -1,3 +1,4 @@
+/// <reference path="./kusto-bridge.d.ts" />
 // Side-effect imports that load the Kusto WASM bridge into global scope.
 // Must be first imports in the process — same pattern as kusto-language-server/server/src/server.ts
 import { createRequire } from "module";

@@ -14,6 +14,17 @@ import {
   type CompletionItem,
 } from "../tools.js";
 
+// The Kusto WASM bridge initialises lazily on first call. This suite runs first
+// and absorbs the cold-start cost so all subsequent suites get fast calls.
+describe("warmup", function () {
+  this.timeout(30000);
+
+  it("initialises the Kusto WASM bridge", () => {
+    const result: ValidateResult = kqlValidate("print 1");
+    assert.ok("valid" in result, "bridge returned a ValidateResult");
+  });
+});
+
 describe("kqlValidate", function () {
   this.timeout(10000);
 
