@@ -13,8 +13,7 @@
     "bugs": {
         "url": "https://github.com/rosshamish/kuskus/issues"
     },
-    "telemetry": true,
-    "privacyStatement": "https://github.com/rosshamish/kuskus/blob/master/PRIVACY.md",
+    "telemetry": false,
     "engines": {
         "vscode": "^1.85.0"
     },

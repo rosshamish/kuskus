@@ -16,16 +16,16 @@ import {
   TransportKind,
 } from "vscode-languageclient/node";
 import {
-  createReporter,
-  disposeReporter,
-  sendError,
+  createOutputChannel,
+  disposeChannel,
+  logError,
   type TelemetryErrorEvent,
 } from "./telemetry";
 
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
-  createReporter();
+  createOutputChannel();
   // The server is implemented in node
   const serverModule = context.asAbsolutePath(
     path.join("server", "out", "server.js"),
@@ -72,7 +72,7 @@ export function activate(context: ExtensionContext) {
       client.onNotification(
         "kuskus/telemetry.error",
         (event: TelemetryErrorEvent) => {
-          sendError(event);
+          logError(event);
         },
       );
 
@@ -181,7 +181,7 @@ export function activate(context: ExtensionContext) {
 }
 
 export function deactivate(): Thenable<void> | undefined {
-  disposeReporter();
+  disposeChannel();
   if (!client) {
     return undefined;
   }
