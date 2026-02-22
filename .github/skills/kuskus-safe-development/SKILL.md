@@ -16,7 +16,7 @@ Marketplace. Real users install it. Every merge to `master` triggers an automate
 All changes go through PRs. CI must pass. No exceptions — not even "quick fixes" or "docs only."
 
 ### 2. Never manually bump the version number
-The `gh-action-bump-version-master` action in CI does this automatically on every merge to `master`.
+The `phips28/gh-action-bump-version` action in CI does this automatically on every merge to `master`.
 If you manually bump in `package.json`, the next CI run will double-bump or conflict. Don't touch
 `version` in any extension's `package.json`.
 
@@ -45,7 +45,7 @@ effect immediately on the next trigger.
 ```
 PR merged to master
   └─ GitHub Actions: *-publish.yml (scoped to changed directory)
-      ├─ gh-action-bump-version-master  → bumps patch version in package.json, creates commit
+      ├─ phips28/gh-action-bump-version  → bumps patch version in package.json, creates commit
       ├─ HaaLeo/publish-vscode-extension → publishes to VS Code Marketplace
       └─ pull-rebase-then-push          → pushes the version bump commit back to master
 ```

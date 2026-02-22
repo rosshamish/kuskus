@@ -24,11 +24,11 @@ Every merge to `master` that touches an extension's directory triggers its publi
 
 ```
 1. actions/checkout@v4
-2. gh-action-bump-version-master
+2. phips28/gh-action-bump-version@v11.1.2
    - reads current version from package.json
    - bumps patch version (default)
    - writes updated package.json
-   - does NOT push yet (push: false)
+   - does NOT push yet (skip-push: true)
 3. HaaLeo/publish-vscode-extension@v1
    - packages and publishes to VS Code Marketplace
    - uses VS_MARKETPLACE_TOKEN secret
@@ -43,7 +43,7 @@ Every merge to `master` that touches an extension's directory triggers its publi
 | Secret | Used by |
 |---|---|
 | `VS_MARKETPLACE_TOKEN` | `HaaLeo/publish-vscode-extension` — marketplace PAT |
-| `TOKEN_GITHUB` | `gh-action-bump-version-master` — GitHub PAT for push |
+| `TOKEN_GITHUB` | `phips28/gh-action-bump-version` — GitHub PAT for push |
 
 ---
 
@@ -90,20 +90,6 @@ gh workflow run kusto-language-server-publish.yml
 - The root cause is identified and resolved
 - The version bump commit was NOT pushed (check `git log` on master)
 - You've confirmed no duplicate publish would result
-
----
-
-## CHANGELOG Process
-
-The automated pipeline does **not** update `CHANGELOG.md`. That is a human responsibility.
-
-Before merging any PR with user-visible changes:
-1. Add entry under `## [Unreleased]`
-2. Use standard sections: `Added`, `Changed`, `Fixed`, `Removed`, `Security`
-3. Reference issue numbers: `Fix null-safety crash in hover (#104)`
-
-When cutting a formal release (moving `[Unreleased]` → `[X.Y.Z]`), do it in the PR — the version
-number in the changelog heading should match what CI will publish.
 
 ---
 

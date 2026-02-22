@@ -23,10 +23,7 @@ git checkout -b fix/your-description
 npm run lint
 npm test
 
-# 3. Update CHANGELOG.md under [Unreleased]
-# (added, changed, fixed, removed, security — use relevant sections only)
-
-# 4. Push and open PR
+# 3. Push and open PR
 git push -u origin fix/your-description
 gh pr create --title "fix: brief description" --body "$(cat .github/skills/kuskus-pr-workflow/pr-checklist.md)"
 # Or open in browser: gh pr create --web
@@ -55,7 +52,6 @@ npm test
 - Manual calls to `vsce publish` or `npm publish`
 - `.github/workflows/*.yml` changes without explanation
 - Tests skipped or commented out
-- No CHANGELOG entry for a user-visible change
 
 ---
 

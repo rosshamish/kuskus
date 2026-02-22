@@ -8,9 +8,8 @@
 
 - [ ] `npm run lint` passes (run locally before opening PR)
 - [ ] `npm test` passes (run locally before opening PR)
-- [ ] `CHANGELOG.md` updated under `[Unreleased]` for any user-visible change
 - [ ] **Version number NOT manually bumped** — CI handles this automatically on merge to `master`
-- [ ] If this is a **breaking change**: noted in CHANGELOG and described below
+- [ ] If this is a **breaking change**: noted in PR description
 
 ---
 

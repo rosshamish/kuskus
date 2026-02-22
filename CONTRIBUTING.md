@@ -11,7 +11,6 @@ This is a **live, published extension**. Before making any change:
 
 - Tests must pass. No exceptions.
 - Lint must pass. No exceptions.
-- The CHANGELOG must be updated for any user-visible change.
 - **Never manually bump the version number.** The publishing pipeline does this automatically on push
   to `master`. If you bump it manually you will break the automated version bump.
 - **Never manually publish.** Push to `master` — CI handles the rest.

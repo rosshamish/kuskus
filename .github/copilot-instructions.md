@@ -33,9 +33,7 @@ builds and tests via npm workspaces and shared scripts.
 4. **Never manually publish.** The `*-publish.yml` workflows handle publishing via
    `HaaLeo/publish-vscode-extension`. Do not run `vsce publish` yourself.
 
-5. **CHANGELOG.md is always updated** for any user-visible change, under `[Unreleased]`.
-
-6. **One merge = one release.** Don't merge until the change is ready to ship.
+5. **One merge = one release.** Don't merge until the change is ready to ship.
 
 ---
 
