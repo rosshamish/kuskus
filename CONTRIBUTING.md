@@ -92,29 +92,6 @@ unless you have a specific reason to go into a subdirectory.
 
 ---
 
-## Changelog Format
-
-This project follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-Add your entry under `[Unreleased]`:
-
-```markdown
-### Added
-- Brief description of new feature (#issue-number)
-
-### Fixed
-- Brief description of bug fix (#issue-number)
-
-### Changed
-- Brief description of behavior change
-
-### Security
-- Security fix details
-```
-
----
-
 ## Publishing Pipeline
 
 Publishing is **fully automated** — do not intervene manually.
