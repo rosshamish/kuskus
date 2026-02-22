@@ -1,28 +1,49 @@
 import { makeCodeScript } from "./bridge.js";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external WASM bridge global, untyped by design
 declare const Bridge: any;
 
 const MAX_ROWS = 100;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge collection is .NET interop, no TS type available
 function toArray<T>(collection: any): T[] {
   if (!collection) return [];
   return Bridge.toArray(collection) as T[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge hover is .NET interop, no TS type available
 function extractHoverText(hover: any): string | null {
   if (!hover) return null;
   const text: string = hover.Text || "";
   if (!text) return null;
   // Filter out pure error messages (no useful signature line)
-  const errorPrefixes = ["Expected:", "The name ", "The operator ", "The incomplete", "Query operator"];
+  const errorPrefixes = [
+    "Expected:",
+    "The name ",
+    "The operator ",
+    "The incomplete",
+    "Query operator",
+  ];
   if (errorPrefixes.some((p) => text.startsWith(p))) return null;
   // Return the full text (includes signature + any extra context)
   return text;
 }
 
-export function kqlValidate(query: string): object {
+export interface Diagnostic {
+  message: string;
+  severity: string;
+  start: number;
+  length: number;
+}
+
+export interface ValidateResult {
+  valid: boolean;
+  diagnostics: Diagnostic[];
+}
+
+export function kqlValidate(query: string): ValidateResult {
   const script = makeCodeScript(query);
-  const diagnostics: object[] = [];
+  const diagnostics: Diagnostic[] = [];
   const blocks = script.Blocks;
   if (!blocks) return { valid: true, diagnostics: [] };
   for (let i = 0; i < blocks.Count; i++) {
@@ -58,10 +79,15 @@ export function kqlFormat(query: string): string | null {
   return parts.length > 0 ? parts.join("\n\n") : null;
 }
 
-export function kqlCompletions(partialQuery: string): object[] {
+export interface CompletionItem {
+  label: string;
+  kind: string;
+}
+
+export function kqlCompletions(partialQuery: string): CompletionItem[] {
   const script = makeCodeScript(partialQuery);
   const lines = partialQuery.split("\n");
-  const line = lines.length;          // 1-indexed
+  const line = lines.length; // 1-indexed
   const character = lines[lines.length - 1].length;
   const position = { v: -1 };
   if (!script.TryGetTextPosition(line, character, position)) return [];
@@ -69,7 +95,9 @@ export function kqlCompletions(partialQuery: string): object[] {
   if (!block?.Service) return [];
   const completions = block.Service.GetCompletionItems(position.v);
   if (!completions) return [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge completion items are .NET interop
   const items = toArray<any>(completions.Items);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridge completion item is .NET interop
   return items.slice(0, 50).map((item: any) => ({
     label: item.DisplayText || item.MatchText || "",
     kind: item.Kind?.toString() ?? "Unknown",
@@ -103,17 +131,17 @@ export function kqlExplainOperator(name: string): string | null {
 export async function kqlExecute(
   query: string,
   cluster: string,
-  database: string
+  database: string,
 ): Promise<object> {
-  const { Client, KustoConnectionStringBuilder } = await import(
-    "azure-kusto-data"
-  );
+  const { Client, KustoConnectionStringBuilder } =
+    await import("azure-kusto-data");
   const kcsb = KustoConnectionStringBuilder.withAzLoginIdentity(cluster);
   const client = new Client(kcsb);
   const result = await client.execute(database, query);
   const primaryResults = result.primaryResults[0];
   const rows = primaryResults._rows ?? [];
   return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- azure-kusto-data column type is untyped
     columns: primaryResults.columns.map((c: any) => ({
       name: c.name,
       type: c.columnType,

@@ -24,8 +24,10 @@ server.tool(
   "Validate a KQL query using the Kusto static analyzer. Returns errors and warnings with positions.",
   { query: z.string().describe("KQL query to validate") },
   async ({ query }) => ({
-    content: [{ type: "text", text: JSON.stringify(kqlValidate(query), null, 2) }],
-  })
+    content: [
+      { type: "text", text: JSON.stringify(kqlValidate(query), null, 2) },
+    ],
+  }),
 );
 
 server.tool(
@@ -40,7 +42,7 @@ server.tool(
     return {
       content: [{ type: "text", text: formatted }],
     };
-  }
+  },
 );
 
 server.tool(
@@ -54,7 +56,7 @@ server.tool(
         text: JSON.stringify(kqlCompletions(partial_query), null, 2),
       },
     ],
-  })
+  }),
 );
 
 server.tool(
@@ -64,9 +66,11 @@ server.tool(
   async ({ name }) => {
     const doc = kqlExplainOperator(name);
     return {
-      content: [{ type: "text", text: doc ?? `No documentation found for '${name}'` }],
+      content: [
+        { type: "text", text: doc ?? `No documentation found for '${name}'` },
+      ],
     };
-  }
+  },
 );
 
 server.tool(
@@ -102,13 +106,18 @@ server.tool(
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
-    } catch (err: any) {
+    } catch (err) {
       return {
-        content: [{ type: "text", text: `Error: ${err?.message ?? String(err)}` }],
+        content: [
+          {
+            type: "text",
+            text: `Error: ${err instanceof Error ? err.message : String(err)}`,
+          },
+        ],
         isError: true,
       };
     }
-  }
+  },
 );
 
 const transport = new StdioServerTransport();

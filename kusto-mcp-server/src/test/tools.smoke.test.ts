@@ -5,26 +5,39 @@
  */
 
 import * as assert from "assert";
-import { kqlValidate, kqlFormat, kqlCompletions, kqlExplainOperator } from "../tools.js";
+import {
+  kqlValidate,
+  kqlFormat,
+  kqlCompletions,
+  kqlExplainOperator,
+  type ValidateResult,
+  type CompletionItem,
+} from "../tools.js";
 
 describe("kqlValidate", function () {
   this.timeout(10000);
 
   it("returns valid:true for a valid KQL query", () => {
-    const result = kqlValidate("print 1 + 1") as any;
+    const result: ValidateResult = kqlValidate("print 1 + 1");
     assert.strictEqual(result.valid, true);
     assert.deepStrictEqual(result.diagnostics, []);
   });
 
   it("returns valid:false with diagnostics for invalid KQL", () => {
-    const result = kqlValidate("| invalid syntax !!") as any;
+    const result: ValidateResult = kqlValidate("| invalid syntax !!");
     assert.strictEqual(result.valid, false);
-    assert.ok(result.diagnostics.length > 0, "should have at least one diagnostic");
-    assert.ok(result.diagnostics[0].message, "diagnostic should have a message");
+    assert.ok(
+      result.diagnostics.length > 0,
+      "should have at least one diagnostic",
+    );
+    assert.ok(
+      result.diagnostics[0].message,
+      "diagnostic should have a message",
+    );
   });
 
   it("handles empty string without throwing", () => {
-    const result = kqlValidate("") as any;
+    const result: ValidateResult = kqlValidate("");
     assert.ok("valid" in result);
     assert.ok(Array.isArray(result.diagnostics));
   });
@@ -34,7 +47,7 @@ describe("kqlFormat", function () {
   this.timeout(10000);
 
   it("formats a compact KQL query", () => {
-    const result = kqlFormat("StormEvents|where State==\"TEXAS\"|count");
+    const result = kqlFormat('StormEvents|where State=="TEXAS"|count');
     assert.ok(result !== null, "should return formatted text");
     assert.ok(typeof result === "string");
     assert.ok(result.includes("StormEvents"), "should preserve table name");
@@ -50,10 +63,13 @@ describe("kqlCompletions", function () {
   this.timeout(10000);
 
   it("returns completions after pipe", () => {
-    const results = kqlCompletions("StormEvents | ");
+    const results: CompletionItem[] = kqlCompletions("StormEvents | ");
     assert.ok(Array.isArray(results));
     assert.ok(results.length > 0, "should return completions after pipe");
-    assert.ok(results.every((r: any) => typeof r.label === "string"), "all items have string label");
+    assert.ok(
+      results.every((r) => typeof r.label === "string"),
+      "all items have string label",
+    );
   });
 
   it("returns at most 50 completions", () => {
@@ -64,7 +80,10 @@ describe("kqlCompletions", function () {
   it("handles multi-line query", () => {
     const results = kqlCompletions("StormEvents\n| ");
     assert.ok(Array.isArray(results));
-    assert.ok(results.length > 0, "should return completions for multi-line query");
+    assert.ok(
+      results.length > 0,
+      "should return completions for multi-line query",
+    );
   });
 
   it("handles trailing newline without throwing", () => {
@@ -84,7 +103,10 @@ describe("kqlExplainOperator", function () {
     const result = kqlExplainOperator("ago");
     assert.ok(result !== null, "ago should have documentation");
     assert.ok(typeof result === "string");
-    assert.ok(result.toLowerCase().includes("ago"), "result should mention 'ago'");
+    assert.ok(
+      result.toLowerCase().includes("ago"),
+      "result should mention 'ago'",
+    );
   });
 
   it("returns null for pipe operators (T|where fallback produces no hover text)", () => {
