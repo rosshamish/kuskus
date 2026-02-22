@@ -7,16 +7,16 @@ const server = new McpServer({
     name: "kuskus-mcp-server",
     version: "0.1.0",
 });
-server.tool("kql_validate", "Validate a KQL query using the Kusto static analyzer. Returns errors and warnings with positions. No network required.", { query: z.string().describe("KQL query to validate") }, async ({ query }) => ({
+server.tool("kql_validate", "Validate a KQL query using the Kusto static analyzer. Returns errors and warnings with positions.", { query: z.string().describe("KQL query to validate") }, async ({ query }) => ({
     content: [{ type: "text", text: JSON.stringify(kqlValidate(query), null, 2) }],
 }));
-server.tool("kql_format", "Format a KQL query using the Kusto formatter. Returns the formatted query string. No network required.", { query: z.string().describe("KQL query to format") }, async ({ query }) => {
+server.tool("kql_format", "Format a KQL query using the Kusto formatter. Returns the formatted query string.", { query: z.string().describe("KQL query to format") }, async ({ query }) => {
     const formatted = kqlFormat(query);
     return {
         content: [{ type: "text", text: formatted ?? query }],
     };
 });
-server.tool("kql_completions", "Get KQL completion suggestions at the end of a partial query. Returns up to 50 completions. No network required.", { partial_query: z.string().describe("Partial KQL query to complete") }, async ({ partial_query }) => ({
+server.tool("kql_completions", "Get KQL completion suggestions at the end of a partial query. Returns up to 50 completions.", { partial_query: z.string().describe("Partial KQL query to complete") }, async ({ partial_query }) => ({
     content: [
         {
             type: "text",
@@ -24,7 +24,7 @@ server.tool("kql_completions", "Get KQL completion suggestions at the end of a p
         },
     ],
 }));
-server.tool("kql_explain_operator", "Get documentation for a KQL operator or function by name (e.g. 'where', 'summarize', 'ago'). No network required.", { name: z.string().describe("KQL operator or function name") }, async ({ name }) => {
+server.tool("kql_explain_operator", "Get documentation for a KQL operator or function by name (e.g. 'where', 'summarize', 'ago').", { name: z.string().describe("KQL operator or function name") }, async ({ name }) => {
     const doc = kqlExplainOperator(name);
     return {
         content: [{ type: "text", text: doc ?? `No documentation found for '${name}'` }],

@@ -2,9 +2,11 @@ import { makeCodeScript } from "./bridge.js";
 
 declare const Bridge: any;
 
+const MAX_ROWS = 100;
+
 function toArray<T>(collection: any): T[] {
   if (!collection) return [];
-  return (Bridge as any).toArray(collection) as T[];
+  return Bridge.toArray(collection) as T[];
 }
 
 function extractHoverText(hover: any): string | null {
@@ -74,27 +76,25 @@ export function kqlCompletions(partialQuery: string): object[] {
 }
 
 export function kqlExplainOperator(name: string): string | null {
-  // Try as a scalar function/operator: "print <name>()"
   const exprQuery = `print ${name}()`;
   const exprOffset = exprQuery.indexOf(name);
-  const s1 = makeCodeScript(exprQuery);
-  const p1 = { v: -1 };
-  if (s1.TryGetTextPosition(1, exprOffset + 1, p1)) {
-    const b1 = s1.GetBlockAtPosition(p1.v);
-    const h1 = b1?.Service?.GetQuickInfo(p1.v);
-    const t1 = extractHoverText(h1);
-    if (t1) return t1;
+  const exprScript = makeCodeScript(exprQuery);
+  const exprPos = { v: -1 };
+  if (exprScript.TryGetTextPosition(1, exprOffset + 1, exprPos)) {
+    const exprBlock = exprScript.GetBlockAtPosition(exprPos.v);
+    const exprHover = exprBlock?.Service?.GetQuickInfo(exprPos.v);
+    const exprText = extractHoverText(exprHover);
+    if (exprText) return exprText;
   }
 
-  // Fallback: try as a tabular operator: "T | <name>"
   const tableQuery = `T | ${name}`;
   const tableOffset = tableQuery.indexOf(name);
-  const s2 = makeCodeScript(tableQuery);
-  const p2 = { v: -1 };
-  if (s2.TryGetTextPosition(1, tableOffset + 1, p2)) {
-    const b2 = s2.GetBlockAtPosition(p2.v);
-    const h2 = b2?.Service?.GetQuickInfo(p2.v);
-    return extractHoverText(h2);
+  const tableScript = makeCodeScript(tableQuery);
+  const tablePos = { v: -1 };
+  if (tableScript.TryGetTextPosition(1, tableOffset + 1, tablePos)) {
+    const tableBlock = tableScript.GetBlockAtPosition(tablePos.v);
+    const tableHover = tableBlock?.Service?.GetQuickInfo(tablePos.v);
+    return extractHoverText(tableHover);
   }
   return null;
 }
@@ -116,7 +116,7 @@ export async function kqlExecute(
       name: c.name,
       type: c.columnType,
     })),
-    rows: primaryResults._rows.slice(0, 100),
+    rows: primaryResults._rows.slice(0, MAX_ROWS),
     rowCount: primaryResults._rows.length,
   };
 }

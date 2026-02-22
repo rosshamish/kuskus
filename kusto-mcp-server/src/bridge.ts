@@ -13,6 +13,4 @@ export function makeCodeScript(text: string): any {
   return Kusto.Language.Editor.CodeScript.From$1(text, globalState);
 }
 
-export function getKustoGlobal(): any {
-  return Kusto;
-}
+

@@ -8,7 +8,4 @@ export function makeCodeScript(text) {
     const globalState = Kusto.Language.GlobalState.Default;
     return Kusto.Language.Editor.CodeScript.From$1(text, globalState);
 }
-export function getKustoGlobal() {
-    return Kusto;
-}
 //# sourceMappingURL=bridge.js.map

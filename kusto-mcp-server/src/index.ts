@@ -17,7 +17,7 @@ const server = new McpServer({
 
 server.tool(
   "kql_validate",
-  "Validate a KQL query using the Kusto static analyzer. Returns errors and warnings with positions. No network required.",
+  "Validate a KQL query using the Kusto static analyzer. Returns errors and warnings with positions.",
   { query: z.string().describe("KQL query to validate") },
   async ({ query }) => ({
     content: [{ type: "text", text: JSON.stringify(kqlValidate(query), null, 2) }],
@@ -26,7 +26,7 @@ server.tool(
 
 server.tool(
   "kql_format",
-  "Format a KQL query using the Kusto formatter. Returns the formatted query string. No network required.",
+  "Format a KQL query using the Kusto formatter. Returns the formatted query string.",
   { query: z.string().describe("KQL query to format") },
   async ({ query }) => {
     const formatted = kqlFormat(query);
@@ -38,7 +38,7 @@ server.tool(
 
 server.tool(
   "kql_completions",
-  "Get KQL completion suggestions at the end of a partial query. Returns up to 50 completions. No network required.",
+  "Get KQL completion suggestions at the end of a partial query. Returns up to 50 completions.",
   { partial_query: z.string().describe("Partial KQL query to complete") },
   async ({ partial_query }) => ({
     content: [
@@ -52,7 +52,7 @@ server.tool(
 
 server.tool(
   "kql_explain_operator",
-  "Get documentation for a KQL operator or function by name (e.g. 'where', 'summarize', 'ago'). No network required.",
+  "Get documentation for a KQL operator or function by name (e.g. 'where', 'summarize', 'ago').",
   { name: z.string().describe("KQL operator or function name") },
   async ({ name }) => {
     const doc = kqlExplainOperator(name);
