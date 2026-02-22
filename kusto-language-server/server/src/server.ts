@@ -164,6 +164,15 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
   let kustoClient = null;
   ({ clusterUri, kustoClient } = getFirstOrDefaultClient());
 
+  if (!kustoClient) {
+    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+      clusterUri,
+      database: "",
+      errorMessage: "No active client",
+    });
+    return;
+  }
+
   if (!kustoGlobalState || !kustoGlobalState.Database) {
     connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
       clusterUri,

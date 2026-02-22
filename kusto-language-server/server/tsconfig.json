@@ -6,6 +6,9 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true,
     "outDir": "out",
     "rootDir": "src",
     "types": ["@kusto/language-service-next", "node", "mocha"]

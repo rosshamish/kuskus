@@ -27,17 +27,18 @@
     "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
+    "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.10",
     "@types/vscode": "^1.109.0",
-    "@vscode/test-electron": "*",
-    "mocha": "^10.8.2",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@vscode/test-electron": "*",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
-    "prettier": "3.8.1",
-    "nyc": "^15.1.0"
+    "mocha": "^10.8.2",
+    "nyc": "^15.1.0",
+    "prettier": "3.8.1"
   }
 }
