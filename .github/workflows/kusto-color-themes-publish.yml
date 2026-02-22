@@ -8,12 +8,14 @@ on:
       - 'kusto-color-themes/**'
       - '.github/workflows/kusto-color-themes-publish.yml'
   
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   publish:
@@ -26,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name:  'Automated Version Bump'
-        uses:  ./.github/actions/gh-action-bump-version-master
+        uses: phips28/gh-action-bump-version@2d294fcd028d7ec0de2fa4e94ad7fe04512cc13a # v11.1.2
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
           PACKAGEJSON_DIR:  'kusto-color-themes'
@@ -35,7 +37,7 @@ jobs:
           tag-prefix: kusto-color-themes-v
           # Don't push this commit, because we might not have latest master.
           # We'll fetch, merge, and push at the end.
-          push: false
+          skip-push: 'true'
 
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v1

@@ -7,9 +7,13 @@ on:
     paths:
       - 'kusto-language-server/**'
       - '.github/workflows/kusto-language-server-pr-validation.yml'
+      - '.nycrc.json'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   validate:
@@ -26,3 +30,26 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run vscode:prepublish
+
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kusto-language-server
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+        working-directory: kusto-language-server/server
+      - run: npm run test:coverage
+        working-directory: kusto-language-server/server
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: kusto-language-server/server/coverage/lcov.info
+          flags: unittests
+          fail_ci_if_error: false
+
