@@ -26,8 +26,8 @@ Major modernization initiative launched. Upgraded from v1.0.40 → v3.0.0+ with 
 
 ### Added
 - New `take_any()` aggregate function support (#101)
-- Scope color theme to Kusto files only (#208)
-- Enhanced null-safety checks throughout codebase
+- Support escape sequences `\t` and `\n` in syntax highlighting
+- Document symbols (Outline view) for `let` bindings — functions and variables now appear in the VS Code Outline panel and workspace symbol search (#105)
 
 ### Changed
 - **Modernized Build Tooling**

@@ -15,6 +15,9 @@ import {
   TextEdit,
   DocumentFormattingParams,
   TextDocumentSyncKind,
+  DocumentSymbol,
+  DocumentSymbolParams,
+  SymbolKind,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 
@@ -73,6 +76,7 @@ connection.onInitialize((params: InitializeParams) => {
       },
       hoverProvider: true,
       documentFormattingProvider: true,
+      documentSymbolProvider: true,
     },
   };
 });
@@ -438,6 +442,51 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
     return null;
   }
 });
+
+connection.onDocumentSymbol(
+  (params: DocumentSymbolParams): DocumentSymbol[] => {
+    const document = documents.get(params.textDocument.uri);
+    if (!document) {
+      return [];
+    }
+
+    const text = document.getText();
+    const symbols: DocumentSymbol[] = [];
+
+    // Match let bindings: `let name = ...` or `let name=(params) { ... }`
+    // Captures the identifier immediately after `let`
+    const letPattern = /^[ \t]*let\s+([A-Za-z_]\w*)\s*=/gm;
+    let match: RegExpExecArray | null;
+
+    // eslint-disable-next-line no-cond-assign
+    while ((match = letPattern.exec(text)) !== null) {
+      const name = match[1];
+      const offset = match.index;
+      const start = document.positionAt(offset);
+      // Determine if this is a function: the value after `=` starts with `(`
+      const afterLet = text.slice(offset + match[0].length);
+      const isFunction = /^\s*\(/.test(afterLet);
+      const kind = isFunction ? SymbolKind.Function : SymbolKind.Variable;
+
+      // Range covers the full `let <name> =` token on that line
+      const lineEnd = text.indexOf('\n', offset);
+      const endOffset = lineEnd === -1 ? text.length : lineEnd;
+      const end = document.positionAt(endOffset);
+
+      symbols.push(
+        DocumentSymbol.create(
+          name,
+          undefined,
+          kind,
+          { start, end },
+          { start, end },
+        ),
+      );
+    }
+
+    return symbols;
+  },
+);
 
 connection.onDocumentFormatting(
   (params: DocumentFormattingParams): TextEdit[] | null => {
