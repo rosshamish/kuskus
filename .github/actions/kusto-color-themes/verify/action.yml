@@ -12,9 +12,9 @@ runs:
         WORKING_DIR: ${{ inputs.working-directory }}
       run: |
         value=$(jq '.contributes.themes[].path' "$WORKING_DIR/package.json" --raw-output)
-        echo "value<<EOF" >> $GITHUB_OUTPUT
-        echo "$value" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        echo "value<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$value" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
     - name: Verify each contributed theme exists
       shell: bash
       env:
@@ -24,9 +24,9 @@ runs:
         errors=0
         for theme in $THEMES; do
           filepath="$WORKING_DIR/$theme"
-          if (!(test -f "$filepath")); then
+          if ! test -f "$filepath"; then
             echo "ERROR: File not found: $filepath"
-            errors+=1
+            errors=$((errors+1))
           fi
         done
         exit $errors
