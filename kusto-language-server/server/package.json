@@ -22,10 +22,10 @@
     "vscode-languageserver-textdocument": "^1.0.12"
   },
   "scripts": {
-    "test": "mocha --require ts-node/register 'src/test/**/*.test.ts'",
-    "test:watch": "mocha --require ts-node/register --watch 'src/test/**/*.test.ts' --watch-extensions ts",
-    "test:coverage": "nyc mocha --require ts-node/register 'src/test/**/*.test.ts'",
-    "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
+    "test": "TS_NODE_TRANSPILE_ONLY=true mocha --require ts-node/register 'src/test/**/*.test.ts'",
+    "test:watch": "TS_NODE_TRANSPILE_ONLY=true mocha --require ts-node/register --watch 'src/test/**/*.test.ts' --watch-extensions ts",
+    "test:coverage": "TS_NODE_TRANSPILE_ONLY=true nyc mocha --require ts-node/register 'src/test/**/*.test.ts'",
+    "lint": "tsc --noEmit && eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
     "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
   },
   "devDependencies": {

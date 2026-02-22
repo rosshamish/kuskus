@@ -31,6 +31,32 @@ interface ColumnInfo {
 
 // Helper functions - defined before export functions that use them
 
+/**
+ * Pure: splits a raw parameter string "param1 : typename" into name and type parts.
+ * No bridge dependency — testable in isolation.
+ */
+export function parseParameterParts(parameter: string): { name: string; typeStr: string } | null {
+  const parts = parameter.split(/[: ]+/).filter((s) => s !== "");
+  if (!parts || parts.length === 0) {
+    return null;
+  }
+  if (parts.length < 2) {
+    return { name: parts[0], typeStr: "" };
+  }
+  return { name: parts[0], typeStr: parts[1] };
+}
+
+/**
+ * Pure: splits a raw parameters string "(p1:t1, p2:t2)" into individual parameter strings.
+ * No bridge dependency — testable in isolation.
+ */
+export function parseRawParameters(parameters: string): string[] {
+  return parameters
+    .substring(1, parameters.length - 1)
+    .split(",")
+    .filter((s) => s !== "");
+}
+
 function getTypeSymbol(
   type: string,
 ): Kusto.Language.Symbols.ScalarSymbol | null {
@@ -52,34 +78,20 @@ function getTypeSymbol(
 function getSingleParameter(
   parameter: string,
 ): Kusto.Language.Symbols.Parameter {
-  // Expected Form
-  // "param1 : param1type"
-
-  const paramSplit = parameter.split(/[: ]+/).filter((s) => s !== "");
-
-  // Add null-safety checks
-  if (!paramSplit || paramSplit.length < 2) {
-    // Fallback: create a parameter with unknown type if parsing fails
-    const paramName =
-      paramSplit && paramSplit.length > 0 ? paramSplit[0] : "unknown";
+  const parsed = parseParameterParts(parameter);
+  if (!parsed || !parsed.typeStr) {
+    const paramName = parsed ? parsed.name : "unknown";
     return new Kusto.Language.Symbols.Parameter.$ctor2(paramName, null);
   }
-
   return new Kusto.Language.Symbols.Parameter.$ctor2(
-    paramSplit[0],
-    getTypeSymbol(paramSplit[1]),
+    parsed.name,
+    getTypeSymbol(parsed.typeStr),
   );
 }
 
 function getParameters(parameters: string): Kusto.Language.Symbols.Parameter[] {
-  // Expected Form
-  // "([param1:param1type][, param2:param2type]...)"
-  const params: string[] = parameters
-    .substring(1, parameters.length - 1)
-    .split(",")
-    .filter((s) => s !== "");
   const kParams: Kusto.Language.Symbols.Parameter[] = [];
-  params.forEach((param) => kParams.push(getSingleParameter(param)));
+  parseRawParameters(parameters).forEach((param) => kParams.push(getSingleParameter(param)));
   return kParams;
 }
 

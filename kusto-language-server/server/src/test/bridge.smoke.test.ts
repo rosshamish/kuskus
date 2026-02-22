@@ -7,26 +7,25 @@
  */
 
 import * as assert from "assert";
-import * as path from "path";
-import { createRequire } from "module";
-import { fileURLToPath } from "url";
+import { CompletionItemKind } from "vscode-languageserver";
+import "@kusto/language-service-next/bridge";
+import "@kusto/language-service-next/Kusto.Language.Bridge";
+import { getVSCodeCompletionItemKind } from "../kustoCompletion";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const _require = createRequire(import.meta.url);
-
-// Load the real bridge — same pattern as server.ts
-_require(path.join(__dirname, "../../node_modules/@kusto/language-service-next/bridge"));
-_require(path.join(__dirname, "../../node_modules/@kusto/language-service-next/Kusto.Language.Bridge"));
-
-declare const Kusto: any;
-
-function makeCodeScript(text: string): any {
-  const globalState = Kusto.Language.GlobalState.Default;
-  return Kusto.Language.Editor.CodeScript.From$1(text, globalState);
+function assertDefined<T>(value: T | null | undefined, name: string): T {
+  if (value === null || value === undefined) {
+    throw new Error(`Expected ${name} to be defined`);
+  }
+  return value;
 }
 
-describe("@kusto/language-service-next bridge smoke tests", function () {
+function makeCodeScript(text: string): Kusto.Language.Editor.CodeScript {
+  const globalState = Kusto.Language.GlobalState.Default;
+  const script = Kusto.Language.Editor.CodeScript.From$1(text, globalState);
+  return assertDefined(script, "CodeScript.From$1");
+}
+
+describe("@kusto/language-service-next bridge smoke tests", function bridgeSmokeTests() {
   this.timeout(10000);
 
   it("loads the bridge and Kusto global is defined", () => {
@@ -38,25 +37,26 @@ describe("@kusto/language-service-next bridge smoke tests", function () {
 
   it("CodeScript.From$1 creates a script from a KQL query", () => {
     const script = makeCodeScript("StormEvents | count");
-    assert.ok(script, "CodeScript should be created");
-    assert.ok(script.Blocks, "CodeScript.Blocks should be defined");
-    assert.strictEqual(script.Blocks.Count, 1, "Simple query should have 1 block");
+    const blocks = assertDefined(script.Blocks, "script.Blocks");
+    assert.strictEqual(blocks.Count, 1, "Simple query should have 1 block");
   });
 
   it("GetDiagnostics works on valid KQL syntax", () => {
     const script = makeCodeScript("print 1 + 1");
-    assert.strictEqual(script.Blocks.Count, 1);
-    const block = script.Blocks.getItem(0);
-    assert.ok(block.Service, "block.Service should be defined");
-    const diags = block.Service.GetDiagnostics();
-    assert.ok(diags !== null && diags !== undefined, "GetDiagnostics should return a result");
+    const blocks = assertDefined(script.Blocks, "script.Blocks");
+    assert.strictEqual(blocks.Count, 1);
+    const block = assertDefined(blocks.getItem(0), "block");
+    const service = assertDefined(block.Service, "block.Service");
+    const diags = assertDefined(service.GetDiagnostics(), "diags");
     assert.strictEqual(diags.Count, 0, "print 1+1 should have zero diagnostics");
   });
 
   it("GetDiagnostics returns errors for invalid syntax", () => {
     const script = makeCodeScript("| invalid syntax !!");
-    const block = script.Blocks.getItem(0);
-    const diags = block.Service.GetDiagnostics();
+    const blocks = assertDefined(script.Blocks, "script.Blocks");
+    const block = assertDefined(blocks.getItem(0), "block");
+    const service = assertDefined(block.Service, "block.Service");
+    const diags = assertDefined(service.GetDiagnostics(), "diags");
     assert.ok(diags.Count > 0, "Invalid syntax should produce diagnostics");
   });
 
@@ -70,9 +70,10 @@ describe("@kusto/language-service-next bridge smoke tests", function () {
 
   it("GetFormattedText returns an object with .Text", () => {
     const script = makeCodeScript("StormEvents|where State==\"TEXAS\"|count");
-    const block = script.Blocks.getItem(0);
-    const result = block.Service.GetFormattedText();
-    assert.ok(result, "GetFormattedText should return a result");
+    const blocks = assertDefined(script.Blocks, "script.Blocks");
+    const block = assertDefined(blocks.getItem(0), "block");
+    const service = assertDefined(block.Service, "block.Service");
+    const result = assertDefined(service.GetFormattedText(), "result");
     assert.ok(typeof result.Text === "string", "GetFormattedText result should have .Text string");
     assert.ok(result.Text.length > 0, "Formatted text should be non-empty");
   });
@@ -83,12 +84,11 @@ describe("@kusto/language-service-next bridge smoke tests", function () {
     const position = { v: -1 };
     const ok = script.TryGetTextPosition(1, query.length, position);
     assert.ok(ok, "TryGetTextPosition should succeed for end of query");
-    const block = script.GetBlockAtPosition(position.v);
-    assert.ok(block?.Service, "Should get a block with service");
-    const completions = block.Service.GetCompletionItems(position.v);
-    assert.ok(completions, "GetCompletionItems should return a result");
-    assert.ok(completions.Items, "Completions should have .Items");
-    assert.ok(completions.Items.Count > 0, "Should have at least one completion after pipe");
+    const block = assertDefined(script.GetBlockAtPosition(position.v), "block");
+    const service = assertDefined(block.Service, "block.Service");
+    const completions = assertDefined(service.GetCompletionItems(position.v), "completions");
+    const items = assertDefined(completions.Items, "completions.Items");
+    assert.ok(items.Count > 0, "Should have at least one completion after pipe");
   });
 
   it("completion items have DisplayText string property (guards kustoCompletion.ts label fallback)", () => {
@@ -96,19 +96,22 @@ describe("@kusto/language-service-next bridge smoke tests", function () {
     const script = makeCodeScript(query);
     const position = { v: -1 };
     script.TryGetTextPosition(1, query.length, position);
-    const block = script.GetBlockAtPosition(position.v);
-    const completions = block.Service.GetCompletionItems(position.v);
-    assert.ok(completions.Items.Count > 0);
-    const first = completions.Items.getItem(0);
+    const block = assertDefined(script.GetBlockAtPosition(position.v), "block");
+    const service = assertDefined(block.Service, "block.Service");
+    const completions = assertDefined(service.GetCompletionItems(position.v), "completions");
+    const items = assertDefined(completions.Items, "completions.Items");
+    assert.ok(items.Count > 0);
+    const first = assertDefined(items.getItem(0), "first completion item");
     assert.ok("DisplayText" in first, "CompletionItem should have DisplayText property");
     assert.ok(typeof (first.DisplayText || "") === "string", "DisplayText should be string or coercible to string");
   });
 
   it("GetDiagnostics returns object with Count on valid query (guards null-check in kqlValidate)", () => {
     const script = makeCodeScript("print 1 + 1");
-    const block = script.Blocks.getItem(0);
-    const diags = block.Service.GetDiagnostics();
-    assert.ok(diags !== null && diags !== undefined, "GetDiagnostics must not return null");
+    const blocks = assertDefined(script.Blocks, "script.Blocks");
+    const block = assertDefined(blocks.getItem(0), "block");
+    const service = assertDefined(block.Service, "block.Service");
+    const diags = assertDefined(service.GetDiagnostics(), "diags");
     assert.ok(typeof diags.Count === "number", "GetDiagnostics result must have numeric Count");
   });
 
@@ -119,10 +122,41 @@ describe("@kusto/language-service-next bridge smoke tests", function () {
     const agoOffset = query.indexOf("ago"); // 6, 1-indexed = 7
     const ok = script.TryGetTextPosition(1, agoOffset + 1, position);
     assert.ok(ok, "TryGetTextPosition should succeed");
-    const block = script.GetBlockAtPosition(position.v);
-    const hover = block.Service.GetQuickInfo(position.v);
-    assert.ok(hover, "GetQuickInfo should return a result");
+    const block = assertDefined(script.GetBlockAtPosition(position.v), "block");
+    const service = assertDefined(block.Service, "block.Service");
+    const hover = assertDefined(service.GetQuickInfo(position.v), "hover");
     assert.ok(typeof hover.Text === "string", "QuickInfo.Text should be a string");
     assert.ok(hover.Text.includes("ago"), "QuickInfo.Text should mention 'ago'");
   });
 });
+
+describe("kustoCompletion: getVSCodeCompletionItemKind (bridge-loaded)", () => {
+  it("maps function kinds to CompletionItemKind.Function", () => {
+    const k = Kusto.Language.Editor.CompletionKind;
+    [k.BuiltInFunction, k.LocalFunction, k.DatabaseFunction, k.AggregateFunction].forEach((kind) => {
+      assert.strictEqual(getVSCodeCompletionItemKind({ Kind: kind }), CompletionItemKind.Function);
+    });
+  });
+
+  it("maps Table to Enum, Column to EnumMember, Database to Class, Cluster to Module", () => {
+    const k = Kusto.Language.Editor.CompletionKind;
+    assert.strictEqual(getVSCodeCompletionItemKind({ Kind: k.Table }), CompletionItemKind.Enum);
+    assert.strictEqual(getVSCodeCompletionItemKind({ Kind: k.Column }), CompletionItemKind.EnumMember);
+    assert.strictEqual(getVSCodeCompletionItemKind({ Kind: k.Database }), CompletionItemKind.Class);
+    assert.strictEqual(getVSCodeCompletionItemKind({ Kind: k.Cluster }), CompletionItemKind.Module);
+  });
+
+  it("maps keyword/syntax kinds to CompletionItemKind.Keyword", () => {
+    const k = Kusto.Language.Editor.CompletionKind;
+    [k.Syntax, k.Keyword, k.ScalarPrefix, k.TabularPrefix, k.QueryPrefix].forEach((kind) => {
+      assert.strictEqual(getVSCodeCompletionItemKind({ Kind: kind }), CompletionItemKind.Keyword);
+    });
+  });
+
+  it("returns Text for null, undefined Kind, and unknown kinds", () => {
+    assert.strictEqual(getVSCodeCompletionItemKind(null), CompletionItemKind.Text);
+    assert.strictEqual(getVSCodeCompletionItemKind({ Kind: undefined }), CompletionItemKind.Text);
+    assert.strictEqual(getVSCodeCompletionItemKind({ Kind: Kusto.Language.Editor.CompletionKind.Unknown }), CompletionItemKind.Text);
+  });
+});
+

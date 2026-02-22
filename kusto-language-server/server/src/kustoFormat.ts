@@ -2,6 +2,52 @@
 const NEWLINE: string = "\r\n";
 const NEWLINE_REGEX: RegExp = /\r\n/g;
 
+/**
+ * Pure: applies query block indentation to raw bridge-formatted text.
+ * No bridge dependency — testable in isolation.
+ */
+export function applyQueryBlockFormatting(
+  rawText: string,
+  hasSeenFirstQueryBlock: boolean,
+  indentSize: number,
+): { output: string; hasSeenFirstQueryBlock: boolean; indentSize: number } {
+  let actualHasSeenFirstQueryBlock = hasSeenFirstQueryBlock;
+  let actualIndentSize = indentSize;
+
+  if (!actualHasSeenFirstQueryBlock) {
+    actualIndentSize = rawText.length - rawText.trimLeft().length;
+    actualHasSeenFirstQueryBlock = true;
+  }
+
+  let indentedText: string = (
+    " ".repeat(actualIndentSize) + rawText.trimLeft()
+  )
+    .replace(NEWLINE_REGEX, NEWLINE + " ".repeat(actualIndentSize))
+    .trimRight()
+    .concat(NEWLINE, NEWLINE);
+
+  if (indentedText.trim() === "}") {
+    indentedText = indentedText.trim();
+  }
+
+  if (indentedText.endsWith(NEWLINE)) {
+    const withoutFinalWhitespace: string = indentedText.substring(
+      0,
+      indentedText.lastIndexOf(NEWLINE) + NEWLINE.length,
+    );
+    return {
+      output: withoutFinalWhitespace,
+      hasSeenFirstQueryBlock: actualHasSeenFirstQueryBlock,
+      indentSize: actualIndentSize,
+    };
+  }
+  return {
+    output: indentedText,
+    hasSeenFirstQueryBlock: actualHasSeenFirstQueryBlock,
+    indentSize: actualIndentSize,
+  };
+}
+
 function formatBlock(
   block: Kusto.Language.Editor.CodeBlock,
   hasSeenFirstQueryBlockParam: boolean,
@@ -20,48 +66,21 @@ function formatBlock(
     return null;
   }
 
-  const formattedText = formattedTextObject.Text;
-  let actualHasSeenFirstQueryBlock = hasSeenFirstQueryBlockParam;
-  let actualIndentSize = indentSizeParam;
+  const rawText = formattedTextObject.Text;
 
   if (block.Kind === "Query") {
-    // Read the indent size from the first query block in the document
-    if (!actualHasSeenFirstQueryBlock) {
-      actualIndentSize = formattedText.length - formattedText.trimLeft().length;
-      actualHasSeenFirstQueryBlock = true;
-    }
-    // Add the indent to all lines
-    let indentedText: string = (
-      " ".repeat(actualIndentSize) + formattedText.trimLeft()
-    )
-      .replace(NEWLINE_REGEX, NEWLINE + " ".repeat(actualIndentSize))
-      .trimRight()
-      .concat(NEWLINE, NEWLINE);
-    // except the final } of a function
-    if (indentedText.trim() === "}") {
-      indentedText = indentedText.trim();
-    }
-    if (indentedText.endsWith("\r\n")) {
-      const withoutFinalWhitespace: string = indentedText.substring(
-        0,
-        indentedText.lastIndexOf(NEWLINE) + NEWLINE.length,
-      );
-      return {
-        formattedText: withoutFinalWhitespace,
-        hasSeenFirstQueryBlock: actualHasSeenFirstQueryBlock,
-        indentSize: actualIndentSize,
-      };
-    }
+    const result = applyQueryBlockFormatting(rawText, hasSeenFirstQueryBlockParam, indentSizeParam);
     return {
-      formattedText: indentedText,
-      hasSeenFirstQueryBlock: actualHasSeenFirstQueryBlock,
-      indentSize: actualIndentSize,
+      formattedText: result.output,
+      hasSeenFirstQueryBlock: result.hasSeenFirstQueryBlock,
+      indentSize: result.indentSize,
     };
   }
+
   return {
-    formattedText,
-    hasSeenFirstQueryBlock: actualHasSeenFirstQueryBlock,
-    indentSize: actualIndentSize,
+    formattedText: rawText,
+    hasSeenFirstQueryBlock: hasSeenFirstQueryBlockParam,
+    indentSize: indentSizeParam,
   };
 }
 
