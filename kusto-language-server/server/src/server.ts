@@ -434,11 +434,7 @@ connection.onHover((params: TextDocumentPositionParams): Hover | null => {
       return null;
     }
 
-    // Defensive check: ensure Text property exists and is not null
-    const hoverText = quickInfo.Text ? String(quickInfo.Text) : null;
-    if (!hoverText) {
-      return null;
-    }
+    const hoverText = String(quickInfo.Text);
 
     return { contents: hoverText };
   } catch (e) {

@@ -29,8 +29,6 @@ interface ColumnInfo {
   CslType: string;
 }
 
-// Helper functions - defined before export functions that use them
-
 /**
  * Pure: splits a raw parameter string "param1 : typename" into name and type parts.
  * No bridge dependency — testable in isolation.
@@ -103,10 +101,8 @@ function getTableColumns(
   const orderedColumns: ColumnInfo[] = schema.OrderedColumns;
 
   orderedColumns.forEach((column) => {
-    // Add null-safety check for column and type symbol
     if (column && column.Name) {
       const typeSymbol = getTypeSymbol(column.CslType);
-      // Only add column if we can determine its type
       if (typeSymbol) {
         columns.push(
           new Kusto.Language.Symbols.ColumnSymbol(
@@ -151,12 +147,9 @@ function getDatabasesOnCluster(
           return reject(new Error("Failed to fetch databases in cluster"));
         }
         const primaryResults = results.primaryResults[0];
-        // eslint-disable-next-line no-underscore-dangle
         for (let i = 0; i < primaryResults._rows.length; i += 1) {
           databaseNames.push({
-            // eslint-disable-next-line no-underscore-dangle
             DatabaseName: primaryResults._rows[i].DatabaseName,
-            // eslint-disable-next-line no-underscore-dangle
             PrettyName: primaryResults._rows[i].PrettyName,
           });
         }
@@ -200,16 +193,11 @@ function getFunctionMetadata(
           return reject(new Error("Failed to fetch functions in cluster"));
         }
         const primaryResults = results.primaryResults[0];
-        // eslint-disable-next-line no-underscore-dangle
         for (let i = 0; i < primaryResults._rows.length; i += 1) {
           functionMetadatas.push({
-            // eslint-disable-next-line no-underscore-dangle
             Name: primaryResults._rows[i].Name,
-            // eslint-disable-next-line no-underscore-dangle
             Parameters: primaryResults._rows[i].Parameters,
-            // eslint-disable-next-line no-underscore-dangle
             Folder: primaryResults._rows[i].Folder,
-            // eslint-disable-next-line no-underscore-dangle
             DocString: primaryResults._rows[i].DocString,
           });
         }
@@ -254,16 +242,11 @@ function getTableMetadata(
           return reject(new Error("Failed to fetch tables in cluster"));
         }
         const primaryResults = results.primaryResults[0];
-        // eslint-disable-next-line no-underscore-dangle
         for (let i = 0; i < primaryResults._rows.length; i += 1) {
           tableMetadatas.push({
-            // eslint-disable-next-line no-underscore-dangle
             TableName: primaryResults._rows[i].TableName,
-            // eslint-disable-next-line no-underscore-dangle
             DatabaseName: primaryResults._rows[i].DatabaseName,
-            // eslint-disable-next-line no-underscore-dangle
             Folder: primaryResults._rows[i].Folder,
-            // eslint-disable-next-line no-underscore-dangle
             DocString: primaryResults._rows[i].DocString,
           });
         }
@@ -293,17 +276,11 @@ function getTableSchema(
         }
         const primaryResults = results.primaryResults[0];
 
-        // eslint-disable-next-line no-underscore-dangle
         const tableMetadata = {
-          // eslint-disable-next-line no-underscore-dangle
           TableName: primaryResults._rows[0].TableName,
-          // eslint-disable-next-line no-underscore-dangle
           Schema: primaryResults._rows[0].Schema,
-          // eslint-disable-next-line no-underscore-dangle
           DatabaseName: primaryResults._rows[0].DatabaseName,
-          // eslint-disable-next-line no-underscore-dangle
           Folder: primaryResults._rows[0].Folder,
-          // eslint-disable-next-line no-underscore-dangle
           DocString: primaryResults._rows[0].DocString,
         };
 
@@ -316,7 +293,6 @@ function getTableSymbols(
   metadata: TableMetadata[],
 ): Kusto.Language.Symbols.TableSymbol[] {
   const symbols: Kusto.Language.Symbols.TableSymbol[] = [];
-  // eslint-disable-next-line no-restricted-syntax
   for (const m of metadata) {
     symbols.push(
       new Kusto.Language.Symbols.TableSymbol.$ctor4(m.TableName, []),
@@ -333,7 +309,6 @@ function getFunctionSymbols(
 ): Array<Kusto.Language.Symbols.FunctionSymbol> {
   const symbols: Kusto.Language.Symbols.FunctionSymbol[] = [];
 
-  // eslint-disable-next-line no-restricted-syntax
   for (const m of metadata) {
     // TODO return type, signature types etc. Will require additional calls to cluster.
     const signature = new Kusto.Language.Symbols.Signature.$ctor2(
@@ -347,8 +322,6 @@ function getFunctionSymbols(
 
   return symbols;
 }
-
-// Exported functions - these depend on helpers above
 
 export async function getSymbolsOnCluster(
   kustoClient: KustoClient,

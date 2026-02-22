@@ -19,6 +19,8 @@
     "import/no-unresolved": "off",
     "import/prefer-default-export": "off",
     "@typescript-eslint/no-explicit-any": "error",
-    "func-names": "error"
+    "func-names": "error",
+    "no-underscore-dangle": "off",
+    "no-restricted-syntax": "off"
   }
 }
