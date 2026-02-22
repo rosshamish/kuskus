@@ -50,7 +50,6 @@ describe("@kusto/language-service-next bridge smoke tests", function () {
     assert.ok(block.Service, "block.Service should be defined");
     const diags = block.Service.GetDiagnostics();
     assert.ok(diags !== null && diags !== undefined, "GetDiagnostics should return a result");
-    // print 1+1 has no syntax errors
     assert.strictEqual(diags.Count, 0, "print 1+1 should have zero diagnostics");
   });
 
@@ -82,7 +81,6 @@ describe("@kusto/language-service-next bridge smoke tests", function () {
     const query = "StormEvents | ";
     const script = makeCodeScript(query);
     const position = { v: -1 };
-    // 1-indexed: line 1, character = length of query
     const ok = script.TryGetTextPosition(1, query.length, position);
     assert.ok(ok, "TryGetTextPosition should succeed for end of query");
     const block = script.GetBlockAtPosition(position.v);

@@ -8,7 +8,6 @@ on:
       - 'kusto-extensions-pack/**'
       - '.github/workflows/kusto-extensions-pack-pr-validation.yml'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 permissions:

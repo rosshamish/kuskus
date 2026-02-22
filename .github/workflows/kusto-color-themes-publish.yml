@@ -8,7 +8,6 @@ on:
       - 'kusto-color-themes/**'
       - '.github/workflows/kusto-color-themes-publish.yml'
   
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 concurrency:

@@ -9,7 +9,6 @@ on:
       - '.github/workflows/kusto-language-server-pr-validation.yml'
       - '.nycrc.json'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 permissions:
@@ -44,49 +43,13 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npm ci
         working-directory: kusto-language-server/server
       - run: npm run test:coverage
         working-directory: kusto-language-server/server
-      - name: Check coverage thresholds
-        run: |
-          if [ -f kusto-language-server/server/coverage/coverage-summary.json ]; then
-            cat kusto-language-server/server/coverage/coverage-summary.json
-          fi
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           files: kusto-language-server/server/coverage/lcov.info
           flags: unittests
           fail_ci_if_error: false
-      - name: Comment coverage on PR
-        if: always()
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const coveragePath = 'kusto-language-server/server/coverage/coverage-summary.json';
-            
-            if (fs.existsSync(coveragePath)) {
-              const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
-              const total = coverage.total;
-              
-              const comment = `## Test Coverage Report
-              
-| Metric | Coverage |
-|--------|----------|
-| Lines | ${total.lines.pct}% |
-| Functions | ${total.functions.pct}% |
-| Branches | ${total.branches.pct}% |
-| Statements | ${total.statements.pct}% |
-
-**Thresholds**: Lines ≥70%, Functions ≥60%, Branches ≥50%`;
-              
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: comment
-              });
-            }
 
