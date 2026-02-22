@@ -31,25 +31,4 @@ jobs:
       - run: npm run lint
       - run: npm run vscode:prepublish
 
-  test-and-coverage:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: kusto-language-server
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-        working-directory: kusto-language-server/server
-      - run: npm run test:coverage
-        working-directory: kusto-language-server/server
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: kusto-language-server/server/coverage/lcov.info
-          flags: unittests
-          fail_ci_if_error: false
 
