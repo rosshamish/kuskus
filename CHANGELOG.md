@@ -34,6 +34,8 @@ Major modernization initiative launched. Upgraded from v1.0.40 → v3.0.0+ with 
   - Migrated from tslint → ESLint with airbnb-base ruleset (#132, #134, #147)
   - Reduced ESLint errors from 88 → 0 through systematic fixes
   - Modernized linting configuration and CI/CD integration
+  - Migrated publish workflows from vendored `gh-action-bump-version-master` → upstream `phips28/gh-action-bump-version@v11` (#65)
+  - Removed vendored `jq-action-master` (no longer referenced) (#66)
 
 - **Major Dependency Upgrades**
   - @kusto/language-service-next: v11.5.3 → v12.3.2 (#127) - Major feature additions and improvements

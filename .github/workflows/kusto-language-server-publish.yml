@@ -29,7 +29,7 @@ jobs:
           node-version: 20
 
       - name:  'Automated Version Bump'
-        uses:  ./.github/actions/gh-action-bump-version-master
+        uses: phips28/gh-action-bump-version@v11
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
           PACKAGEJSON_DIR:  'kusto-language-server'
@@ -38,7 +38,7 @@ jobs:
           tag-prefix: kusto-language-server-v
           # Don't push this commit, because we might not have latest master.
           # We'll fetch, merge, and push at the end.
-          push: false
+          skip-push: 'true'
 
       - run: npm ci
       - name: Publish VS Code Extension
