@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { createRequire } from "module";
 import { z } from "zod";
 import {
   kqlValidate,
@@ -10,9 +11,12 @@ import {
   kqlExecute,
 } from "./tools.js";
 
+const _require = createRequire(import.meta.url);
+const { version } = _require("../package.json");
+
 const server = new McpServer({
   name: "kuskus-mcp-server",
-  version: "0.1.0",
+  version,
 });
 
 server.tool(
@@ -30,8 +34,11 @@ server.tool(
   { query: z.string().describe("KQL query to format") },
   async ({ query }) => {
     const formatted = kqlFormat(query);
+    if (formatted === null) {
+      return { content: [{ type: "text", text: query }], isError: true };
+    }
     return {
-      content: [{ type: "text", text: formatted ?? query }],
+      content: [{ type: "text", text: formatted }],
     };
   }
 );

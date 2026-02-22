@@ -24,6 +24,7 @@ export function kqlValidate(query: string): object {
   const script = makeCodeScript(query);
   const diagnostics: object[] = [];
   const blocks = script.Blocks;
+  if (!blocks) return { valid: true, diagnostics: [] };
   for (let i = 0; i < blocks.Count; i++) {
     const block = blocks.getItem(i);
     const diags = block.Service?.GetDiagnostics();
@@ -111,12 +112,13 @@ export async function kqlExecute(
   const client = new Client(kcsb);
   const result = await client.execute(database, query);
   const primaryResults = result.primaryResults[0];
+  const rows = primaryResults._rows ?? [];
   return {
     columns: primaryResults.columns.map((c: any) => ({
       name: c.name,
       type: c.columnType,
     })),
-    rows: primaryResults._rows.slice(0, MAX_ROWS),
-    rowCount: primaryResults._rows.length,
+    rows: rows.slice(0, MAX_ROWS),
+    rowCount: rows.length,
   };
 }
