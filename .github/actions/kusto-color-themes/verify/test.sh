@@ -19,18 +19,24 @@ check() {
   fi
 }
 
-# Extract the actual run: scripts from action.yml using python3 yaml parser.
-# This ensures tests run the real code — not a hand-copied version.
-STEP0=$(python3 -c "
+# Extract the actual run: scripts from action.yml by step name.
+# Keying by name (not index) means step reordering doesn't silently break tests.
+_step() {
+  python3 -c "
 import yaml, sys
 with open('$ACTION') as f: a = yaml.safe_load(f)
-sys.stdout.write(a['runs']['steps'][0]['run'])
-")
-STEP1=$(python3 -c "
-import yaml, sys
-with open('$ACTION') as f: a = yaml.safe_load(f)
-sys.stdout.write(a['runs']['steps'][1]['run'])
-")
+steps = {s['name']: s['run'] for s in a['runs']['steps']}
+name = sys.argv[1]
+if name not in steps:
+    print(f'ERROR: step \"{name}\" not found in action.yml', file=sys.stderr)
+    print(f'Available steps: {list(steps.keys())}', file=sys.stderr)
+    sys.exit(1)
+sys.stdout.write(steps[name])
+" "$1"
+}
+
+STEP0=$(_step "Extract contributed themes from package.json")
+STEP1=$(_step "Verify each contributed theme exists")
 
 echo "=== step 0: extract themes → GITHUB_OUTPUT ==="
 TMPOUT=$(mktemp)
