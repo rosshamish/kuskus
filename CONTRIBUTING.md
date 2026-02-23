@@ -46,10 +46,8 @@ cd kusto-syntax-highlighting
 npm ci
 npm run test                # grammar snapshot tests
 
-# Color themes / extensions pack
-cd kusto-color-themes       # or: kusto-extensions-pack
-npm ci
-npm run lint
+# Color themes / extensions pack — pure JSON manifests, no build step
+# Nothing to install or run locally. CI just verifies the files exist.
 ```
 
 The language server has an e2e test suite (`npm test`) that requires the VS Code extension host. Run it
