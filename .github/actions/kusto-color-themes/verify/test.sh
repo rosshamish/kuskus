@@ -43,7 +43,7 @@ TMPOUT=$(mktemp)
 WORKING_DIR="$REPO_ROOT/kusto-color-themes"
 GITHUB_OUTPUT="$TMPOUT"
 # Run the actual script from action.yml
-eval "WORKING_DIR=\"$WORKING_DIR\" GITHUB_OUTPUT=\"$TMPOUT\" bash -c \"\$STEP0\""
+env WORKING_DIR="$WORKING_DIR" GITHUB_OUTPUT="$TMPOUT" bash -c "$STEP0"
 # Parse the multiline output value from GITHUB_OUTPUT heredoc format
 extracted=$(awk '/^value<<EOF/{found=1; next} /^EOF/{found=0} found' "$TMPOUT")
 expected=$(jq '.contributes.themes[].path' "$WORKING_DIR/package.json" --raw-output)

@@ -122,7 +122,7 @@ Don't close issues with high 👍 counts or active recent discussion — those s
 
 ```bash
 # Issues with no labels (need triage)
-gh issue list --state open --no-labels
+gh issue list --state open --json number,title,labels --jq '.[] | select(.labels | length == 0)'
 
 # Bugs only
 gh issue list --state open --label bug
@@ -131,7 +131,7 @@ gh issue list --state open --label bug
 gh issue list --state open --label priority-critical
 
 # Recently opened (last 30 days)
-gh issue list --state open --created ">$(date -u -v-30d +%Y-%m-%d 2>/dev/null || date -u -d '30 days ago' +%Y-%m-%d)"
+gh issue list --state open --json number,title,createdAt --jq --argjson since "$(date -u -d '30 days ago' +%s 2>/dev/null || date -u -v-30d +%s)" '.[] | select((.createdAt | fromdateiso8601) > $since)'
 
 # By reactions (find high-demand features)
 gh issue list --state open --json number,title,reactions --jq 'sort_by(-.reactions.total_count) | .[:10]'

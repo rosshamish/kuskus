@@ -7,6 +7,7 @@ on:
     paths:
       - 'kusto-color-themes/**'
       - '.github/workflows/kusto-color-themes-pr-validation.yml'
+      - '.github/actions/kusto-color-themes/**'
 
   workflow_dispatch:
 

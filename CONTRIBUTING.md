@@ -46,7 +46,7 @@ npm ci
 npm run test                # grammar snapshot tests
 
 # Color themes / extensions pack — pure JSON manifests, no build step
-# Nothing to install or run locally. CI just verifies the files exist.
+# Color themes: CI verifies all declared theme files exist. Extensions pack: CI validates at publish time (vsce package).
 ```
 
 The language server has an e2e test suite (`npm test`) that requires the VS Code extension host. Run it
@@ -68,9 +68,10 @@ There is no root-level `package.json`. Each subdirectory is self-contained.
 
 3. **Test locally**
    ```bash
-   cd kusto-language-server   # or whichever package you changed
+   cd kusto-language-server   # language server: lint and test exist
    npm run lint
-   npm test                   # if tests exist for that package
+   npm test                   # requires VS Code extension host; see safe-development skill
+   # Color themes and extensions pack have no lint or test scripts — CI validates at publish time
    ```
 
 4. **Describe your change** in the PR body — what changed and why

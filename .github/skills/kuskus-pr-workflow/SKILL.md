@@ -17,11 +17,11 @@ See `pr-checklist.md` in this directory for the checklist content (mirrors `.git
 # 1. Create branch from master
 git checkout master && git pull
 git checkout -b fix/your-description
-# prefixes: fix/ feature/ deps/ ops/ docs/
+# prefixes: fix/ feature/ feat/ deps/ ops/ docs/
 
 # 2. Make changes, then verify locally
-npm run lint
-npm test
+# Language server only: npm run lint && npm test
+# Color themes / extensions pack: no lint or test scripts
 
 # 3. Push and open PR
 git push -u origin fix/your-description
@@ -38,8 +38,8 @@ gh pr create --title "fix: brief description" --body "$(cat .github/skills/kusku
 gh pr checkout <number>
 
 # Verify tests pass (don't trust CI alone for a review)
-npm run lint
-npm test
+# Language server only: npm run lint && npm test
+# Color themes / extensions pack: no lint or test scripts
 
 # Read the diff carefully for:
 # - Version number changes (should not exist)
