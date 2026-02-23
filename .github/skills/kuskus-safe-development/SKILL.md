@@ -27,9 +27,11 @@ the automated version bump and can create duplicate versions on the marketplace.
 
 ### 4. Tests must pass before PR merge
 ```bash
-npm test               # Must be green
-npm run lint           # Must be green
+npm test               # Must be green where it exists
+npm run lint           # Must be green where it exists
 ```
+Exception: `kusto-language-server`'s `npm test` runs an e2e suite that requires a VS Code extension host — it does not run in CI. Lint (`npm run lint`) still runs in CI and must pass.
+
 If tests are failing and you don't know why, stop and investigate. Don't merge with failing tests
 and plan to "fix it later" — later is a published broken extension.
 

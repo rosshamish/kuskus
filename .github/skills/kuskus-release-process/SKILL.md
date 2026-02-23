@@ -52,7 +52,7 @@ Every merge to `master` that touches an extension's directory triggers its publi
 - Default: **patch** bump on every merge (1.2.3 → 1.2.4)
 - Each extension is versioned independently
 - Tag prefix per extension: `kusto-language-server-v*`, `kusto-syntax-highlighting-v*`, etc.
-- Version bump commit message: `"Bump version to X.Y.Z"` — appears in `git log`, this is expected
+- Version bump commit message: `'CI: version bump [skip ci]'` — appears in `git log`, this is expected
 
 **Do not change the version in `package.json` manually.** If you do, the next CI run will try to
 bump from wherever you left it — could result in skipped versions or conflicts.

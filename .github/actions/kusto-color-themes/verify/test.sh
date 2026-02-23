@@ -53,10 +53,6 @@ rm "$TMPOUT"
 echo ""
 echo "=== step 1 happy path: all themes exist → exit 0 ==="
 THEMES=$(jq '.contributes.themes[].path' "$REPO_ROOT/kusto-color-themes/package.json" --raw-output)
-exit_code=0
-bash -c "$STEP1" <<< "" \
-  -- 2>/dev/null \
-  || true
 # Run via env so variables are set properly
 output=$(WORKING_DIR="$REPO_ROOT/kusto-color-themes" THEMES="$THEMES" bash -c "$STEP1" 2>&1; echo "EXIT:$?") || true
 actual_exit="${output##*EXIT:}"
