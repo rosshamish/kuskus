@@ -2,7 +2,7 @@
 # Tests for .github/actions/kusto-color-themes/verify/action.yml
 # Extracts the actual bash scripts from the YAML and runs them — no copies.
 # Run from repo root: bash .github/actions/kusto-color-themes/verify/test.sh
-set -uo pipefail
+set -euo pipefail
 
 PASS=0; FAIL=0
 REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
