@@ -24,6 +24,7 @@ Every merge to `master` that touches an extension's directory triggers its publi
 
 ```
 1. actions/checkout@v4
+   (kusto-language-server and kusto-syntax-highlighting also run: setup-node@v4 + npm ci)
 2. phips28/gh-action-bump-version@v11.1.2
    - reads current version from package.json
    - bumps patch version (default)

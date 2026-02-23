@@ -20,7 +20,8 @@ git checkout -b fix/your-description
 # prefixes: fix/ feature/ feat/ deps/ ops/ docs/
 
 # 2. Make changes, then verify locally
-# Language server only: npm run lint && npm test
+# Language server: npm run lint && npm run vscode:prepublish
+# Syntax highlighting: npm run test
 # Color themes / extensions pack: no lint or test scripts
 
 # 3. Push and open PR
@@ -37,8 +38,9 @@ gh pr create --title "fix: brief description" --body "$(cat .github/skills/kusku
 # Check out the PR
 gh pr checkout <number>
 
-# Verify tests pass (don't trust CI alone for a review)
-# Language server only: npm run lint && npm test
+# Verify locally before approving (don't trust CI alone)
+# Language server: npm run lint && npm run vscode:prepublish
+# Syntax highlighting: npm run test
 # Color themes / extensions pack: no lint or test scripts
 
 # Read the diff carefully for:

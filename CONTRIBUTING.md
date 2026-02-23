@@ -68,17 +68,24 @@ There is no root-level `package.json`. Each subdirectory is self-contained.
 
 3. **Test locally**
    ```bash
-   cd kusto-language-server   # language server: lint and test exist
+   # Language server
+   cd kusto-language-server
    npm run lint
-   npm test                   # requires VS Code extension host; see safe-development skill
-   # Color themes and extensions pack have no lint or test scripts — CI validates at publish time
+   npm run vscode:prepublish   # compile; catches TypeScript errors before CI
+
+   # Syntax highlighting
+   cd kusto-syntax-highlighting
+   npm ci
+   npm run test                # grammar snapshot tests
+
+   # Color themes / extensions pack: no lint or test scripts — CI validates at publish time
    ```
 
 4. **Describe your change** in the PR body — what changed and why
 
 5. **Open a PR** — the PR template will walk you through the checklist
 
-6. **CI runs automatically** — all PRs require passing CI before merge
+6. **CI runs automatically** — all PRs require passing CI and 1 approving review before merge
 
 ---
 
