@@ -1,3 +1,11 @@
+---
+name: Bug report
+about: Something is broken in the extension
+title: '[Bug] '
+labels: bug
+assignees: ''
+---
+
 ## What happened?
 
 <!-- Clear description of the bug. What did you see? -->

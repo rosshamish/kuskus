@@ -1,3 +1,5 @@
+name: 'Verify Kusto Color Themes'
+description: 'Validates that all contributed themes in package.json exist as files on disk'
 inputs:
   working-directory: 
     description: 'Working directory where package.json can be found'
@@ -29,4 +31,5 @@ runs:
             errors=$((errors+1))
           fi
         done
-        exit $errors
+        # Exit 1 on any failure, 0 on success. Avoid exit-code overflow (bash exit is mod 256).
+        exit $((errors > 0 ? 1 : 0))

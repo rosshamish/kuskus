@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'kusto-syntax-highlighting/**'
+      - '.github/workflows/kusto-syntax-highlighting-pr-validation.yml'
 
   workflow_dispatch:
 

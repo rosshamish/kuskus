@@ -35,12 +35,13 @@ jobs:
         with:
           default: patch
           tag-prefix: kusto-color-themes-v
+          commit-message: 'CI: version bump [skip ci]'
           # Don't push this commit, because we might not have latest master.
           # We'll fetch, merge, and push at the end.
           skip-push: 'true'
 
       - name: Publish VS Code Extension
-        uses: HaaLeo/publish-vscode-extension@v1
+        uses: HaaLeo/publish-vscode-extension@f4ece70f329f66686bd71c54b1671353fe320e49 # v1
         with:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com

@@ -76,11 +76,11 @@ else
 fi
 
 echo ""
-echo "=== step 1 sad path: two missing themes → exit 2 ==="
+echo "=== step 1 sad path: two missing themes → exit 1 (capped, not count) ==="
 TWO_BAD="./themes/missing-a.json ./themes/missing-b.json"
 output=$(WORKING_DIR="$REPO_ROOT/kusto-color-themes" THEMES="$TWO_BAD" bash -c "$STEP1" 2>&1; echo "EXIT:$?") || true
 actual_exit="${output##*EXIT:}"
-check "two missing themes → exit 2" "$actual_exit" "2"
+check "two missing themes → exit 1" "$actual_exit" "1"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

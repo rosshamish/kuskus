@@ -16,8 +16,7 @@ Kuskus provides Kusto language support in VS Code:
 - **`kusto-color-themes/`** — Editor color themes for Kusto
 - **`kusto-extensions-pack/`** — Extension pack bundling all of the above
 
-Each subdirectory is an independent VS Code extension with its own `package.json`. The root orchestrates
-builds and tests via npm workspaces and shared scripts.
+Each subdirectory is an independent VS Code extension with its own `package.json`. There is no root-level `package.json`.
 
 ---
 
@@ -40,12 +39,12 @@ builds and tests via npm workspaces and shared scripts.
 ## Key Commands
 
 ```bash
-npm ci                     # Install all dependencies
-npm run compile            # Build
-npm run watch              # Watch mode
-npm run lint               # Lint check
-npm run lint:fix           # Auto-fix lint
-npm test                   # Full test suite (VSCode extension host)
+# Work in the package directory, e.g.:
+cd kusto-language-server
+npm ci                     # Install dependencies
+npm run vscode:prepublish  # Build
+npm run lint               # Lint check (language server only)
+npm test                   # Tests where they exist
 ```
 
 ---

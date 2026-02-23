@@ -1,3 +1,11 @@
+---
+name: Feature request
+about: Suggest an improvement or new capability
+title: '[Feature] '
+labels: enhancement
+assignees: ''
+---
+
 ## Problem
 
 <!-- What problem are you trying to solve? Be specific. "I want X" is less useful than "I can't do Y because Z." -->

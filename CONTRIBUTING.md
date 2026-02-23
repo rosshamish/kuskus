@@ -10,7 +10,6 @@ ships to the marketplace and affects end users. Read this before touching anythi
 This is a **live, published extension**. Before making any change:
 
 - Tests must pass where they exist. Lint must pass. No exceptions.
-- Lint must pass. No exceptions.
 - **Never manually bump the version number.** The publishing pipeline does this automatically on push
   to `master`. If you bump it manually you will break the automated version bump.
 - **Never manually publish.** Push to `master` — CI handles the rest.
@@ -62,7 +61,7 @@ There is no root-level `package.json`. Each subdirectory is self-contained.
 1. **Create a branch** — never commit directly to `master`
    ```bash
    git checkout -b fix/your-description
-   # or: feature/your-description, deps/package-name, ops/your-description
+   # or: feature/your-description, feat/your-description, deps/package-name, ops/your-description
    ```
 
 2. **Make your change**, following the relevant `SKILL.md` if working with an AI agent
@@ -87,7 +86,7 @@ There is no root-level `package.json`. Each subdirectory is self-contained.
 | Prefix | Use for |
 |---|---|
 | `fix/` | Bug fixes |
-| `feature/` | New features |
+| `feat/` or `feature/` | New features |
 | `deps/` | Dependency updates |
 | `ops/` | Tooling, CI, non-user-facing changes |
 | `docs/` | Documentation only |

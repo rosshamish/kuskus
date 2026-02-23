@@ -30,4 +30,5 @@ jobs:
           working-directory: kusto-color-themes
 
       - name: Test verify action scripts
+        working-directory: .
         run: bash .github/actions/kusto-color-themes/verify/test.sh
