@@ -1,23 +1,10 @@
 ## What does this PR do?
 
-<!-- One or two sentences. Link the related issue if one exists. Fixes #___ -->
+<!-- One or two sentences. Fixes #___ if applicable. -->
 
 ---
 
 ## Checklist
 
-- [ ] `npm run lint` and `npm run vscode:prepublish` pass (language server); no lint/test scripts in other packages
-- [ ] **Version number NOT manually bumped** — CI handles this automatically on merge to `master`
-- [ ] If this is a **breaking change**: noted in PR description
-
----
-
-## Breaking changes
-
-<!-- If none, delete this section. If any: describe what breaks and what users need to do. -->
-
----
-
-## Notes for reviewers
-
-<!-- Anything a reviewer should know: tricky parts, test limitations, follow-up issues. -->
+- [ ] Version number NOT manually bumped (CI does this on merge)
+- [ ] Breaking change, if any, described above
