@@ -7,7 +7,6 @@ on:
     paths:
       - 'kusto-language-server/**'
       - '.github/workflows/kusto-language-server-pr-validation.yml'
-      - '.nycrc.json'
 
   workflow_dispatch:
 

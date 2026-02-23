@@ -7,7 +7,7 @@
 ## Checklist
 
 - [ ] `npm run lint` passes (run locally before opening PR)
-- [ ] `npm test` passes (run locally before opening PR)
+- [ ] `npm test` passes if tests exist for the affected package
 - [ ] **Version number NOT manually bumped** — CI handles this automatically on merge to `master`
 - [ ] If this is a **breaking change**: noted in PR description
 

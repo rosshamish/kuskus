@@ -28,3 +28,6 @@ jobs:
         uses: ./.github/actions/kusto-color-themes/verify
         with:
           working-directory: kusto-color-themes
+
+      - name: Test verify action scripts
+        run: bash .github/actions/kusto-color-themes/verify/test.sh
