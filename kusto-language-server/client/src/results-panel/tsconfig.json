@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "none",
+    "lib": ["es2020", "dom"],
+    "outDir": "../../out/results-panel",
+    "rootDir": ".",
+    "strict": true,
+    "sourceMap": false,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["results.ts"]
+}

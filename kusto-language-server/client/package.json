@@ -2,6 +2,7 @@
   "name": "kuskus-kusto-language-server-client",
   "description": "VSCode part of the Kuskus Kusto Language Server",
   "version": "1.0.0",
+  "type": "module",
   "publisher": "rosshamish",
   "license": "Apache-2.0",
   "homepage": "https://github.com/rosshamish/kuskus",
@@ -13,9 +14,10 @@
     "url": "https://github.com/rosshamish/kuskus/issues"
   },
   "engines": {
-    "vscode": "^1.33.0"
+    "vscode": "^1.98.0"
   },
   "scripts": {
+<<<<<<< Updated upstream
     "test": "node ./out/test/runTest.js",
     "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
     "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
@@ -37,5 +39,32 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^5.2.1",
     "prettier": "3.3.3"
+=======
+    "test": "vscode-test",
+    "test:unit": "vitest run src/test/unit",
+    "lint": "eslint --config eslint.config.mjs src && prettier --check package.json eslint.config.mjs tsconfig.json",
+    "lint:fix": "eslint --fix --config eslint.config.mjs src && prettier --write package.json eslint.config.mjs tsconfig.json"
+  },
+  "dependencies": {
+    "azure-kusto-data": "^7.0.4",
+    "clipboardy": "^4.0.0",
+    "open": "^10.2.0",
+    "vscode-languageclient": "^10.0.0-next.20"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.35.0",
+    "@types/mocha": "^10.0.10",
+    "@types/vscode": "^1.98.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-cli": "^0.0.12",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "mocha": "^11.7.2",
+    "prettier": "^3.6.2",
+    "vitest": "^4.0.18"
+>>>>>>> Stashed changes
   }
 }

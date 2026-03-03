@@ -1,0 +1,108 @@
+body {
+  font-family: var(--vscode-font-family, 'Segoe UI', Tahoma, sans-serif);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-editor-background);
+  margin: 0;
+  padding: 8px;
+}
+.info {
+  margin-bottom: 8px;
+  color: var(--vscode-descriptionForeground);
+}
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+th, td {
+  border: 1px solid var(--vscode-panel-border, #444);
+  padding: 4px 8px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+td {
+  max-width: 0;
+}
+th {
+  position: sticky;
+  top: 0;
+  background-color: var(--vscode-editorGroupHeader-tabsBackground, #252526);
+  font-weight: 600;
+  user-select: none;
+  position: relative;
+}
+.resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+}
+.resize-handle:hover,
+.resize-handle.active {
+  background: var(--vscode-textLink-foreground, #3794ff);
+}
+th .type {
+  font-weight: normal;
+  font-size: 0.85em;
+  color: var(--vscode-descriptionForeground);
+}
+.th-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.th-label {
+  cursor: pointer;
+  flex: 1;
+}
+.th-label:hover {
+  color: var(--vscode-textLink-foreground, #3794ff);
+}
+.sort-indicator {
+  font-size: 0.8em;
+  min-width: 1em;
+}
+.dropdown-btn {
+  background: none;
+  border: none;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+  font-size: 0.9em;
+  padding: 0 2px;
+  line-height: 1;
+}
+.dropdown-btn:hover {
+  color: var(--vscode-foreground);
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  z-index: 100;
+  background: var(--vscode-menu-background, #252526);
+  border: 1px solid var(--vscode-menu-border, #454545);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  min-width: 150px;
+}
+.dropdown-menu.open {
+  display: block;
+}
+.dropdown-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dropdown-item:hover {
+  background: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+tr.even { background-color: var(--vscode-editor-background); }
+tr.odd { background-color: var(--vscode-list-hoverBackground, #2a2d2e); }
+.empty {
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+  padding: 16px;
+}

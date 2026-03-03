@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 import KustoClient from "azure-kusto-data/types/src/client";
+=======
+import { Client as KustoClient, KustoResponseDataSet } from "azure-kusto-data";
+>>>>>>> Stashed changes
 
 interface DatabaseMetadata {
   DatabaseName: string;
@@ -117,34 +121,38 @@ function getTableColumns(
  */
 // TODO: use this function
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getDatabasesOnCluster(
+export async function getDatabasesOnCluster(
   kustoClient: KustoClient,
-  defaultDatabaseName: string,
 ): Promise<DatabaseMetadata[]> {
-  return new Promise((resolve, reject) => {
-    const databaseNames: { DatabaseName: string; PrettyName: string }[] = [];
-    kustoClient
-      .execute(defaultDatabaseName, ".show cluster databases")
-      .catch(reject)
-      .then((results) => {
-        if (!results) {
-          return reject("void results");
-        }
+  let results: KustoResponseDataSet;
+  try {
+    results = await kustoClient.execute("", ".show databases");
+  } catch (error) {
+    console.error("Error fetching databases:", error);
+    throw error;
+  }
 
-        console.log(results);
-        if (!results.primaryResults || !results.primaryResults[0]) {
-          return reject("Failed to fetch databases in cluster");
-        }
-        const primaryResults = results.primaryResults[0];
-        for (let i = 0; i < primaryResults._rows.length; i++) {
-          databaseNames.push({
-            DatabaseName: primaryResults[i].DatabaseName,
-            PrettyName: primaryResults[i].PrettyName,
-          });
-        }
-        return resolve(databaseNames);
-      });
-  });
+  if (!results) {
+    throw new Error("void results");
+  }
+
+  console.log(results);
+
+  if (!results.primaryResults || !results.primaryResults[0]) {
+    throw new Error("Failed to fetch databases in cluster");
+  }
+
+  const primaryResults = results.primaryResults[0];
+  const databaseNames: DatabaseMetadata[] = [];
+
+  for (let i = 0; i < primaryResults._rows.length; i++) {
+    databaseNames.push({
+      DatabaseName: primaryResults[i].DatabaseName,
+      PrettyName: primaryResults[i].PrettyName,
+    });
+  }
+
+  return databaseNames;
 }
 
 /**

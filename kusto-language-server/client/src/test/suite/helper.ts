@@ -15,8 +15,9 @@ export let platformEol: string;
  * Activates the vscode.lsp-sample extension
  */
 export async function activate(docUri: vscode.Uri) {
-  // The extensionId is `publisher.name` from package.json
-  const ext = vscode.extensions.getExtension("vscode-samples.lsp-sample")!;
+  const ext = vscode.extensions.getExtension(
+    "rosshamish.kuskus-kusto-language-server",
+  )!;
   await ext.activate();
   try {
     doc = await vscode.workspace.openTextDocument(docUri);

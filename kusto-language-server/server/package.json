@@ -13,9 +13,10 @@
     "url": "https://github.com/rosshamish/kuskus/issues"
   },
   "engines": {
-    "vscode": "^1.33.0"
+    "vscode": "^1.98.0"
   },
   "dependencies": {
+<<<<<<< Updated upstream
     "@kusto/language-service-next": "^11.7.1",
     "azure-kusto-data": "^6.0.2",
     "vscode-languageserver": "^7.0.0",
@@ -33,5 +34,25 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^5.2.1",
     "prettier": "3.3.3"
+=======
+    "@kusto/language-service-next": "^12.3.2",
+    "azure-kusto-data": "^7.0.4",
+    "vscode-languageserver": "^10.0.0-next.16",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  },
+  "scripts": {
+    "test:unit": "vitest run src/test",
+    "lint": "eslint --config eslint.config.mjs src && prettier --check package.json eslint.config.mjs tsconfig.json",
+    "lint:fix": "eslint --fix --config eslint.config.mjs src && prettier --write package.json eslint.config.mjs tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.98.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "vitest": "^4.0.18"
+>>>>>>> Stashed changes
   }
 }

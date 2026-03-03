@@ -4,9 +4,22 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as path from "path";
+<<<<<<< Updated upstream
 import { workspace, ExtensionContext, commands, window } from "vscode";
 import * as clipboardy from "clipboardy";
 import * as open from "open";
+=======
+import {
+  workspace,
+  ExtensionContext,
+  commands,
+  window,
+  authentication,
+  AuthenticationSessionAccountInformation,
+} from "vscode";
+import clipboardy from "clipboardy";
+import open from "open";
+>>>>>>> Stashed changes
 
 import {
   LanguageClient,
@@ -16,9 +29,31 @@ import {
   TransportKind,
 } from "vscode-languageclient/node";
 
-let client: LanguageClient;
+import { ClusterViewProvider, KustoSchemaItem } from "./cluster-view/viewProvider.js";
+import { createStatusBarItem, updateStatusBar } from "./statusBar.js";
+import { runQuery, getQueryText } from "./queryRunner.js";
+import { ResultsPanelProvider } from "./resultsPanel.js";
+import {
+  loadPersistedState,
+  saveClusterUris,
+  saveActiveDatabase,
+} from "./persistence.js";
+import { log, logError } from "./logger.js";
 
-export function activate(context: ExtensionContext) {
+let client: LanguageClient;
+let microsoftAccessToken: string | undefined; // stored access token
+let clusterViewProvider: ClusterViewProvider;
+let resultsPanelProvider: ResultsPanelProvider;
+const clusterUris: Set<string> = new Set<string>();
+
+export async function activate(context: ExtensionContext) {
+  context.subscriptions.push(
+    commands.registerCommand("kuskus.addNewLine", addNewLineHandler),
+  );
+  context.subscriptions.push(
+    commands.registerCommand("kuskus.runScript", runScriptHandler),
+  );
+
   // The server is implemented in node
   const serverModule = context.asAbsolutePath(
     path.join("server", "out", "server.js"),
@@ -55,12 +90,13 @@ export function activate(context: ExtensionContext) {
     serverOptions,
     clientOptions,
   );
-  // Start the client. This will also launch the server
-  client.start();
+  // Start the client. This will also launch the server`
+  // client.start();
 
   client.onDidChangeState((listener) => {
     if (listener.newState == State.Running) {
       window.showInformationMessage("Kuskus loaded!");
+      log("Language server started");
 
       client.onRequest(
         "kuskus.loadSymbols.auth",
@@ -90,7 +126,12 @@ export function activate(context: ExtensionContext) {
           try {
             clipboardy.writeSync(verificationCode);
             clipboardWriteSucceeded = true;
+<<<<<<< Updated upstream
           } catch (e) {
+=======
+          } catch {
+            logError("Failed to write login code to clipboard");
+>>>>>>> Stashed changes
             window.showErrorMessage(
               "Failed to write login code to clipboard -- This is expected in a remote connection, e.g. a Github codespace.",
             );
@@ -98,10 +139,16 @@ export function activate(context: ExtensionContext) {
           window.showInformationMessage(
             `Login with code ${verificationCode}${clipboardWriteSucceeded ? " (it's already on your clipboard)" : ""}`,
           );
+          log(`Device code auth: code=${verificationCode} url=${verificationUrl}`);
 
           try {
             open(verificationUrl);
+<<<<<<< Updated upstream
           } catch (e) {
+=======
+          } catch {
+            logError(`Failed to open login URL: ${verificationUrl}`);
+>>>>>>> Stashed changes
             window.showErrorMessage(
               `Failed to open the login URL ${verificationUrl} -- This is expected in a remote connection, e.g. a Github codespace. Navigate to the URL manually.`,
             );
@@ -123,6 +170,7 @@ export function activate(context: ExtensionContext) {
           window.showInformationMessage(
             `[Kuskus] Successfully authenticated to ${clusterUri}/${tenantId}/${database}`,
           );
+          log(`Auth success: ${clusterUri}/${tenantId}/${database}`);
         },
       );
 
@@ -139,6 +187,7 @@ export function activate(context: ExtensionContext) {
           database: string;
           errorMessage: string | undefined;
         }) => {
+          logError(`Auth failed: ${clusterUri}/${tenantId}/${database}: ${errorMessage}`);
           window.showErrorMessage(
             `[Kuskus] Failed to authenticate to ${clusterUri}/${tenantId}/${database} with error ${errorMessage}`,
           );
@@ -156,6 +205,7 @@ export function activate(context: ExtensionContext) {
           tenantId: string;
           database: string;
         }) => {
+          log(`Symbols loaded: ${clusterUri}/${tenantId}/${database}`);
           window.showInformationMessage(
             `[Kuskus] Successfully loaded symbols from ${clusterUri}/${tenantId}/${database}`,
           );
@@ -163,6 +213,113 @@ export function activate(context: ExtensionContext) {
       );
     }
   });
+
+  clusterViewProvider = new ClusterViewProvider();
+  window.registerTreeDataProvider("kuskus-clusters", clusterViewProvider);
+
+  resultsPanelProvider = new ResultsPanelProvider();
+  context.subscriptions.push(
+    window.registerWebviewViewProvider(
+      ResultsPanelProvider.viewType,
+      resultsPanelProvider,
+    ),
+  );
+
+  // Restore persisted clusters and active database
+  const persistedState = loadPersistedState(context.globalState);
+  if (persistedState.clusterUris.length > 0) {
+    // Attempt silent auth to restore connections
+    await login();
+    if (microsoftAccessToken) {
+      for (const uri of persistedState.clusterUris) {
+        clusterUris.add(uri);
+        clusterViewProvider.addCluster(uri, microsoftAccessToken);
+      }
+      if (persistedState.activeClusterUri && persistedState.activeDatabaseName) {
+        clusterViewProvider.setActiveDatabase(
+          persistedState.activeClusterUri,
+          persistedState.activeDatabaseName,
+        );
+        updateStatusBar(
+          persistedState.activeClusterUri,
+          persistedState.activeDatabaseName,
+        );
+      }
+    }
+  }
+
+  context.subscriptions.push(
+    commands.registerCommand("kuskus.loadSymbols", async () => {
+      if (!microsoftAccessToken) {
+        await login();
+      }
+      if (!microsoftAccessToken) {
+        logError("Login required before loading symbols");
+        window.showErrorMessage(
+          "[Kuskus] Login required before loading symbols.",
+        );
+        return;
+      }
+
+      const clusterUri = await window.showInputBox({
+        ignoreFocusOut: true,
+        value: "https://help.kusto.windows.net",
+        valueSelection: ["https://".length, "https://help".length],
+        prompt: "Cluster URI",
+      });
+
+      if (!clusterUri) {
+        logError("Cluster URI not provided");
+        window.showErrorMessage(
+          "Cluster URI not provided, couldn't load symbols",
+        );
+        return;
+      }
+
+      if (!clusterUris.has(clusterUri)) {
+        log(`Adding cluster: ${clusterUri}`);
+        clusterUris.add(clusterUri);
+        clusterViewProvider.addCluster(clusterUri, microsoftAccessToken);
+        await saveClusterUris(
+          context.globalState,
+          clusterViewProvider.getConnectedClusterUris(),
+        );
+      }
+    }),
+  );
+
+  context.subscriptions.push(
+    commands.registerCommand("kuskus.login", async () => {
+      await login();
+    }),
+  );
+
+  context.subscriptions.push(
+    commands.registerCommand(
+      "kuskus.setActiveDatabase",
+      async (item: KustoSchemaItem) => {
+        if (item.type === "database" && item.databaseName) {
+          clusterViewProvider.setActiveDatabase(
+            item.clusterUri,
+            item.databaseName,
+          );
+          updateStatusBar(item.clusterUri, item.databaseName);
+          await saveActiveDatabase(
+            context.globalState,
+            item.clusterUri,
+            item.databaseName,
+          );
+          window.showInformationMessage(
+            `[Kuskus] Active database set to ${item.databaseName}`,
+          );
+          log(`Active database set: ${item.clusterUri}/${item.databaseName}`);
+        }
+      },
+    ),
+  );
+
+  const statusBar = createStatusBarItem();
+  context.subscriptions.push(statusBar);
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -172,71 +329,120 @@ export function deactivate(): Thenable<void> | undefined {
   return client.stop();
 }
 
-commands.registerCommand("kuskus.loadSymbols", async () => {
-  if (client) {
-    const clusterUri = await window.showInputBox({
-      ignoreFocusOut: true,
-      value: "https://help.kusto.windows.net",
-      valueSelection: ["https://".length, "https://help".length],
-      prompt: "Cluster URI",
+async function login() {
+  try {
+    // First try and login silently
+    const scopes = [
+      "https://management.core.windows.net/.default",
+      "offline_access",
+    ];
+
+    let session = await authentication.getSession("microsoft", scopes, {
+      silent: true,
     });
-    if (!clusterUri) {
-      window.showErrorMessage(
-        "Cluster URI not provided, couldn't load symbols",
+
+    if (session) {
+      microsoftAccessToken = session.accessToken;
+      log("Silently logged in with Microsoft account");
+      window.showInformationMessage(
+        "[Kuskus] Silently logged in with Microsoft account.",
       );
       return;
     }
 
-    const database = await window.showInputBox({
-      ignoreFocusOut: true,
-      value: "SampleLogs",
-      prompt: "Default Database Name",
-    });
-    if (!database) {
-      window.showErrorMessage(
-        "Default database name not provided, couldn't load symbols",
+    // No session yet, so we need to prompt the user to pick an account
+    const accounts = await authentication.getAccounts("microsoft");
+    let selectedAccount: AuthenticationSessionAccountInformation | undefined;
+
+    if (accounts.length > 1) {
+      const pick = await window.showQuickPick(
+        accounts.map((a) => ({
+          label: a.label,
+          description: a.id,
+          account: a,
+        })),
+        { placeHolder: "Select a Microsoft account for Kusto login" },
       );
-      return;
+      if (!pick) {
+        logError("Login cancelled (no account selected)");
+        window.showErrorMessage(
+          "[Kuskus] Login cancelled (no account selected).",
+        );
+        return;
+      }
+      selectedAccount = pick.account;
+    } else if (accounts.length === 1) {
+      selectedAccount = accounts[0];
     }
 
-    const tenantId = await window.showInputBox({
-      ignoreFocusOut: true,
-      value: "",
-      prompt:
-        "Tenant ID of the AAD/Entra tenant you wish to log into. For a public MSA account, or if you're unsure, leave this empty.",
+    // If there are no accounts yet, authentication.getSession will prompt creation; we pass no account option.
+    session = await authentication.getSession("microsoft", scopes, {
+      createIfNone: true,
+      clearSessionPreference: false,
+      account: selectedAccount,
     });
 
-    client.sendRequest("kuskus.loadSymbols", {
-      clusterUri,
-      tenantId,
-      database,
-    });
-  } else {
-    window.showErrorMessage(
-      "Extension not yet loaded. Hold your horses. Please wait a moment and try again.",
-    );
-  }
-});
-
-// This is not exposed until it's exposed in root package.json
-// This feature is unfinished for now, it parses schema, but language server
-// is not picking up the new table schema.
-commands.registerCommand("kuskus.loadTable", async () => {
-  if (client) {
-    const tableName = await window.showInputBox({
-      ignoreFocusOut: true,
-      placeHolder: "TableName",
-      prompt: "Table Name",
-    });
-    if (!tableName) {
-      window.showErrorMessage("Table name not provided, couldn't load symbols");
+    if (!session) {
+      logError("Login failed or was cancelled");
+      window.showErrorMessage("[Kuskus] Login failed or was cancelled.");
       return;
     }
+    microsoftAccessToken = session.accessToken;
+    log("Logged in with Microsoft account");
+    window.showInformationMessage("[Kuskus] Logged in with Microsoft account.");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logError(`Login error: ${msg}`);
+    window.showErrorMessage(`[Kuskus] Login error: ${msg}`);
+  }
+}
 
-    client.sendRequest("kuskus.loadTable", tableName);
-  } else {
+async function runScriptHandler() {
+  const activeClient = clusterViewProvider.getActiveClient();
+  const activeDatabase = clusterViewProvider.activeDatabaseName;
+
+  if (!activeClient || !activeDatabase) {
+    logError("No active database selected");
     window.showErrorMessage(
-      "Extension not yet loaded. Hold your horses. Please wait a moment and try again.",
+      "[Kuskus] No active database selected. Right-click a database in the Kusto Explorer and select 'Set as Active Database'.",
+    );
+    return;
+  }
+
+  const queryText = getQueryText();
+  if (!queryText || queryText.trim().length === 0) {
+    logError("No query text in active editor");
+    window.showErrorMessage("[Kuskus] No query text found in the active editor.");
+    return;
+  }
+
+  log(`Running query on ${activeDatabase}...`);
+  window.showInformationMessage("[Kuskus] Running query...");
+
+  const result = await runQuery(activeClient, activeDatabase, queryText);
+
+  if (result.success) {
+    log(`Query completed: ${result.rowCount} row(s) returned`);
+    resultsPanelProvider.showResults(result.columns, result.rows);
+    window.showInformationMessage(
+      `[Kuskus] Query completed. ${result.rowCount} row(s) returned.`,
+    );
+  } else {
+    logError(`Query failed: ${result.error}`);
+    window.showErrorMessage(
+      `[Kuskus] Query failed: ${result.error}`,
     );
   }
-});
+}
+
+function addNewLineHandler() {
+  const editor = window.activeTextEditor;
+  if (!editor) {
+    return;
+  }
+
+  const position = editor.selection.active;
+  editor.edit((editBuilder) => {
+    editBuilder.insert(position, "\n|");
+  });
+}

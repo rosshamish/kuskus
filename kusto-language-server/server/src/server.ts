@@ -22,10 +22,22 @@ import {
   getClient as getKustoClient,
   TokenResponse,
   getFirstOrDefaultClient,
+<<<<<<< Updated upstream
 } from "./kustoConnection";
 import { getSymbolsOnCluster, getSymbolsOnTable } from "./kustoSymbols";
 import { formatCodeScript } from "./kustoFormat";
 import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion";
+=======
+  newGetClient,
+} from "./kustoConnection.js";
+import {
+  getDatabasesOnCluster,
+  getSymbolsOnCluster,
+  getSymbolsOnTable,
+} from "./kustoSymbols.js";
+import { formatCodeScript } from "./kustoFormat.js";
+import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion.js";
+>>>>>>> Stashed changes
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -98,6 +110,14 @@ connection.onInitialized(async () => {
 });
 
 connection.onRequest(
+  "kuskus.loadDatabases",
+  async ({ clusterUri, accessToken }) => {
+    const kustoClient = await newGetClient(clusterUri, accessToken);
+    await getDatabasesOnCluster(kustoClient);
+  },
+);
+
+connection.onRequest(
   "kuskus.loadSymbols",
   async ({
     clusterUri,
@@ -108,7 +128,7 @@ connection.onRequest(
     tenantId: string | undefined;
     database: string;
   }) => {
-    const kustoClient = getKustoClient(
+    const kustoClient = await getKustoClient(
       clusterUri,
       tenantId,
       (tokenResponse: TokenResponse) => {
