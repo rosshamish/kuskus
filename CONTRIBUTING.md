@@ -121,3 +121,85 @@ Only the following actions may be used in workflows. All are pinned to a full SH
    ```
 2. Make your change and test locally (see dev setup above)
 3. Open a PR — CI must pass and 1 approving review is required before merge
+
+---
+
+## Hackathon Quickstart
+
+New to kuskus? Welcome! This section gets you from zero to first PR in under 30 minutes.
+
+### Prerequisites
+
+- **Node.js 18+** — `node --version` should print `v18.x` or higher
+- **VS Code** — https://code.visualstudio.com/
+- **git** — any recent version
+
+### Clone and build
+
+```bash
+git clone https://github.com/rosshamish/kuskus.git
+cd kuskus
+
+# Language server (has a build step)
+cd kusto-language-server && npm ci && npm run vscode:prepublish && cd ..
+
+# Syntax highlighting (has tests)
+cd kusto-syntax-highlighting && npm ci && cd ..
+
+# Color themes and extensions pack: pure JSON — no build step needed
+```
+
+### Run tests locally
+
+```bash
+# Language server lint + type-check (e2e requires a VS Code host and does not run in CI)
+cd kusto-language-server && npm run lint && npm run vscode:prepublish
+
+# Syntax highlighting tests
+cd kusto-syntax-highlighting && npm run test
+```
+
+### Pick a contribution flavor
+
+| Flavor | Where to work | What to change |
+|---|---|---|
+| Grammar / syntax fix | `kusto-syntax-highlighting/` | Edit the TextMate grammar (`.tmLanguage.json`), add a test |
+| Language server feature | `kusto-language-server/` | TypeScript source in `src/`, run `npm run lint` before opening a PR |
+| New extension in the pack | Create a new `kusto-<name>/` directory | Follow the existing package structure; add it to `kusto-extensions-pack/package.json` |
+
+### Open a PR
+
+1. **Branch naming** — use a prefix that matches your change type:
+   ```bash
+   git checkout -b fix/description    # bug fix
+   git checkout -b feat/description   # new feature
+   git checkout -b docs/description   # documentation
+   git checkout -b deps/description   # dependency update
+   ```
+2. **Version bump** — if you touched source files, grammar, themes, or `package.json`, bump the version:
+   ```bash
+   cd kusto-<package> && npm version patch --no-git-tag-version
+   ```
+   CI will tell you exactly which package needs a bump if you forget.
+3. **Push and open a PR** — CI runs lint, type-check, and tests automatically. One approving review is required before merge.
+   ```bash
+   git push -u origin <your-branch>
+   gh pr create --fill
+   ```
+
+**CI checks that run on every PR:**
+- Lint (`npm run lint`) for `kusto-language-server`
+- Tests (`npm run test`) for `kusto-syntax-highlighting`
+- Version bump check — blocks merge if a publishable package wasn't bumped
+
+For Actions security requirements (SHA pinning, allowlisted actions), see the [GitHub Actions security policy](#github-actions-security-policy) section above.
+
+---
+
+## Manual Testing Checklist
+
+Run this checklist before merging any release PR. These items cannot be automated and are accepted as manual-only risks.
+
+- [ ] **Live cluster auth (AAD)** — Sign in with a real Azure identity and verify that "Load Symbols" connects to a live Kusto cluster successfully. Requires an actual AAD account; cannot be faked in CI.
+- [ ] **Visual theme rendering** — Open a `.kql` file with the Kuskus Kusto (Dark) theme active and confirm that color assignments look correct. Color correctness is subjective and requires human review.
+- [ ] **Marketplace publish smoke test** — After a release merges and the publish workflow completes, visit the extension listing on the VS Code Marketplace and confirm the new version number appears and the listing loads without errors.
