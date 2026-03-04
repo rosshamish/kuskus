@@ -23,4 +23,4 @@ jobs:
     steps:
       # extensions-pack is a pure manifest (no deps, no build). Nothing to validate locally.
       # CI validates at publish time via vsce package.
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4

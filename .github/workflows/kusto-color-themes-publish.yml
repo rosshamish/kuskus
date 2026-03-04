@@ -25,7 +25,7 @@ jobs:
         working-directory: kusto-color-themes
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
       - name:  'Automated Version Bump'
         uses: phips28/gh-action-bump-version@2d294fcd028d7ec0de2fa4e94ad7fe04512cc13a # v11.1.2
@@ -41,7 +41,7 @@ jobs:
           skip-push: 'true'
 
       - name: Publish VS Code Extension
-        uses: HaaLeo/publish-vscode-extension@f4ece70f329f66686bd71c54b1671353fe320e49 # v1
+        uses: HaaLeo/publish-vscode-extension@ca5561daa085dee804bf9f37fe0165785a9b14db # v2.0.0
         with:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
