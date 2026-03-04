@@ -33,3 +33,6 @@ jobs:
       - name: Test verify action scripts
         working-directory: .
         run: bash .github/actions/kusto-color-themes/verify/test.sh
+
+      - name: Validate theme JSON files
+        run: find . -name '*.json' -not -path '*/.vscode/*' | xargs -I{} node -e "JSON.parse(require('fs').readFileSync('{}', 'utf8'))"

@@ -21,6 +21,13 @@ jobs:
         working-directory: kusto-extensions-pack
 
     steps:
-      # extensions-pack is a pure manifest (no deps, no build). Nothing to validate locally.
-      # CI validates at publish time via vsce package.
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Validate manifest fields
+        run: |
+          node -e "
+            const p = require('./package.json');
+            if (!p.extensionPack?.length) { console.error('extensionPack is empty'); process.exit(1); }
+            if (!p.publisher) { console.error('publisher not set'); process.exit(1); }
+            console.log('Manifest valid: publisher=' + p.publisher + ', extensionPack=' + p.extensionPack.length + ' extensions');
+          "
