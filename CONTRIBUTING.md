@@ -2,8 +2,6 @@
 
 **This is a live, published extension.** Every merge to `master` ships to the VS Code Marketplace.
 
-> These rules aren't aspirational — they evolved from real incidents. Version bump enforcement came from a publish collision ([5067b41](https://github.com/rosshamish/kuskus/commit/5067b41a), [edba9b3](https://github.com/rosshamish/kuskus/commit/edba9b3d)). Auto-bump was removed after it broke branch protection ([fb0004b](https://github.com/rosshamish/kuskus/commit/fb0004ba)). SHA pinning came from a supply-chain audit ([ff774d3](https://github.com/rosshamish/kuskus/commit/ff774d38)).
-
 ## Contents
 
 - [Extensions in this repo](#extensions-in-this-repo)
