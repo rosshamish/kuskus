@@ -65,9 +65,9 @@ cd kusto-syntax-highlighting && npm run test
 
 | Flavor | Where to work | What to change |
 |---|---|---|
-| Grammar / syntax fix | `kusto-syntax-highlighting/` | Edit the TextMate grammar (`.tmLanguage.json`), add a test |
-| Language server feature | `kusto-language-server/` | TypeScript source in `src/`, run `npm run lint` before opening a PR |
-| Color theme (new or modify) | `kusto-color-themes/` | Edit theme JSON files in `themes/`, preview with F5 in VS Code |
+| Grammar / syntax fix | `kusto-syntax-highlighting/` | Edit the TextMate grammar (`.tmLanguage.json`), add a test — e.g. [2a5d25a](https://github.com/rosshamish/kuskus/commit/2a5d25aa) |
+| Language server feature | `kusto-language-server/` | TypeScript source in `src/`, run `npm run lint` before opening a PR — e.g. [841c908](https://github.com/rosshamish/kuskus/commit/841c9087) |
+| Color theme (new or modify) | `kusto-color-themes/` | Edit theme JSON files in `themes/`, preview with F5 in VS Code — e.g. [7aa46fd](https://github.com/rosshamish/kuskus/commit/7aa46fd4) |
 | New extension in the pack | Create a new `kusto-<name>/` directory | Follow the existing package structure; add it to `kusto-extensions-pack/package.json` |
 
 ---
