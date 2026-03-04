@@ -32,6 +32,19 @@ I also would welcome a volunteer to take over the project. If you are interested
 | Deploy with Kustodian | Check your functions, tables, and policies into source. Deploy them with Kustodian. |
 | Run this Query | Open Kusto Web Explorer and run the selected query |
 
+## Contributions Welcome
+
+Community interest has shaped kuskus. Here are ideas that have been requested and are open for contribution:
+
+| Idea | Issue | Notes |
+| ---- | ----- | ----- |
+| Kusto snippets | [#23](https://github.com/rosshamish/kuskus/issues/23) | Common query templates (e.g. `.set`, `let`, `join`) |
+| Azure Data Studio support | [#64](https://github.com/rosshamish/kuskus/issues/64) | ADS uses a VS Code-compatible extension model |
+| Jupyter Notebook support | [#68](https://github.com/rosshamish/kuskus/issues/68) | Syntax highlighting in `.ipynb` Kusto cells |
+| JSON-in-strings support | [#14](https://github.com/rosshamish/kuskus/issues/14) | Highlight JSON embedded in Kusto string literals |
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) to get started.
+
 ## Contributors
 
 - Ross Anderson, on github @rosshamish
