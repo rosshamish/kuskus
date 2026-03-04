@@ -476,9 +476,11 @@ connection.onDocumentSymbol(
       const isFunction = /^\s*\(/.test(afterLet);
       const kind = isFunction ? SymbolKind.Function : SymbolKind.Variable;
 
-      // Range covers the full `let <name> =` token on that line
+      // Range covers the full `let <name> =` token on that line.
+      // Strip \r before \n so CRLF files don't include \r in the range.
       const lineEnd = text.indexOf('\n', offset);
-      const endOffset = lineEnd === -1 ? text.length : lineEnd;
+      const rawEndOffset = lineEnd === -1 ? text.length : lineEnd;
+      const endOffset = rawEndOffset > 0 && text[rawEndOffset - 1] === '\r' ? rawEndOffset - 1 : rawEndOffset;
       const end = document.positionAt(endOffset);
 
       symbols.push(

@@ -160,3 +160,42 @@ describe("kustoCompletion: getVSCodeCompletionItemKind (bridge-loaded)", () => {
   });
 });
 
+
+describe("@kusto/language-service-next: DatabaseSymbol constructor guard", () => {
+  it("DatabaseSymbol.ctor is a function (guards against bridge rename to .Ctor)", () => {
+    const sym = Kusto.Language.Symbols.DatabaseSymbol;
+    assert.strictEqual(
+      typeof sym.ctor,
+      "function",
+      "DatabaseSymbol.ctor must be a function — if this fails the bridge renamed ctor to Ctor and kustoSymbols.ts needs updating",
+    );
+  });
+
+  it("DatabaseSymbol.ctor constructs successfully with empty symbol list", () => {
+    const db = new Kusto.Language.Symbols.DatabaseSymbol.ctor("testdb", []);
+    assert.ok(db, "DatabaseSymbol.ctor should construct a DatabaseSymbol");
+  });
+
+  it("GlobalState.Default.WithDatabase accepts a DatabaseSymbol", () => {
+    const globalState = Kusto.Language.GlobalState.Default;
+    const db = new Kusto.Language.Symbols.DatabaseSymbol.ctor("testdb", []);
+    const newState = globalState.WithDatabase(db);
+    assert.ok(newState, "WithDatabase should return a new GlobalState");
+  });
+});
+
+describe("@kusto/language-service-next: ScalarSymbol.From type coverage", () => {
+  const commonTypes = ["string", "int", "long", "real", "datetime", "bool", "dynamic", "guid", "decimal", "timespan"];
+
+  for (const type of commonTypes) {
+    it(`ScalarSymbol.From('${type}') returns non-null (guards getTableColumns column drop)`, () => {
+      const sym = Kusto.Language.Symbols.ScalarSymbol.From(type);
+      assert.ok(sym !== null, `ScalarSymbol.From('${type}') must not return null — if it does, ${type} columns are silently dropped from autocomplete`);
+    });
+  }
+
+  it("ScalarSymbol.From returns null for genuinely unknown types (expected behavior)", () => {
+    const sym = Kusto.Language.Symbols.ScalarSymbol.From("not_a_real_type_xyz");
+    assert.strictEqual(sym, null, "Unknown types should return null — this is expected and handled by the null guard in getTableColumns");
+  });
+});

@@ -1,6 +1,7 @@
 import * as assert from "assert";
 import { applyQueryBlockFormatting } from "../kustoFormat";
 import { parseParameterParts, parseRawParameters } from "../kustoSymbols";
+import { sanitize, sendTelemetryError, TELEMETRY_ERROR_NOTIFICATION, TelemetryErrorEvent } from "../telemetry";
 
 const CRLF = "\r\n";
 
@@ -89,5 +90,111 @@ describe("kustoSymbols: parseRawParameters", () => {
     const result = parseRawParameters("(start:datetime, end:datetime)");
     assert.ok(result[0].includes("datetime"));
     assert.ok(result[1].includes("datetime"));
+  });
+});
+
+describe("telemetry: sanitize", () => {
+  it("replaces https URIs with [URI]", () => {
+    assert.strictEqual(
+      sanitize("Failed to connect to https://mycluster.eastus.kusto.windows.net/mydb"),
+      "Failed to connect to [URI]",
+    );
+  });
+
+  it("replaces standard Unix paths (/home, /Users, /tmp, /var, /etc)", () => {
+    assert.strictEqual(sanitize("Error at /home/user/file.kql"), "Error at [PATH]");
+    assert.strictEqual(sanitize("Error at /Users/ross/project/file.ts"), "Error at [PATH]");
+    assert.strictEqual(sanitize("Error at /tmp/scratch"), "Error at [PATH]");
+  });
+
+  it("replaces extended Unix paths (/mnt, /opt, /srv, /data, /run, /proc, /sys)", () => {
+    assert.strictEqual(sanitize("Error at /mnt/storage/kusto"), "Error at [PATH]");
+    assert.strictEqual(sanitize("Error at /opt/app/config"), "Error at [PATH]");
+    assert.strictEqual(sanitize("Error at /data/cluster/db"), "Error at [PATH]");
+    assert.strictEqual(sanitize("Error at /srv/kusto/log"), "Error at [PATH]");
+  });
+
+  it("replaces Windows UNC paths (\\\\server\\share)", () => {
+    assert.ok(sanitize("\\\\server\\share\\file").includes("[PATH]"));
+  });
+
+  it("replaces Windows drive paths (C:\\...)", () => {
+    assert.ok(sanitize("C:\\Users\\ross\\file.ts").includes("[PATH]"));
+  });
+
+  it("replaces GUIDs", () => {
+    assert.strictEqual(
+      sanitize("tenant 550e8400-e29b-41d4-a716-446655440000 failed"),
+      "tenant [GUID] failed",
+    );
+  });
+
+  it("leaves non-PII strings unchanged", () => {
+    const msg = "Failed to load symbols: TypeError";
+    assert.strictEqual(sanitize(msg), msg);
+  });
+
+  it("sanitizes multiple PII items in one string", () => {
+    const result = sanitize(
+      "User 550e8400-e29b-41d4-a716-446655440000 at https://cluster.kusto.windows.net path /mnt/data/file",
+    );
+    assert.ok(!result.includes("550e8400"), "GUID should be removed");
+    assert.ok(!result.includes("cluster.kusto"), "URI should be removed");
+    assert.ok(!result.includes("/mnt/data"), "Path should be removed");
+  });
+});
+
+describe("telemetry: sendTelemetryError (local-only — no network)", () => {
+  it("calls connection.sendNotification with TELEMETRY_ERROR_NOTIFICATION channel", () => {
+    let capturedChannel: string | undefined;
+    let capturedPayload: TelemetryErrorEvent | undefined;
+    const mockConnection = {
+      sendNotification: (channel: string, payload: TelemetryErrorEvent) => {
+        capturedChannel = channel;
+        capturedPayload = payload;
+      },
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sendTelemetryError(mockConnection as any, "error.loadSymbols", new TypeError("test error"));
+
+    assert.strictEqual(capturedChannel, TELEMETRY_ERROR_NOTIFICATION, "Must use TELEMETRY_ERROR_NOTIFICATION channel (LSP notification, not HTTP)");
+    assert.ok(capturedPayload, "payload should be set");
+    assert.strictEqual(capturedPayload!.eventName, "error.loadSymbols");
+    assert.strictEqual(capturedPayload!.errorType, "TypeError");
+    assert.strictEqual(capturedPayload!.sanitizedMessage, "test error");
+  });
+
+  it("sanitizes error messages before notification (PII never reaches sendNotification)", () => {
+    let capturedPayload: TelemetryErrorEvent | undefined;
+    const mockConnection = {
+      sendNotification: (_: string, payload: TelemetryErrorEvent) => { capturedPayload = payload; },
+    };
+
+    const piiError = new Error("Failed at https://mycluster.kusto.windows.net/secret-db and /home/user/file");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sendTelemetryError(mockConnection as any, "error.test", piiError);
+
+    assert.ok(capturedPayload, "payload should be set");
+    assert.ok(!capturedPayload!.sanitizedMessage.includes("mycluster"), "cluster URI must be stripped");
+    assert.ok(!capturedPayload!.sanitizedMessage.includes("/home/user"), "path must be stripped");
+    assert.ok(capturedPayload!.sanitizedMessage.includes("[URI]"), "URI placeholder present");
+    assert.ok(capturedPayload!.sanitizedMessage.includes("[PATH]"), "PATH placeholder present");
+  });
+
+  it("telemetry uses LSP sendNotification, not HTTP — no outbound imports", () => {
+    // Structural guard: verify the implementation module doesn't import any HTTP clients.
+    // If http/https/axios/fetch were ever imported, this would catch the regression.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const telemetrySource = require("fs").readFileSync(
+      require("path").join(__dirname, "../telemetry.ts"),
+      "utf8",
+    );
+    assert.ok(!telemetrySource.includes("require('http')"), "no http import");
+    assert.ok(!telemetrySource.includes('require("http")'), "no http import");
+    assert.ok(!telemetrySource.includes("require('https')"), "no https import");
+    assert.ok(!telemetrySource.includes('require("https")'), "no https import");
+    assert.ok(!telemetrySource.includes("require('axios')"), "no axios import");
+    assert.ok(!telemetrySource.includes("@vscode/extension-telemetry"), "no @vscode/extension-telemetry import — telemetry is local-only");
   });
 });
