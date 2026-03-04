@@ -66,9 +66,9 @@ When in doubt: **patch**.
 
 ## Agentic workflow
 
-When the PR validation check fails with the version bump error:
+When the PR validation check fails with a version bump error:
 
-1. Identify which package(s) need bumping from the error message
+1. Identify which package(s) need bumping from the check name (`kusto-<pkg>-pr-validation`)
 2. Run `npm version patch --no-git-tag-version` inside each flagged package dir
 3. `git add <pkg>/package.json && git commit -m "chore: bump <pkg> version"`
 4. Push — CI will re-run and pass
@@ -83,8 +83,12 @@ git commit -m "chore: bump kusto-syntax-highlighting patch version"
 git push
 ```
 
----
+## Implementation
 
-## What happens on merge
+Each PR validation workflow uses two steps:
+1. `tj-actions/changed-files@v46` — detects if publish-triggering files changed
+2. `del-systems/check-if-version-bumped@v2` — checks version bumped, runs only `if: steps.publish-trigger.outputs.any_changed == 'true'`
+
+Trigger paths are listed explicitly in each PR validation workflow (duplicated from the publish workflow). This is intentional — 4 stable packages, acceptable tradeoff vs parsing YAML at runtime. If publish trigger paths ever change, update both the publish and pr-validation workflows.
 
 The publish workflow triggers on pushes to `master` that touch the package directory. It reads whatever version is in `package.json` and publishes that version to the VS Code Marketplace. No auto-bump in CI — the version in your PR is the version that ships.

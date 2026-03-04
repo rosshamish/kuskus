@@ -25,10 +25,17 @@ jobs:
       # CI validates at publish time via vsce package.
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Fetch origin/master for version comparison
-        run: git fetch origin master --depth=1
-        working-directory: ${{ github.workspace }}
+      - name: Detect publish-triggering changes
+        id: publish-trigger
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            kusto-extensions-pack/**
+            .github/workflows/kusto-extensions-pack-publish.yml
 
       - name: Check version bump
-        run: bash .github/scripts/check-version-bump.sh kusto-extensions-pack
-        working-directory: ${{ github.workspace }}
+        if: steps.publish-trigger.outputs.any_changed == 'true'
+        uses: del-systems/check-if-version-bumped@v2
+        with:
+          path: kusto-extensions-pack/package.json
+
