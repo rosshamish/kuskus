@@ -28,3 +28,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run vscode:prepublish
+      - name: Run E2E tests
+        run: xvfb-run -a npm test
+        working-directory: kusto-language-server
+        env:
+          CI: true
