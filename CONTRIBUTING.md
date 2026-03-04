@@ -38,6 +38,25 @@ cd kusto-syntax-highlighting && npm ci && npm run test
 
 ---
 
+## Maintainer ops
+
+### Renewing the VS Marketplace PAT
+
+All 4 publish workflows authenticate to the VS Marketplace using a Personal Access Token stored as the `VSCE_PAT` secret in GitHub Actions. PATs expire periodically — when they do, every publish workflow will fail with:
+
+```
+Access Denied: The Personal Access Token used has expired.
+You're using an expired Personal Access Token, please get a new PAT.
+More info: https://aka.ms/vscodepat
+```
+
+To renew:
+1. Follow **https://aka.ms/vscodepat** for authoritative instructions on creating a VS Marketplace PAT
+2. Update the secret at **https://github.com/rosshamish/kuskus/settings/secrets/actions** → `VSCE_PAT`
+3. Re-run any failed publish workflow to verify
+
+---
+
 ## Making a change
 
 1. Branch from `master` — never commit directly
