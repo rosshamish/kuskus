@@ -5,7 +5,7 @@ description: Master branch protection rules, bypass policy, and how to modify wh
 
 # Kuskus Branch Protection
 
-Master is protected by a GitHub Ruleset (not classic branch protection). All changes must go through a PR with 1 approval.
+Master is protected by a GitHub Ruleset (not classic branch protection). All changes must go through a PR. No external approval required — the maintainer (rosshamish) reviews and merges their own PRs.
 
 ---
 
@@ -17,7 +17,7 @@ Master is protected by a GitHub Ruleset (not classic branch protection). All cha
 ### Rules
 - **No deletion** of master
 - **No force pushes**
-- **Pull request required** — 1 approving review, dismiss stale reviews on push
+- **Pull request required** — 0 required approvals (maintainer self-merges); dismiss stale reviews on push
 
 ### Bypass actors
 - **Repository admin role** (`bypass_mode: always`) — this covers:
@@ -26,7 +26,7 @@ Master is protected by a GitHub Ruleset (not classic branch protection). All cha
 
 ### What is blocked
 - Direct pushes from non-admins
-- PRs merged without 1 approval (for non-admins)
+- Direct pushes from non-admins (PRs required, no approval gating)
 - Workflows using `GITHUB_TOKEN` (write-level, not admin) pushing to master directly
 
 ---
