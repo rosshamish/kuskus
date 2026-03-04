@@ -15,3 +15,4 @@ See CONTRIBUTING.md
 ## Bugs
 
 Please file bugs and suggestions in the [issue tracker](https://github.com/rosshamish/kuskus/issues).
+
