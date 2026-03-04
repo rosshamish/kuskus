@@ -8,8 +8,10 @@ on:
       - 'kusto-extensions-pack/**'
       - '.github/workflows/kusto-extensions-pack-pr-validation.yml'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   validate:
@@ -19,5 +21,6 @@ jobs:
         working-directory: kusto-extensions-pack
 
     steps:
-      # TODO validate that the extensions listed in the pack exist
-      - uses: actions/checkout@v4
+      # extensions-pack is a pure manifest (no deps, no build). Nothing to validate locally.
+      # CI validates at publish time via vsce package.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
