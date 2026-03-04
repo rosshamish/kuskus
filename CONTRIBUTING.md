@@ -2,24 +2,16 @@
 
 **This is a live, published extension.** Every merge to `master` ships to the VS Code Marketplace.
 
-## ⚠️ Never do these things
+## Contents
 
-- **Never manually run `vsce publish`.** Push to `master` — CI handles the rest.
-- **Never commit directly to `master`.** Branch protection is enforced — PRs only.
-
-If unsure, open a PR and ask.
-
----
-
-## Version bumps
-
-If your PR touches files that trigger a publish workflow (source files, grammar, themes, package config), **you must bump the version** in that package's `package.json` before merging. CI will block the PR if you forget.
-
-```bash
-cd kusto-<package> && npm version patch --no-git-tag-version
-```
-
-The PR validation check tells you exactly which package needs a bump and what command to run. See `.github/skills/kuskus-version-bump/SKILL.md` for details.
+- [Extensions in this repo](#extensions-in-this-repo)
+- [Getting started](#getting-started)
+- [Making a change](#making-a-change)
+- [Opening a PR](#opening-a-pr)
+- [⚠️ Never do these things](#️-never-do-these-things)
+- [Manual testing checklist](#manual-testing-checklist)
+- [Maintainer ops](#maintainer-ops)
+- [GitHub Actions security policy](#github-actions-security-policy)
 
 ---
 
@@ -34,19 +26,100 @@ The PR validation check tells you exactly which package needs a bump and what co
 
 ---
 
-## Dev setup
+## Getting started
 
-Each package is self-contained. No root `package.json`.
+### Prerequisites
+
+- **Node.js 18+** — `node --version` should print `v18.x` or higher
+- **VS Code** — https://code.visualstudio.com/
+- **git** — any recent version
+
+### Clone and build
 
 ```bash
-# Language server
-cd kusto-language-server && npm ci && npm run lint && npm run vscode:prepublish
+git clone https://github.com/rosshamish/kuskus.git
+cd kuskus
 
-# Syntax highlighting
-cd kusto-syntax-highlighting && npm ci && npm run test
+# Language server (has a build step)
+cd kusto-language-server && npm ci && npm run vscode:prepublish && cd ..
 
-# Color themes / extensions pack: pure JSON, no build step
+# Syntax highlighting (has tests)
+cd kusto-syntax-highlighting && npm ci && cd ..
+
+# Color themes and extensions pack: pure JSON — no build step needed
 ```
+
+### Run tests locally
+
+```bash
+# Language server lint + type-check
+cd kusto-language-server && npm run lint && npm run vscode:prepublish
+
+# Syntax highlighting tests
+cd kusto-syntax-highlighting && npm run test
+```
+
+### Pick a contribution flavor
+
+| Flavor | Where to work | What to change |
+|---|---|---|
+| Grammar / syntax fix | `kusto-syntax-highlighting/` | Edit the TextMate grammar (`.tmLanguage.json`), add a test — e.g. [2a5d25a](https://github.com/rosshamish/kuskus/commit/2a5d25aa) |
+| Language server feature | `kusto-language-server/` | TypeScript source in `src/`, run `npm run lint` before opening a PR — e.g. [841c908](https://github.com/rosshamish/kuskus/commit/841c9087) |
+| Color theme (new or modify) | `kusto-color-themes/` | Edit theme JSON files in `themes/`, preview with F5 in VS Code — e.g. [7aa46fd](https://github.com/rosshamish/kuskus/commit/7aa46fd4) |
+| New extension in the pack | Create a new `kusto-<name>/` directory | Follow the existing package structure; add it to `kusto-extensions-pack/package.json` |
+
+---
+
+## Making a change
+
+1. Branch from `master` — never commit directly:
+   ```bash
+   git checkout -b fix/description    # bug fix
+   git checkout -b feat/description   # new feature
+   git checkout -b docs/description   # documentation
+   git checkout -b deps/description   # dependency update
+   ```
+2. Make your change and test locally (see [Getting started](#getting-started) above).
+3. **Version bump** — if you touched source files, grammar, themes, or `package.json`, bump the version in that package:
+   ```bash
+   cd kusto-<package> && npm version patch --no-git-tag-version
+   ```
+   CI will tell you exactly which package needs a bump if you forget.
+
+---
+
+## Opening a PR
+
+```bash
+git push -u origin <your-branch>
+gh pr create --fill
+```
+
+**CI checks that run on every PR:**
+- Lint (`npm run lint`) for `kusto-language-server`
+- Tests (`npm run test`) for `kusto-syntax-highlighting`
+- Version bump check — blocks merge if a publishable package wasn't bumped
+
+One approving review is required before merge. For Actions security requirements (SHA pinning, allowlisted actions), see the [GitHub Actions security policy](#github-actions-security-policy) section below.
+
+---
+
+## ⚠️ Never do these things
+
+- **Never manually run `vsce publish`.** Push to `master` — CI handles the rest.
+- **Never commit directly to `master`.** Branch protection is enforced — PRs only.
+
+If unsure, open a PR and ask.
+
+---
+
+## Manual testing checklist
+
+Run this checklist before merging any release PR. These items cannot be automated and are accepted as manual-only risks.
+
+- [ ] **Live cluster auth (AAD)** — Sign in with a real Azure identity and verify that "Load Symbols" connects to a live Kusto cluster successfully. Requires an actual AAD account; cannot be faked in CI.
+- [ ] **Visual theme rendering** — Open a `.kql` file with the Kuskus Kusto (Dark) theme active and confirm that color assignments look correct. Color correctness is subjective and requires human review.
+- [ ] **Marketplace publish smoke test** — After a release merges and the publish workflow completes, visit the extension listing on the VS Code Marketplace and confirm the new version number appears and the listing loads without errors.
 
 ---
 
@@ -110,96 +183,3 @@ Only the following actions may be used in workflows. All are pinned to a full SH
    ```yaml
    uses: owner/action@<full-sha> # vX.Y
    ```
-
----
-
-## Making a change
-
-1. Branch from `master` — never commit directly
-   ```bash
-   git checkout -b fix/description   # or feat/ deps/ ops/ docs/
-   ```
-2. Make your change and test locally (see dev setup above)
-3. Open a PR — CI must pass and 1 approving review is required before merge
-
----
-
-## Hackathon Quickstart
-
-New to kuskus? Welcome! This section gets you from zero to first PR in under 30 minutes.
-
-### Prerequisites
-
-- **Node.js 18+** — `node --version` should print `v18.x` or higher
-- **VS Code** — https://code.visualstudio.com/
-- **git** — any recent version
-
-### Clone and build
-
-```bash
-git clone https://github.com/rosshamish/kuskus.git
-cd kuskus
-
-# Language server (has a build step)
-cd kusto-language-server && npm ci && npm run vscode:prepublish && cd ..
-
-# Syntax highlighting (has tests)
-cd kusto-syntax-highlighting && npm ci && cd ..
-
-# Color themes and extensions pack: pure JSON — no build step needed
-```
-
-### Run tests locally
-
-```bash
-# Language server lint + type-check (e2e requires a VS Code host and does not run in CI)
-cd kusto-language-server && npm run lint && npm run vscode:prepublish
-
-# Syntax highlighting tests
-cd kusto-syntax-highlighting && npm run test
-```
-
-### Pick a contribution flavor
-
-| Flavor | Where to work | What to change |
-|---|---|---|
-| Grammar / syntax fix | `kusto-syntax-highlighting/` | Edit the TextMate grammar (`.tmLanguage.json`), add a test |
-| Language server feature | `kusto-language-server/` | TypeScript source in `src/`, run `npm run lint` before opening a PR |
-| New extension in the pack | Create a new `kusto-<name>/` directory | Follow the existing package structure; add it to `kusto-extensions-pack/package.json` |
-
-### Open a PR
-
-1. **Branch naming** — use a prefix that matches your change type:
-   ```bash
-   git checkout -b fix/description    # bug fix
-   git checkout -b feat/description   # new feature
-   git checkout -b docs/description   # documentation
-   git checkout -b deps/description   # dependency update
-   ```
-2. **Version bump** — if you touched source files, grammar, themes, or `package.json`, bump the version:
-   ```bash
-   cd kusto-<package> && npm version patch --no-git-tag-version
-   ```
-   CI will tell you exactly which package needs a bump if you forget.
-3. **Push and open a PR** — CI runs lint, type-check, and tests automatically. One approving review is required before merge.
-   ```bash
-   git push -u origin <your-branch>
-   gh pr create --fill
-   ```
-
-**CI checks that run on every PR:**
-- Lint (`npm run lint`) for `kusto-language-server`
-- Tests (`npm run test`) for `kusto-syntax-highlighting`
-- Version bump check — blocks merge if a publishable package wasn't bumped
-
-For Actions security requirements (SHA pinning, allowlisted actions), see the [GitHub Actions security policy](#github-actions-security-policy) section above.
-
----
-
-## Manual Testing Checklist
-
-Run this checklist before merging any release PR. These items cannot be automated and are accepted as manual-only risks.
-
-- [ ] **Live cluster auth (AAD)** — Sign in with a real Azure identity and verify that "Load Symbols" connects to a live Kusto cluster successfully. Requires an actual AAD account; cannot be faked in CI.
-- [ ] **Visual theme rendering** — Open a `.kql` file with the Kuskus Kusto (Dark) theme active and confirm that color assignments look correct. Color correctness is subjective and requires human review.
-- [ ] **Marketplace publish smoke test** — After a release merges and the publish workflow completes, visit the extension listing on the VS Code Marketplace and confirm the new version number appears and the listing loads without errors.
