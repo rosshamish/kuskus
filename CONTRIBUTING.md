@@ -4,10 +4,22 @@
 
 ## ⚠️ Never do these things
 
-- **Never manually bump the version number.** CI handles it automatically on push to `master`.
 - **Never manually run `vsce publish`.** Push to `master` — CI handles the rest.
+- **Never commit directly to `master`.** Branch protection is enforced — PRs only.
 
 If unsure, open a PR and ask.
+
+---
+
+## Version bumps
+
+If your PR touches files that trigger a publish workflow (source files, grammar, themes, package config), **you must bump the version** in that package's `package.json` before merging. CI will block the PR if you forget.
+
+```bash
+cd kusto-<package> && npm version patch --no-git-tag-version
+```
+
+The PR validation check tells you exactly which package needs a bump and what command to run. See `.github/skills/kuskus-version-bump/SKILL.md` for details.
 
 ---
 
@@ -57,6 +69,49 @@ To renew:
    - See **https://aka.ms/vscodepat** for screenshots
 2. Update the secret at **https://github.com/rosshamish/kuskus/settings/secrets/actions** → `VS_MARKETPLACE_TOKEN`
 3. Re-run any failed publish workflow to verify
+
+---
+
+## GitHub Actions security policy
+
+### Declared policy
+
+| Setting | Value |
+|---|---|
+| Default workflow permissions | `read` only |
+| Allowed actions | Explicit allowlist (no wildcards) |
+| SHA pinning required | Yes — all actions must reference a full commit SHA |
+| `can_approve_pull_request_reviews` | Disabled |
+
+### Allowlisted actions
+
+Only the following actions may be used in workflows. All are pinned to a full SHA:
+
+| Action | SHA | Version |
+|---|---|---|
+| `actions/checkout` | `11bd71901bbe5b1630ceea73d27597364c9af683` | v4 |
+| `actions/setup-node` | `49933ea5288caeca8642d1e84afbd3f7d6820020` | v4 |
+| `HaaLeo/publish-vscode-extension` | `ca5561daa085dee804bf9f37fe0165785a9b14db` | v2 |
+| `del-systems/check-if-version-bumped` | `d5d13ffd75dc8aa9c2e1dca10d9bb27be10307b2` | v2 |
+| `nick-invision/retry` | `14672906e672a08bd6eeb15720e9ed3ce869cdd4` | v2 |
+| `phips28/gh-action-bump-version` | `2d294fcd028d7ec0de2fa4e94ad7fe04512cc13a` | v11 |
+| `tj-actions/changed-files` | `ed68ef82c095e0d48ec87eccea555d944a631a4c` | v46 |
+
+### Adding a new action
+
+1. Find the full commit SHA for the exact version you want:
+   ```bash
+   gh api repos/<owner>/<repo>/git/refs/tags/<tag> --jq '.object.sha'
+   ```
+2. Add to the repo allowlist via Settings → Actions → General → Allow specified actions, or:
+   ```bash
+   # Get current list, append, PUT back
+   gh api repos/rosshamish/kuskus/actions/permissions/selected-actions
+   ```
+3. Reference in your workflow using the SHA with a version comment:
+   ```yaml
+   uses: owner/action@<full-sha> # vX.Y
+   ```
 
 ---
 
