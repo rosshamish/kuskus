@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   publish:
@@ -30,19 +30,6 @@ jobs:
         with:
           node-version: 20
 
-      - name:  'Automated Version Bump'
-        uses: phips28/gh-action-bump-version@2d294fcd028d7ec0de2fa4e94ad7fe04512cc13a # v11.1.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-          PACKAGEJSON_DIR:  'kusto-language-server'
-        with:
-          default: patch
-          tag-prefix: kusto-language-server-v
-          commit-message: 'CI: version bump [skip ci]'
-          # Don't push this commit, because we might not have latest master.
-          # We'll fetch, merge, and push at the end.
-          skip-push: 'true'
-
       - run: npm ci
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@ca5561daa085dee804bf9f37fe0165785a9b14db # v2
@@ -51,9 +38,4 @@ jobs:
           registryUrl: https://marketplace.visualstudio.com
           packagePath: ./kusto-language-server
 
-      - name: Push version bump commit
-        uses: ./.github/actions/pull-rebase-then-push
-        with:
-          max-retries: 5
-          remote-name: origin
-          branch: master
+
