@@ -25,6 +25,20 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
+      - name: Detect publish-triggering changes
+        id: publish-trigger
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            kusto-color-themes/**
+            .github/workflows/kusto-color-themes-publish.yml
+
+      - name: Check version bump
+        if: steps.publish-trigger.outputs.any_changed == 'true'
+        uses: del-systems/check-if-version-bumped@v2
+        with:
+          path: kusto-color-themes/package.json
+
       - name: Ensure all contributed themes exist in repo
         uses: ./.github/actions/kusto-color-themes/verify
         with:

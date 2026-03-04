@@ -22,5 +22,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Detect publish-triggering changes
+        id: publish-trigger
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            kusto-syntax-highlighting/**
+            .github/workflows/kusto-syntax-highlighting-publish.yml
+
+      - name: Check version bump
+        if: steps.publish-trigger.outputs.any_changed == 'true'
+        uses: del-systems/check-if-version-bumped@v2
+        with:
+          path: kusto-syntax-highlighting/package.json
+
       - run: npm ci
       - run: npm run test
