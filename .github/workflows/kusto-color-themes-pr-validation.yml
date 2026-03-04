@@ -7,10 +7,13 @@ on:
     paths:
       - 'kusto-color-themes/**'
       - '.github/workflows/kusto-color-themes-pr-validation.yml'
+      - '.github/actions/kusto-color-themes/**'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+
+permissions:
+  contents: read
 
 jobs:
   validate:
@@ -26,3 +29,7 @@ jobs:
         uses: ./.github/actions/kusto-color-themes/verify
         with:
           working-directory: kusto-color-themes
+
+      - name: Test verify action scripts
+        working-directory: .
+        run: bash .github/actions/kusto-color-themes/verify/test.sh
