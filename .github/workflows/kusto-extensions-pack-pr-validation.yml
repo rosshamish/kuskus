@@ -34,8 +34,16 @@ jobs:
             .github/workflows/kusto-extensions-pack-publish.yml
 
       - name: Check version bump
+        id: check-version-bump
         if: steps.publish-trigger.outputs.any_changed == 'true'
         uses: del-systems/check-if-version-bumped@v2
         with:
           path: kusto-extensions-pack/package.json
+
+      - name: Version bump required
+        if: failure()
+        run: |
+          echo "ERROR: kusto-extensions-pack/package.json version not bumped."
+          echo "  Fix: cd kusto-extensions-pack && npm version patch --no-git-tag-version"
+          echo "  Docs: .github/skills/kuskus-version-bump/SKILL.md"
 

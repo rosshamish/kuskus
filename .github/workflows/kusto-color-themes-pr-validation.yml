@@ -34,10 +34,18 @@ jobs:
             .github/workflows/kusto-color-themes-publish.yml
 
       - name: Check version bump
+        id: check-version-bump
         if: steps.publish-trigger.outputs.any_changed == 'true'
         uses: del-systems/check-if-version-bumped@v2
         with:
           path: kusto-color-themes/package.json
+
+      - name: Version bump required
+        if: failure()
+        run: |
+          echo "ERROR: kusto-color-themes/package.json version not bumped."
+          echo "  Fix: cd kusto-color-themes && npm version patch --no-git-tag-version"
+          echo "  Docs: .github/skills/kuskus-version-bump/SKILL.md"
 
       - name: Ensure all contributed themes exist in repo
         uses: ./.github/actions/kusto-color-themes/verify

@@ -32,10 +32,18 @@ jobs:
             .github/workflows/kusto-syntax-highlighting-publish.yml
 
       - name: Check version bump
+        id: check-version-bump
         if: steps.publish-trigger.outputs.any_changed == 'true'
         uses: del-systems/check-if-version-bumped@v2
         with:
           path: kusto-syntax-highlighting/package.json
+
+      - name: Version bump required
+        if: failure()
+        run: |
+          echo "ERROR: kusto-syntax-highlighting/package.json version not bumped."
+          echo "  Fix: cd kusto-syntax-highlighting && npm version patch --no-git-tag-version"
+          echo "  Docs: .github/skills/kuskus-version-bump/SKILL.md"
 
       - run: npm ci
       - run: npm run test
