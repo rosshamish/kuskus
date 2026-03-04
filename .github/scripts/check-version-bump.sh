@@ -28,7 +28,7 @@ for p in on['push']['paths']:
 echo "Publish trigger paths: $(echo "$TRIGGER_PATHS" | tr '\n' ' ')"
 
 # Files changed in this PR.
-CHANGED=$(git diff --name-only origin/master...HEAD)
+CHANGED=$(git diff --name-only origin/master HEAD)
 
 # Match changed files against trigger paths.
 # Supports: exact match, and <prefix>/** (any file under that directory).
