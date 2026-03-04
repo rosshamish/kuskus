@@ -25,11 +25,11 @@ jobs:
 
       - name: Fetch origin/master for version comparison
         run: git fetch origin master --depth=1
-        working-directory: .
+        working-directory: ${{ github.workspace }}
 
       - name: Check version bump
         run: bash .github/scripts/check-version-bump.sh kusto-language-server
-        working-directory: .
+        working-directory: ${{ github.workspace }}
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:

@@ -25,11 +25,11 @@ jobs:
 
       - name: Fetch origin/master for version comparison
         run: git fetch origin master --depth=1
-        working-directory: .
+        working-directory: ${{ github.workspace }}
 
       - name: Check version bump
         run: bash .github/scripts/check-version-bump.sh kusto-syntax-highlighting
-        working-directory: .
+        working-directory: ${{ github.workspace }}
 
       - run: npm ci
       - run: npm run test

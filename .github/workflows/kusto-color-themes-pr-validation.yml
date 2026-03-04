@@ -27,9 +27,11 @@ jobs:
 
       - name: Fetch origin/master for version comparison
         run: git fetch origin master --depth=1
+        working-directory: ${{ github.workspace }}
 
       - name: Check version bump
         run: bash .github/scripts/check-version-bump.sh kusto-color-themes
+        working-directory: ${{ github.workspace }}
 
       - name: Ensure all contributed themes exist in repo
         uses: ./.github/actions/kusto-color-themes/verify

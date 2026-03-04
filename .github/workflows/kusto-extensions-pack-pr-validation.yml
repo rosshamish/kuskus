@@ -27,6 +27,8 @@ jobs:
 
       - name: Fetch origin/master for version comparison
         run: git fetch origin master --depth=1
+        working-directory: ${{ github.workspace }}
 
       - name: Check version bump
         run: bash .github/scripts/check-version-bump.sh kusto-extensions-pack
+        working-directory: ${{ github.workspace }}
