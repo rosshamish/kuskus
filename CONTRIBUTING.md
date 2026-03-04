@@ -93,8 +93,6 @@ Only the following actions may be used in workflows. All are pinned to a full SH
 | `actions/setup-node` | `49933ea5288caeca8642d1e84afbd3f7d6820020` | v4 |
 | `HaaLeo/publish-vscode-extension` | `ca5561daa085dee804bf9f37fe0165785a9b14db` | v2 |
 | `del-systems/check-if-version-bumped` | `d5d13ffd75dc8aa9c2e1dca10d9bb27be10307b2` | v2 |
-| `nick-invision/retry` | `14672906e672a08bd6eeb15720e9ed3ce869cdd4` | v2 |
-| `phips28/gh-action-bump-version` | `2d294fcd028d7ec0de2fa4e94ad7fe04512cc13a` | v11 |
 | `tj-actions/changed-files` | `ed68ef82c095e0d48ec87eccea555d944a631a4c` | v46 |
 
 ### Adding a new action
