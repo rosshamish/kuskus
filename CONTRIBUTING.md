@@ -51,7 +51,10 @@ More info: https://aka.ms/vscodepat
 ```
 
 To renew:
-1. Follow **https://aka.ms/vscodepat** for authoritative instructions on creating a VS Marketplace PAT
+1. Go to **https://dev.azure.com** → your org → User Settings → **Personal access tokens** → New Token
+   - Organization: **All accessible organizations**
+   - Scopes: Custom → scroll to **Marketplace** → check **Manage**
+   - See **https://aka.ms/vscodepat** for screenshots
 2. Update the secret at **https://github.com/rosshamish/kuskus/settings/secrets/actions** → `VSCE_PAT`
 3. Re-run any failed publish workflow to verify
 
