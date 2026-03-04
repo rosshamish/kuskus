@@ -5,32 +5,36 @@
 #          ^ source.kusto
 #           ^^^^ source.kusto constant.language.kusto
 #               ^^^ source.kusto
-#                  ^^^^^^^^ source.kusto storage.type.kusto
-#                          ^ source.kusto
-#                           ^^^^ source.kusto constant.language.kusto
-#                               ^^^ source.kusto
-#                                  ^^^^^^^ source.kusto storage.type.kusto
+#                  ^^^^^^^ source.kusto storage.type.kusto
+#                         ^ source.kusto
+#                          ^^^^ source.kusto constant.language.kusto
+#                              ^^^ source.kusto
+#                                 ^^^^^^^^ source.kusto storage.type.kusto
 #                                         ^ source.kusto
 #                                          ^^^^ source.kusto constant.language.kusto
 #                                              ^^^ source.kusto
-#                                                 ^^^^ source.kusto storage.type.kusto
-#                                                     ^ source.kusto
-#                                                      ^^^^ source.kusto constant.language.kusto
-#                                                          ^^^ source.kusto
-#                                                             ^^^ source.kusto storage.type.kusto
-#                                                                ^ source.kusto
-#                                                                 ^^^^ source.kusto constant.language.kusto
-#                                                                     ^^^ source.kusto
-#                                                                        ^^^^ source.kusto storage.type.kusto
-#                                                                            ^ source.kusto
-#                                                                             ^^^^ source.kusto constant.language.kusto
-#                                                                                 ^^^ source.kusto
-#                                                                                    ^^^^ source.kusto storage.type.kusto
-#                                                                                        ^ source.kusto
-#                                                                                         ^^^^ source.kusto constant.language.kusto
-#                                                                                             ^^^ source.kusto
-#                                                                                                ^^^^ source.kusto storage.type.kusto
-#                                                                                                    ^ source.kusto
-#                                                                                                     ^^^^ source.kusto constant.language.kusto
-#                                                                                                         ^^ source.kusto
+#                                                 ^^^^^^^ source.kusto storage.type.kusto
+#                                                        ^ source.kusto
+#                                                         ^^^^ source.kusto constant.language.kusto
+#                                                             ^^^ source.kusto
+#                                                                ^^^^ source.kusto storage.type.kusto
+#                                                                    ^ source.kusto
+#                                                                     ^^^^ source.kusto constant.language.kusto
+#                                                                         ^^^ source.kusto
+#                                                                            ^^^ source.kusto storage.type.kusto
+#                                                                               ^ source.kusto
+#                                                                                ^^^^ source.kusto constant.language.kusto
+#                                                                                    ^^^ source.kusto
+#                                                                                       ^^^^ source.kusto storage.type.kusto
+#                                                                                           ^ source.kusto
+#                                                                                            ^^^^ source.kusto constant.language.kusto
+#                                                                                                ^^^ source.kusto
+#                                                                                                   ^^^^ source.kusto storage.type.kusto
+#                                                                                                       ^ source.kusto
+#                                                                                                        ^^^^ source.kusto constant.language.kusto
+#                                                                                                            ^^^ source.kusto
+#                                                                                                               ^^^^ source.kusto storage.type.kusto
+#                                                                                                                   ^ source.kusto
+#                                                                                                                    ^^^^ source.kusto constant.language.kusto
+#                                                                                                                        ^^ source.kusto
 >
