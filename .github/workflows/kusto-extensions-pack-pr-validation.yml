@@ -27,7 +27,7 @@ jobs:
 
       - name: Detect publish-triggering changes
         id: publish-trigger
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
         with:
           files: |
             kusto-extensions-pack/**
@@ -36,7 +36,7 @@ jobs:
       - name: Check version bump
         id: check-version-bump
         if: steps.publish-trigger.outputs.any_changed == 'true'
-        uses: del-systems/check-if-version-bumped@v2
+        uses: del-systems/check-if-version-bumped@d5d13ffd75dc8aa9c2e1dca10d9bb27be10307b2 # v2
         with:
           path: kusto-extensions-pack/package.json
 
