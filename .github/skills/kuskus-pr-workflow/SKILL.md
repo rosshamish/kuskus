@@ -8,7 +8,7 @@ description: Opening and reviewing PRs in the kuskus repo
 ## Opening a PR
 
 ```bash
-cd initiatives/kuskus/repo
+cd path/to/kuskus
 git checkout master && git pull
 git checkout -b fix/description   # or feat/ deps/ ops/ docs/
 

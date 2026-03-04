@@ -8,7 +8,7 @@ description: Triage and label issues in the kuskus repo
 ## Useful queries
 
 ```bash
-cd initiatives/kuskus/repo
+cd path/to/kuskus
 
 # Open issues
 gh issue list --state open --repo rosshamish/kuskus

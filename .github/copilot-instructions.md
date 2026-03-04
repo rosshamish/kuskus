@@ -12,6 +12,7 @@ Four independent extensions, each with its own `package.json`. No root `package.
 | `kusto-syntax-highlighting/` | TextMate grammar |
 | `kusto-color-themes/` | Editor color themes |
 | `kusto-extensions-pack/` | Bundles all of the above |
+| `kusto-mcp-server/` | MCP server exposing KQL tools (validate, format, completions, execute) |
 
 ## Key commands
 
