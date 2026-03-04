@@ -1,0 +1,36 @@
+{
+  "all": true,
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.d.ts",
+    "**/node_modules/**",
+    "**/test/**",
+    "**/dist/**",
+    "**/out/**",
+    "**/.vscode/**"
+  ],
+  "extension": [
+    ".ts"
+  ],
+  "require": [
+    "ts-node/register"
+  ],
+  "reporter": [
+    "text",
+    "text-summary",
+    "html",
+    "lcov"
+  ],
+  "report-dir": "./coverage",
+  "temp-dir": "./.nyc_output",
+  "lines": 70,
+  "functions": 60,
+  "branches": 50,
+  "statements": 70,
+  "check-coverage": false,
+  "per-file": true,
+  "sourceMap": true,
+  "instrument": true
+}

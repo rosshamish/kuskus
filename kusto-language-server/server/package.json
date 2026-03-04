@@ -13,25 +13,34 @@
     "url": "https://github.com/rosshamish/kuskus/issues"
   },
   "engines": {
-    "vscode": "^1.33.0"
+    "vscode": "^1.85.0"
   },
   "dependencies": {
-    "@kusto/language-service-next": "^11.7.1",
+    "@kusto/language-service-next": "^12.3.2",
     "azure-kusto-data": "^6.0.2",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.12"
   },
   "scripts": {
-    "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
+    "test": "TS_NODE_TRANSPILE_ONLY=true mocha --require ts-node/register 'src/test/**/*.test.ts'",
+    "test:watch": "TS_NODE_TRANSPILE_ONLY=true mocha --require ts-node/register --watch 'src/test/**/*.test.ts' --watch-extensions ts",
+    "test:coverage": "TS_NODE_TRANSPILE_ONLY=true nyc mocha --require ts-node/register 'src/test/**/*.test.ts'",
+    "lint": "tsc --noEmit && eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
     "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.11.0",
-    "eslint": "^8.57.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-prettier": "^5.2.1",
-    "prettier": "3.3.3"
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "3.8.1",
+    "mocha": "^10.8.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0",
+    "nyc": "^15.1.0"
   }
 }

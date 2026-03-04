@@ -1,5 +1,7 @@
 import * as path from "path";
+/* eslint-disable-next-line import/no-extraneous-dependencies */
 import * as Mocha from "mocha";
+/* eslint-disable-next-line import/no-extraneous-dependencies */
 import * as glob from "glob";
 
 export function run(): Promise<void> {
@@ -11,10 +13,11 @@ export function run(): Promise<void> {
 
   const testsRoot = path.resolve(__dirname, "..");
 
-  return new Promise((c, e) => {
-    glob("**/**.test.js", { cwd: testsRoot }, (err, files) => {
-      if (err) {
-        return e(err);
+  return new Promise((c, error) => {
+    glob("**/**.test.js", { cwd: testsRoot }, (globErr, files) => {
+      if (globErr) {
+        error(globErr);
+        return;
       }
 
       // Add files to the test suite
@@ -24,14 +27,15 @@ export function run(): Promise<void> {
         // Run the mocha test
         mocha.run((failures) => {
           if (failures > 0) {
-            e(new Error(`${failures} tests failed.`));
+            error(new Error(`${failures} tests failed.`));
           } else {
             c();
           }
         });
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error(err);
-        e(err);
+        error(err);
       }
     });
   });

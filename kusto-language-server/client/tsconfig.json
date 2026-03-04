@@ -2,6 +2,11 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "outDir": "out",
     "rootDir": "src",
     "sourceMap": true
