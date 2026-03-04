@@ -55,7 +55,7 @@ To renew:
    - Organization: **All accessible organizations**
    - Scopes: Custom → scroll to **Marketplace** → check **Manage**
    - See **https://aka.ms/vscodepat** for screenshots
-2. Update the secret at **https://github.com/rosshamish/kuskus/settings/secrets/actions** → `VSCE_PAT`
+2. Update the secret at **https://github.com/rosshamish/kuskus/settings/secrets/actions** → `VS_MARKETPLACE_TOKEN`
 3. Re-run any failed publish workflow to verify
 
 ---
