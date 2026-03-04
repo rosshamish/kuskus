@@ -22,5 +22,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Fetch origin/master for version comparison
+        run: git fetch origin master --depth=1
+        working-directory: .
+
+      - name: Check version bump
+        run: bash .github/scripts/check-version-bump.sh kusto-syntax-highlighting
+        working-directory: .
+
       - run: npm ci
       - run: npm run test

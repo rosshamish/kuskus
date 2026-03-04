@@ -22,6 +22,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Fetch origin/master for version comparison
+        run: git fetch origin master --depth=1
+        working-directory: .
+
+      - name: Check version bump
+        run: bash .github/scripts/check-version-bump.sh kusto-language-server
+        working-directory: .
+
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
