@@ -65,6 +65,7 @@ cd kusto-syntax-highlighting && npm run test
 |---|---|---|
 | Grammar / syntax fix | `kusto-syntax-highlighting/` | Edit the TextMate grammar (`.tmLanguage.json`), add a test |
 | Language server feature | `kusto-language-server/` | TypeScript source in `src/`, run `npm run lint` before opening a PR |
+| Color theme (new or modify) | `kusto-color-themes/` | Edit theme JSON files in `themes/`, preview with F5 in VS Code |
 | New extension in the pack | Create a new `kusto-<name>/` directory | Follow the existing package structure; add it to `kusto-extensions-pack/package.json` |
 
 ---
