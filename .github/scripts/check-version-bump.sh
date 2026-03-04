@@ -21,7 +21,8 @@ PACKAGE_JSON="${PKG}/package.json"
 TRIGGER_PATHS=$(python3 -c "
 import yaml, sys
 with open('$PUBLISH_WORKFLOW') as f: w = yaml.safe_load(f)
-for p in w['on']['push']['paths']:
+on = w.get('on') or w.get(True)
+for p in on['push']['paths']:
     print(p)
 ")
 echo "Publish trigger paths: $(echo "$TRIGGER_PATHS" | tr '\n' ' ')"
