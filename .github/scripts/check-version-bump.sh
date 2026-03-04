@@ -44,20 +44,19 @@ while IFS= read -r pattern; do
         done <<< "$CHANGED"
     fi
 done <<< "$TRIGGER_PATHS"
-TRIGGERED=$(echo "$TRIGGERED" | sort -u | grep .)  || { echo "✓ No publish-triggering changes for ${PKG}"; exit 0; }
+TRIGGERED=$(echo "$TRIGGERED" | sort -u | grep .)  || { echo "OK: no publish-triggering changes for ${PKG}"; exit 0; }
 echo "Publish-triggering files: $(echo "$TRIGGERED" | tr '\n' ' ')"
 
 # Require a version bump vs origin/master.
 BASE_VERSION=$(git show "origin/master:${PACKAGE_JSON}" 2>/dev/null | jq -r .version) \
-    || { echo "✓ New package — no bump required"; exit 0; }
+    || { echo "OK: new package, no bump required"; exit 0; }
 HEAD_VERSION=$(jq -r .version "$PACKAGE_JSON")
 
 if [[ "$BASE_VERSION" == "$HEAD_VERSION" ]]; then
-    echo ""
-    echo "❌ ${PACKAGE_JSON} version not bumped (${HEAD_VERSION} === origin/master)."
-    echo "   Fix: cd ${PKG} && npm version patch --no-git-tag-version"
-    echo "   Docs: .github/skills/kuskus-version-bump/SKILL.md"
+    echo "ERROR: ${PACKAGE_JSON} version not bumped (${HEAD_VERSION} === origin/master)." >&2
+    echo "  Fix: cd ${PKG} && npm version patch --no-git-tag-version" >&2
+    echo "  Docs: .github/skills/kuskus-version-bump/SKILL.md" >&2
     exit 1
 fi
 
-echo "✓ ${PKG} version bumped: ${BASE_VERSION} → ${HEAD_VERSION}"
+echo "${PKG} version bumped: ${BASE_VERSION} -> ${HEAD_VERSION}"

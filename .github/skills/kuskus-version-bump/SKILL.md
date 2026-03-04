@@ -8,8 +8,9 @@ description: How to bump package versions in kuskus — required before merging 
 Every PR that touches a package directory **must** include a version bump in that package's `package.json`. A PR validation check enforces this and will fail with:
 
 ```
-Error: kusto-<pkg>/package.json version not bumped.
-Current: X.Y.Z — same as origin/master. Bump it before merging.
+ERROR: kusto-<pkg>/package.json version not bumped (X.Y.Z === origin/master).
+  Fix: cd kusto-<pkg> && npm version patch --no-git-tag-version
+  Docs: .github/skills/kuskus-version-bump/SKILL.md
 ```
 
 ---
