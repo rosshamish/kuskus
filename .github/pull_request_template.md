@@ -12,6 +12,5 @@
 
 ## Checklist
 
-- [ ] L7 Principal review completed (2x serial, both APPROVE)
 - [ ] Version number NOT manually bumped (CI does this on merge)
 - [ ] Breaking change, if any, described above
