@@ -16,12 +16,19 @@ Current: X.Y.Z — same as origin/master. Bump it before merging.
 
 ## Which packages need bumping?
 
-| Directory touched | File to bump |
+| If PR touches… | Bump this file |
 |---|---|
 | `kusto-language-server/**` | `kusto-language-server/package.json` |
+| `.github/workflows/kusto-language-server-publish.yml` | `kusto-language-server/package.json` |
 | `kusto-syntax-highlighting/**` | `kusto-syntax-highlighting/package.json` |
+| `.github/workflows/kusto-syntax-highlighting-publish.yml` | `kusto-syntax-highlighting/package.json` |
 | `kusto-color-themes/**` | `kusto-color-themes/package.json` |
+| `.github/workflows/kusto-color-themes-publish.yml` | `kusto-color-themes/package.json` |
 | `kusto-extensions-pack/**` | `kusto-extensions-pack/package.json` |
+| `.github/workflows/kusto-extensions-pack-publish.yml` | `kusto-extensions-pack/package.json` |
+
+**Rule: if your change would trigger the publish workflow, it must carry a version bump.**
+The check mirrors the `on.push.paths` triggers in each publish workflow exactly.
 
 Only the **root** `package.json` per package matters — not `client/package.json` or `server/package.json`.
 
