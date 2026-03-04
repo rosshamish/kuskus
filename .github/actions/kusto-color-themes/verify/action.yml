@@ -1,3 +1,5 @@
+name: 'Verify Kusto Color Themes'
+description: 'Validates that all contributed themes in package.json exist as files on disk'
 inputs:
   working-directory: 
     description: 'Working directory where package.json can be found'
@@ -6,21 +8,28 @@ runs:
   using: "composite"
   steps: 
     - name: Extract contributed themes from package.json
-      uses: ./.github/actions/jq-action-master
       id: themes
-      with:
-        cmd: 'jq .contributes.themes[].path ${{ inputs.working-directory }}/package.json --raw-output'
-        multiline: true
+      shell: bash
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}
+      run: |
+        value=$(jq '.contributes.themes[].path' "$WORKING_DIR/package.json" --raw-output)
+        echo "value<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$value" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
     - name: Verify each contributed theme exists
       shell: bash
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}
+        THEMES: ${{ steps.themes.outputs.value }}
       run: |
         errors=0
-        themes_in_package_json="${{ steps.themes.outputs.value }}"
-        for theme in $themes_in_package_json; do
-          filepath="${{ inputs.working-directory }}/$theme"
-          if (!(test -f "$filepath")); then
+        for theme in $THEMES; do
+          filepath="$WORKING_DIR/$theme"
+          if ! test -f "$filepath"; then
             echo "ERROR: File not found: $filepath"
-            errors+=1
+            errors=$((errors+1))
           fi
         done
-        exit $errors
+        # Exit 1 on any failure, 0 on success. Avoid exit-code overflow (bash exit is mod 256).
+        exit $((errors > 0 ? 1 : 0))
