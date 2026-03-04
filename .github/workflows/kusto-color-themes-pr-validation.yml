@@ -46,6 +46,7 @@ jobs:
           echo "ERROR: kusto-color-themes/package.json version not bumped."
           echo "  Fix: cd kusto-color-themes && npm version patch --no-git-tag-version"
           echo "  Docs: .github/skills/kuskus-version-bump/SKILL.md"
+          exit 1
 
       - name: Ensure all contributed themes exist in repo
         uses: ./.github/actions/kusto-color-themes/verify

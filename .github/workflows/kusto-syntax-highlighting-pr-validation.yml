@@ -44,6 +44,7 @@ jobs:
           echo "ERROR: kusto-syntax-highlighting/package.json version not bumped."
           echo "  Fix: cd kusto-syntax-highlighting && npm version patch --no-git-tag-version"
           echo "  Docs: .github/skills/kuskus-version-bump/SKILL.md"
+          exit 1
 
       - run: npm ci
       - run: npm run test
