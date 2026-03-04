@@ -155,3 +155,25 @@
 #    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto string.quoted.single.kusto
 #                                    ^ source.kusto string.quoted.single.kusto punctuation.definition.string.kusto
 >
+>// Strings ending in escaped backslash should highlight correctly (#94)
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.kusto comment.line.kusto
+>let myVar = "a\\";
+#^^^ source.kusto keyword.control.kusto
+#   ^ source.kusto
+#    ^^^^^^ source.kusto entity.function.name.lambda.kusto
+#          ^^ source.kusto
+#            ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#             ^ source.kusto string.quoted.double.kusto
+#              ^^ source.kusto string.quoted.double.kusto constant.character.escape.kusto
+#                ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                 ^^ source.kusto
+>let myOtherVar = "whatever";
+#^^^ source.kusto keyword.control.kusto
+#   ^ source.kusto
+#    ^^^^^^^^^^^ source.kusto entity.function.name.lambda.kusto
+#               ^^ source.kusto
+#                 ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                  ^^^^^^^^ source.kusto string.quoted.double.kusto
+#                          ^ source.kusto string.quoted.double.kusto punctuation.definition.string.kusto
+#                           ^^ source.kusto
+>

@@ -67,7 +67,7 @@
     ]
   },
   "devDependencies": {
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "vscode-tmgrammar-test": "^0.1.3"
   },
   "scripts": {
