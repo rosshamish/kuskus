@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as path from "path";
+import * as vscode from "vscode";
 import {
   workspace,
   ExtensionContext,
@@ -30,6 +31,13 @@ import {
 import { createStatusBarItem, updateStatusBar } from "./statusBar.js";
 import { runQuery, getQueryText } from "./queryRunner.js";
 import { ResultsPanelProvider } from "./resultsPanel.js";
+import {
+  RunKustoQueryTool,
+  ListDatabasesTool,
+  ListTablesTool,
+  GetTableSchemaTool,
+} from "./chatTool.js";
+import { KustoQueryContentProvider } from "./queryDocumentProvider.js";
 import {
   loadPersistedState,
   saveClusterUris,
@@ -218,6 +226,51 @@ export async function activate(context: ExtensionContext) {
     ),
   );
 
+  // Register the virtual document provider for LM tool query visibility
+  const queryDocProvider = new KustoQueryContentProvider();
+  context.subscriptions.push(
+    vscode.workspace.registerTextDocumentContentProvider(
+      KustoQueryContentProvider.scheme,
+      queryDocProvider,
+    ),
+  );
+
+  // Register the run_kusto_query Language Model Tool for AI chat
+  context.subscriptions.push(
+    vscode.lm.registerTool(
+      "run_kusto_query",
+      new RunKustoQueryTool(
+        clusterViewProvider,
+        resultsPanelProvider,
+        queryDocProvider,
+      ),
+    ),
+  );
+
+  // Register the list_databases Language Model Tool for AI chat
+  context.subscriptions.push(
+    vscode.lm.registerTool(
+      "list_databases",
+      new ListDatabasesTool(clusterViewProvider),
+    ),
+  );
+
+  // Register the list_tables Language Model Tool for AI chat
+  context.subscriptions.push(
+    vscode.lm.registerTool(
+      "list_tables",
+      new ListTablesTool(clusterViewProvider),
+    ),
+  );
+
+  // Register the get_table_schema Language Model Tool for AI chat
+  context.subscriptions.push(
+    vscode.lm.registerTool(
+      "get_table_schema",
+      new GetTableSchemaTool(clusterViewProvider),
+    ),
+  );
+
   // Restore persisted clusters and active database
   const persistedState = loadPersistedState(context.globalState);
   if (persistedState.clusterUris.length > 0) {
@@ -228,6 +281,11 @@ export async function activate(context: ExtensionContext) {
         clusterUris.add(uri);
         clusterViewProvider.addCluster(uri, microsoftAccessToken);
       }
+      await commands.executeCommand(
+        "setContext",
+        "kuskus.hasConnectedClusters",
+        true,
+      );
       if (
         persistedState.activeClusterUri &&
         persistedState.activeDatabaseName
@@ -239,6 +297,11 @@ export async function activate(context: ExtensionContext) {
         updateStatusBar(
           persistedState.activeClusterUri,
           persistedState.activeDatabaseName,
+        );
+        await commands.executeCommand(
+          "setContext",
+          "kuskus.hasActiveDatabase",
+          true,
         );
       }
     }
@@ -280,6 +343,11 @@ export async function activate(context: ExtensionContext) {
           context.globalState,
           clusterViewProvider.getConnectedClusterUris(),
         );
+        await commands.executeCommand(
+          "setContext",
+          "kuskus.hasConnectedClusters",
+          true,
+        );
       }
     }),
   );
@@ -304,6 +372,11 @@ export async function activate(context: ExtensionContext) {
             context.globalState,
             item.clusterUri,
             item.databaseName,
+          );
+          await commands.executeCommand(
+            "setContext",
+            "kuskus.hasActiveDatabase",
+            true,
           );
           window.showInformationMessage(
             `[Kuskus] Active database set to ${item.databaseName}`,

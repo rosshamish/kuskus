@@ -169,6 +169,23 @@ describe("ClusterViewProvider", () => {
     });
   });
 
+  describe("getClient", () => {
+    it("should return undefined for unknown cluster", () => {
+      expect(provider.getClient("https://unknown.kusto.windows.net")).toBeUndefined();
+    });
+
+    it("should return the client for a connected cluster", () => {
+      provider.addCluster("https://test.kusto.windows.net", "token");
+      expect(provider.getClient("https://test.kusto.windows.net")).toBeDefined();
+    });
+
+    it("should return undefined after cluster is removed", () => {
+      provider.addCluster("https://test.kusto.windows.net", "token");
+      provider.removeCluster("https://test.kusto.windows.net");
+      expect(provider.getClient("https://test.kusto.windows.net")).toBeUndefined();
+    });
+  });
+
   describe("getTreeItem", () => {
     it("should return the element itself", () => {
       const item = new KustoSchemaItem(

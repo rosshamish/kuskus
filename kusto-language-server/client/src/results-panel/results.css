@@ -32,6 +32,7 @@ th {
   font-weight: 600;
   user-select: none;
   position: relative;
+  overflow: visible;
 }
 .resize-handle {
   position: absolute;

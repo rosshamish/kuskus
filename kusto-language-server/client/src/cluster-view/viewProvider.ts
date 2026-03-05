@@ -82,6 +82,10 @@ export class ClusterViewProvider
     return undefined;
   }
 
+  public getClient(clusterUri: string): KustoClient | undefined {
+    return this.clients.get(clusterUri);
+  }
+
   getTreeItem(
     element: KustoSchemaItem,
   ): KustoSchemaItem | Thenable<KustoSchemaItem> {

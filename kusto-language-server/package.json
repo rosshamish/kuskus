@@ -15,7 +15,7 @@
         "url": "https://github.com/rosshamish/kuskus/issues"
     },
     "engines": {
-        "vscode": "^1.33.0"
+        "vscode": "^1.98.0"
     },
     "categories": [
         "Programming Languages",
@@ -112,6 +112,82 @@
                 "command": "kuskus.addNewLine",
                 "key": "ctrl+enter",
                 "when": "editorTextFocus && editorLangId == kusto"
+            }
+        ],
+        "languageModelTools": [
+            {
+                "name": "run_kusto_query",
+                "displayName": "Run Kusto query",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-run-kusto-query",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "Run Kusto query",
+                "modelDescription": "Run a Kusto query against the active database. Input should be a JSON object with a 'query' property containing the Kusto query to run. Output will be a JSON object with either a 'result' property containing the query results or an 'error' property containing an error message if the query failed.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The Kusto query to run"
+                        }
+                    },
+                    "required": ["query"]
+                },
+                "when": "kuskus.hasActiveDatabase"
+            },
+            {
+                "name": "list_databases",
+                "displayName": "List Kusto databases",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-list-databases",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "List databases in a connected Kusto cluster",
+                "modelDescription": "List all databases in a connected Kusto cluster. Input should be a JSON object with a 'clusterUri' property containing the full cluster URI (e.g. 'https://help.kusto.windows.net'). The cluster must already be connected in the Kusto Explorer panel. Output is a JSON array of objects with 'name' and 'prettyName' properties for each database.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "clusterUri": {
+                            "type": "string",
+                            "description": "The full URI of the connected Kusto cluster (e.g. 'https://help.kusto.windows.net')"
+                        }
+                    },
+                    "required": ["clusterUri"]
+                },
+                "when": "kuskus.hasConnectedClusters"
+            },
+            {
+                "name": "list_tables",
+                "displayName": "List Kusto tables",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-list-tables",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "List tables in the active Kusto database",
+                "modelDescription": "List all tables in the currently active Kusto database. Takes no input parameters. The user must have an active database selected in the Kusto Explorer panel. Output is a JSON array of table name strings.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                },
+                "when": "kuskus.hasActiveDatabase"
+            },
+            {
+                "name": "get_table_schema",
+                "displayName": "Get Kusto table schema",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-get-table-schema",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "Get the column names and types for a table in the active Kusto database",
+                "modelDescription": "Get the schema (column names and types) of a specific table in the currently active Kusto database. Input should be a JSON object with a 'tableName' property. The user must have an active database selected. Output is a JSON array of objects with 'name' and 'type' properties for each column.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "tableName": {
+                            "type": "string",
+                            "description": "The name of the table to get the schema for"
+                        }
+                    },
+                    "required": ["tableName"]
+                },
+                "when": "kuskus.hasActiveDatabase"
             }
         ],
         "viewsContainers": {
