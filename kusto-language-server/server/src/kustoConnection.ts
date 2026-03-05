@@ -43,8 +43,6 @@ export async function getClient(
   if (clients.has(clusterUri)) {
     return clients.get(clusterUri);
   } else {
-<<<<<<< Updated upstream
-=======
     // const scopes = [
     //   "https://management.core.windows.net/.default",
     //   "offline_access",
@@ -59,7 +57,6 @@ export async function getClient(
     //     clearSessionPreference: true,
     //   },
     // );
->>>>>>> Stashed changes
     // If tenant id is empty in the input, consider it undefined when building the connection string
     if (!tenantId) {
       tenantId = undefined;

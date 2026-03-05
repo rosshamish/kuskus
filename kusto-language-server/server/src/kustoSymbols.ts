@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
-import KustoClient from "azure-kusto-data/types/src/client";
-=======
 import { Client as KustoClient, KustoResponseDataSet } from "azure-kusto-data";
->>>>>>> Stashed changes
 
 interface DatabaseMetadata {
   DatabaseName: string;

@@ -22,12 +22,6 @@ import {
   getClient as getKustoClient,
   TokenResponse,
   getFirstOrDefaultClient,
-<<<<<<< Updated upstream
-} from "./kustoConnection";
-import { getSymbolsOnCluster, getSymbolsOnTable } from "./kustoSymbols";
-import { formatCodeScript } from "./kustoFormat";
-import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion";
-=======
   newGetClient,
 } from "./kustoConnection.js";
 import {
@@ -37,7 +31,6 @@ import {
 } from "./kustoSymbols.js";
 import { formatCodeScript } from "./kustoFormat.js";
 import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion.js";
->>>>>>> Stashed changes
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.

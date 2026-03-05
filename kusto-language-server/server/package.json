@@ -16,25 +16,6 @@
     "vscode": "^1.98.0"
   },
   "dependencies": {
-<<<<<<< Updated upstream
-    "@kusto/language-service-next": "^11.7.1",
-    "azure-kusto-data": "^6.0.2",
-    "vscode-languageserver": "^7.0.0",
-    "vscode-languageserver-textdocument": "^1.0.12"
-  },
-  "scripts": {
-    "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
-    "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
-  },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.11.0",
-    "eslint": "^8.57.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-prettier": "^5.2.1",
-    "prettier": "3.3.3"
-=======
     "@kusto/language-service-next": "^12.3.2",
     "azure-kusto-data": "^7.0.4",
     "vscode-languageserver": "^10.0.0-next.16",
@@ -53,6 +34,5 @@
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "vitest": "^4.0.18"
->>>>>>> Stashed changes
   }
 }

@@ -1,1 +1,1 @@
-{"root":["./src/kustocompletion.ts","./src/kustoconnection.ts","./src/kustoformat.ts","./src/kustosymbols.ts","./src/server.ts","./src/test/kustoconnection.test.ts"],"version":"5.9.2"}
+{"root":["./src/kustocompletion.ts","./src/kustoconnection.ts","./src/kustoformat.ts","./src/kustosymbols.ts","./src/server.ts","./src/test/kustoconnection.test.ts"],"errors":true,"version":"5.9.2"}

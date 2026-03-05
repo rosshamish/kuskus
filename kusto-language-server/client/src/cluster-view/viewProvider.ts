@@ -109,6 +109,16 @@ export class ClusterViewProvider
     }
   }
 
+  public refreshCluster(clusterUri: string, accessToken: string): void {
+    const kcsb = KustoConnectionStringBuilder.withAccessToken(
+      clusterUri,
+      accessToken,
+    );
+    const client = new KustoClient(kcsb);
+    this.clients.set(clusterUri, client);
+    this._onDidChangeTreeData.fire();
+  }
+
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }

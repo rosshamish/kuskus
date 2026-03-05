@@ -17,29 +17,6 @@
     "vscode": "^1.98.0"
   },
   "scripts": {
-<<<<<<< Updated upstream
-    "test": "node ./out/test/runTest.js",
-    "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
-    "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
-  },
-  "dependencies": {
-    "clipboardy": "^2.3.0",
-    "open": "^8.4.2",
-    "vscode-languageclient": "^7.0.0"
-  },
-  "devDependencies": {
-    "@types/mocha": "^10.0.7",
-    "@types/vscode": "^1.92.0",
-    "@vscode/test-electron": "*",
-    "mocha": "^10.7.0",
-    "@typescript-eslint/eslint-plugin": "^7.15.0",
-    "eslint": "^8.57.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-prettier": "^5.2.1",
-    "prettier": "3.3.3"
-=======
     "test": "vscode-test",
     "test:unit": "vitest run src/test/unit",
     "lint": "eslint --config eslint.config.mjs src && prettier --check package.json eslint.config.mjs tsconfig.json",
@@ -58,13 +35,11 @@
     "@types/vscode": "^1.98.0",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-cli": "^0.0.12",
     "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "mocha": "^11.7.2",
     "prettier": "^3.6.2",
     "vitest": "^4.0.18"
->>>>>>> Stashed changes
   }
 }

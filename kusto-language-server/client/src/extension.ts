@@ -4,11 +4,6 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as path from "path";
-<<<<<<< Updated upstream
-import { workspace, ExtensionContext, commands, window } from "vscode";
-import * as clipboardy from "clipboardy";
-import * as open from "open";
-=======
 import {
   workspace,
   ExtensionContext,
@@ -19,7 +14,6 @@ import {
 } from "vscode";
 import clipboardy from "clipboardy";
 import open from "open";
->>>>>>> Stashed changes
 
 import {
   LanguageClient,
@@ -29,7 +23,10 @@ import {
   TransportKind,
 } from "vscode-languageclient/node";
 
-import { ClusterViewProvider, KustoSchemaItem } from "./cluster-view/viewProvider.js";
+import {
+  ClusterViewProvider,
+  KustoSchemaItem,
+} from "./cluster-view/viewProvider.js";
 import { createStatusBarItem, updateStatusBar } from "./statusBar.js";
 import { runQuery, getQueryText } from "./queryRunner.js";
 import { ResultsPanelProvider } from "./resultsPanel.js";
@@ -126,12 +123,8 @@ export async function activate(context: ExtensionContext) {
           try {
             clipboardy.writeSync(verificationCode);
             clipboardWriteSucceeded = true;
-<<<<<<< Updated upstream
-          } catch (e) {
-=======
           } catch {
             logError("Failed to write login code to clipboard");
->>>>>>> Stashed changes
             window.showErrorMessage(
               "Failed to write login code to clipboard -- This is expected in a remote connection, e.g. a Github codespace.",
             );
@@ -139,16 +132,14 @@ export async function activate(context: ExtensionContext) {
           window.showInformationMessage(
             `Login with code ${verificationCode}${clipboardWriteSucceeded ? " (it's already on your clipboard)" : ""}`,
           );
-          log(`Device code auth: code=${verificationCode} url=${verificationUrl}`);
+          log(
+            `Device code auth: code=${verificationCode} url=${verificationUrl}`,
+          );
 
           try {
             open(verificationUrl);
-<<<<<<< Updated upstream
-          } catch (e) {
-=======
           } catch {
             logError(`Failed to open login URL: ${verificationUrl}`);
->>>>>>> Stashed changes
             window.showErrorMessage(
               `Failed to open the login URL ${verificationUrl} -- This is expected in a remote connection, e.g. a Github codespace. Navigate to the URL manually.`,
             );
@@ -187,7 +178,9 @@ export async function activate(context: ExtensionContext) {
           database: string;
           errorMessage: string | undefined;
         }) => {
-          logError(`Auth failed: ${clusterUri}/${tenantId}/${database}: ${errorMessage}`);
+          logError(
+            `Auth failed: ${clusterUri}/${tenantId}/${database}: ${errorMessage}`,
+          );
           window.showErrorMessage(
             `[Kuskus] Failed to authenticate to ${clusterUri}/${tenantId}/${database} with error ${errorMessage}`,
           );
@@ -235,7 +228,10 @@ export async function activate(context: ExtensionContext) {
         clusterUris.add(uri);
         clusterViewProvider.addCluster(uri, microsoftAccessToken);
       }
-      if (persistedState.activeClusterUri && persistedState.activeDatabaseName) {
+      if (
+        persistedState.activeClusterUri &&
+        persistedState.activeDatabaseName
+      ) {
         clusterViewProvider.setActiveDatabase(
           persistedState.activeClusterUri,
           persistedState.activeDatabaseName,
@@ -314,6 +310,52 @@ export async function activate(context: ExtensionContext) {
           );
           log(`Active database set: ${item.clusterUri}/${item.databaseName}`);
         }
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    commands.registerCommand(
+      "kuskus.refreshCluster",
+      async (item: KustoSchemaItem) => {
+        if (item.type !== "cluster") {
+          return;
+        }
+        const clusterUri = item.clusterUri;
+
+        // Try with existing token first
+        if (microsoftAccessToken) {
+          try {
+            clusterViewProvider.refreshCluster(
+              clusterUri,
+              microsoftAccessToken,
+            );
+            log(`Refreshed cluster: ${clusterUri}`);
+            window.showInformationMessage(
+              `[Kuskus] Refreshed cluster ${clusterUri}`,
+            );
+            return;
+          } catch {
+            log(
+              `Refresh with existing token failed for ${clusterUri}, re-authenticating...`,
+            );
+          }
+        }
+
+        // Re-authenticate and retry
+        await login();
+        if (!microsoftAccessToken) {
+          logError("Login required to refresh cluster");
+          window.showErrorMessage(
+            "[Kuskus] Login required to refresh cluster.",
+          );
+          return;
+        }
+        clusterViewProvider.refreshCluster(clusterUri, microsoftAccessToken);
+        log(`Refreshed cluster after re-auth: ${clusterUri}`);
+        window.showInformationMessage(
+          `[Kuskus] Refreshed cluster ${clusterUri}`,
+        );
       },
     ),
   );
@@ -412,7 +454,9 @@ async function runScriptHandler() {
   const queryText = getQueryText();
   if (!queryText || queryText.trim().length === 0) {
     logError("No query text in active editor");
-    window.showErrorMessage("[Kuskus] No query text found in the active editor.");
+    window.showErrorMessage(
+      "[Kuskus] No query text found in the active editor.",
+    );
     return;
   }
 
@@ -429,9 +473,7 @@ async function runScriptHandler() {
     );
   } else {
     logError(`Query failed: ${result.error}`);
-    window.showErrorMessage(
-      `[Kuskus] Query failed: ${result.error}`,
-    );
+    window.showErrorMessage(`[Kuskus] Query failed: ${result.error}`);
   }
 }
 

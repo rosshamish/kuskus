@@ -27,7 +27,9 @@
 			},
 			"problemMatcher": [
 				"$tsc-watch"
-			]
+			],
+			"label": "npm: watch",
+			"detail": "tsc -b -w"
 		}
 	]
 }
