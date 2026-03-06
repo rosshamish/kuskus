@@ -86,6 +86,11 @@
                 "command": "kuskus.refreshCluster",
                 "title": "[Kuskus] Refresh Cluster",
                 "icon": "$(refresh)"
+            },
+            {
+                "command": "kuskus.removeCluster",
+                "title": "[Kuskus] Remove Cluster",
+                "icon": "$(trash)"
             }
         ],
         "menus": {
@@ -97,6 +102,11 @@
                 },
                 {
                     "command": "kuskus.refreshCluster",
+                    "when": "view == kuskus-clusters && viewItem == cluster",
+                    "group": "inline"
+                },
+                {
+                    "command": "kuskus.removeCluster",
                     "when": "view == kuskus-clusters && viewItem == cluster",
                     "group": "inline"
                 }

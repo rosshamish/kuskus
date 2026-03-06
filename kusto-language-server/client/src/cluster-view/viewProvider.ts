@@ -57,6 +57,10 @@ export class ClusterViewProvider
   }
 
   public removeCluster(clusterUri: string) {
+    const client = this.clients.get(clusterUri);
+    if (client) {
+      client.close();
+    }
     this.clients.delete(clusterUri);
     if (this._activeClusterUri === clusterUri) {
       this._activeClusterUri = undefined;

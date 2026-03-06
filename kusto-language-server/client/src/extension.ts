@@ -44,6 +44,7 @@ import {
   saveActiveDatabase,
 } from "./persistence.js";
 import { log, logError } from "./logger.js";
+import { trackSync } from "./perfMetrics.js";
 
 let client: LanguageClient;
 let microsoftAccessToken: string | undefined; // stored access token
@@ -279,7 +280,11 @@ export async function activate(context: ExtensionContext) {
     if (microsoftAccessToken) {
       for (const uri of persistedState.clusterUris) {
         clusterUris.add(uri);
-        clusterViewProvider.addCluster(uri, microsoftAccessToken);
+        trackSync(
+          "cluster.connect",
+          () => clusterViewProvider.addCluster(uri, microsoftAccessToken!),
+          { cluster: uri },
+        );
       }
       await commands.executeCommand(
         "setContext",
@@ -338,7 +343,12 @@ export async function activate(context: ExtensionContext) {
       if (!clusterUris.has(clusterUri)) {
         log(`Adding cluster: ${clusterUri}`);
         clusterUris.add(clusterUri);
-        clusterViewProvider.addCluster(clusterUri, microsoftAccessToken);
+        trackSync(
+          "cluster.connect",
+          () =>
+            clusterViewProvider.addCluster(clusterUri, microsoftAccessToken!),
+          { cluster: clusterUri },
+        );
         await saveClusterUris(
           context.globalState,
           clusterViewProvider.getConnectedClusterUris(),
@@ -399,9 +409,14 @@ export async function activate(context: ExtensionContext) {
         // Try with existing token first
         if (microsoftAccessToken) {
           try {
-            clusterViewProvider.refreshCluster(
-              clusterUri,
-              microsoftAccessToken,
+            trackSync(
+              "cluster.refresh",
+              () =>
+                clusterViewProvider.refreshCluster(
+                  clusterUri,
+                  microsoftAccessToken!,
+                ),
+              { cluster: clusterUri },
             );
             log(`Refreshed cluster: ${clusterUri}`);
             window.showInformationMessage(
@@ -424,11 +439,68 @@ export async function activate(context: ExtensionContext) {
           );
           return;
         }
-        clusterViewProvider.refreshCluster(clusterUri, microsoftAccessToken);
+        trackSync(
+          "cluster.refresh",
+          () =>
+            clusterViewProvider.refreshCluster(
+              clusterUri,
+              microsoftAccessToken!,
+            ),
+          { cluster: clusterUri },
+        );
         log(`Refreshed cluster after re-auth: ${clusterUri}`);
         window.showInformationMessage(
           `[Kuskus] Refreshed cluster ${clusterUri}`,
         );
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    commands.registerCommand(
+      "kuskus.removeCluster",
+      async (item: KustoSchemaItem) => {
+        if (item.type !== "cluster") {
+          return;
+        }
+        const clusterUri = item.clusterUri;
+
+        const confirm = await window.showWarningMessage(
+          `Remove cluster ${clusterUri}?`,
+          { modal: true },
+          "Remove",
+        );
+        if (confirm !== "Remove") {
+          return;
+        }
+
+        const wasActive = clusterViewProvider.activeClusterUri === clusterUri;
+        clusterViewProvider.removeCluster(clusterUri);
+        clusterUris.delete(clusterUri);
+        await saveClusterUris(
+          context.globalState,
+          clusterViewProvider.getConnectedClusterUris(),
+        );
+        log(`Removed cluster: ${clusterUri}`);
+        window.showInformationMessage(`[Kuskus] Removed cluster ${clusterUri}`);
+
+        if (wasActive) {
+          await saveActiveDatabase(context.globalState, undefined, undefined);
+          updateStatusBar(undefined, undefined);
+          await commands.executeCommand(
+            "setContext",
+            "kuskus.hasActiveDatabase",
+            false,
+          );
+        }
+
+        if (clusterViewProvider.getConnectedClusterUris().length === 0) {
+          await commands.executeCommand(
+            "setContext",
+            "kuskus.hasConnectedClusters",
+            false,
+          );
+        }
       },
     ),
   );

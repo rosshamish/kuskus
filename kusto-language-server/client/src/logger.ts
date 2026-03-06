@@ -9,12 +9,16 @@ function getChannel(): vscode.OutputChannel {
   return outputChannel;
 }
 
+function timestamp(): string {
+  return new Date().toISOString();
+}
+
 export function log(message: string): void {
-  getChannel().appendLine(`[INFO] ${message}`);
+  getChannel().appendLine(`[${timestamp()}][INFO] ${message}`);
 }
 
 export function logError(message: string): void {
-  getChannel().appendLine(`[ERROR] ${message}`);
+  getChannel().appendLine(`[${timestamp()}][ERROR] ${message}`);
 }
 
 export function dispose(): void {

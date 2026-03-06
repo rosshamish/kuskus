@@ -45,9 +45,12 @@ vi.mock("vscode", () => {
 });
 
 // Mock azure-kusto-data
+const mockClose = vi.fn();
 vi.mock("azure-kusto-data", () => {
   return {
-    Client: vi.fn(),
+    Client: vi.fn().mockImplementation(function () {
+      return { close: mockClose };
+    }),
     KustoConnectionStringBuilder: {
       withAccessToken: vi.fn().mockReturnValue({}),
     },
@@ -68,6 +71,7 @@ describe("ClusterViewProvider", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockClose.mockReset();
     provider = new ClusterViewProvider();
   });
 
@@ -98,6 +102,18 @@ describe("ClusterViewProvider", () => {
   });
 
   describe("removeCluster", () => {
+    it("should close the KustoClient when removing a cluster", () => {
+      provider.addCluster("https://test.kusto.windows.net", "token");
+      provider.removeCluster("https://test.kusto.windows.net");
+
+      expect(mockClose).toHaveBeenCalledOnce();
+    });
+
+    it("should not throw when removing a cluster that does not exist", () => {
+      expect(() => provider.removeCluster("https://nonexistent.kusto.windows.net")).not.toThrow();
+      expect(mockClose).not.toHaveBeenCalled();
+    });
+
     it("should remove a cluster", () => {
       provider.addCluster("https://test.kusto.windows.net", "token");
       provider.removeCluster("https://test.kusto.windows.net");
