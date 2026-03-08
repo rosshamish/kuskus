@@ -4,6 +4,7 @@ import { formatActiveDatabaseCodeLensTitle } from "./activeDatabaseLabel.js";
 
 export const activeDatabaseCodeLensCommand = "kuskus.openExplorerView";
 
+// We only support scheme "file", for CodeLens because CodeLens doesn't support virtual documents (scheme: "untitled").
 export const activeDatabaseCodeLensDocumentSelector: vscode.DocumentSelector = [
   { scheme: "file", language: "kusto" },
 ];
