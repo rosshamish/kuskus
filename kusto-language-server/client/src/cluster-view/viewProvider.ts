@@ -179,8 +179,7 @@ export class ClusterViewProvider
       }
       return items;
     } catch (error) {
-      const msg =
-        error instanceof Error ? error.message : "Unknown error";
+      const msg = error instanceof Error ? error.message : "Unknown error";
       logError(`Failed to load databases from ${element.clusterUri}: ${msg}`);
       vscode.window.showErrorMessage(
         `[Kuskus] Failed to load databases from ${element.clusterUri}: ${msg}`,
@@ -242,8 +241,7 @@ export class ClusterViewProvider
       }
       return items;
     } catch (error) {
-      const msg =
-        error instanceof Error ? error.message : "Unknown error";
+      const msg = error instanceof Error ? error.message : "Unknown error";
       logError(`Failed to load tables from ${element.databaseName}: ${msg}`);
       vscode.window.showErrorMessage(
         `[Kuskus] Failed to load tables from ${element.databaseName}: ${msg}`,
@@ -302,8 +300,7 @@ export class ClusterViewProvider
             ),
           ];
     } catch (error) {
-      const msg =
-        error instanceof Error ? error.message : "Unknown error";
+      const msg = error instanceof Error ? error.message : "Unknown error";
       logError(`Failed to load functions from ${element.databaseName}: ${msg}`);
       vscode.window.showErrorMessage(
         `[Kuskus] Failed to load functions from ${element.databaseName}: ${msg}`,
@@ -352,8 +349,7 @@ export class ClusterViewProvider
       }
       return items;
     } catch (error) {
-      const msg =
-        error instanceof Error ? error.message : "Unknown error";
+      const msg = error instanceof Error ? error.message : "Unknown error";
       logError(`Failed to load columns for ${element.label}: ${msg}`);
       vscode.window.showErrorMessage(
         `[Kuskus] Failed to load columns for ${element.label}: ${msg}`,

@@ -33,7 +33,7 @@
     ],
     "activationEvents": [
         "onLanguage:kusto",
-        "onCommand:kuskus.loadSymbols",
+        "onCommand:kuskus.addConnection",
         "onCommand:kuskus.login"
     ],
     "main": "./client/out/extension.js",
@@ -67,16 +67,18 @@
         },
         "commands": [
             {
-                "command": "kuskus.loadSymbols",
-                "title": "[Kuskus] Load Symbols from Cluster"
+                "command": "kuskus.addConnection",
+                "title": "[Kuskus] Add Connection",
+                "icon": "$(add)"
             },
             {
                 "command": "kuskus.login",
-                "title": "[Kuskus] Login to Cluster"
+                "title": "[Kuskus] Login"
             },
             {
                 "command": "kuskus.runScript",
-                "title": "[Kuskus] Run Script"
+                "title": "[Kuskus] Run Script",
+                "icon": "$(play)"
             },
             {
                 "command": "kuskus.setActiveDatabase",
@@ -94,6 +96,20 @@
             }
         ],
         "menus": {
+            "view/title": [
+                {
+                    "command": "kuskus.addConnection",
+                    "when": "view == kuskus-clusters",
+                    "group": "navigation"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "kuskus.runScript",
+                    "when": "editorLangId == kusto && kuskus.hasActiveDatabase",
+                    "group": "navigation"
+                }
+            ],
             "view/item/context": [
                 {
                     "command": "kuskus.setActiveDatabase",
@@ -198,6 +214,25 @@
                     "required": ["tableName"]
                 },
                 "when": "kuskus.hasActiveDatabase"
+            },
+            {
+                "name": "search_query_results",
+                "displayName": "Search Kusto query results",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-search-query-results",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "Search the most recent Kusto query results",
+                "modelDescription": "Search the most recent Kusto query results using a case-insensitive text filter. This searches across all column values in the result set without making a new query to the cluster. Input should be a JSON object with a 'searchText' property. Output is a JSON object with 'columns' (array of column name/type objects), 'rows' (matching rows), 'matchCount', 'totalRows', and 'searchText'. Returns an error if no query has been run yet. Use this to explore or filter results that were returned by the run_kusto_query tool or by the user pressing Shift+Enter.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "searchText": {
+                            "type": "string",
+                            "description": "The text to search for across all columns (case-insensitive substring match)"
+                        }
+                    },
+                    "required": ["searchText"]
+                }
             }
         ],
         "viewsContainers": {

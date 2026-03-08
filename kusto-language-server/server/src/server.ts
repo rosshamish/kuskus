@@ -1,5 +1,5 @@
-import "../node_modules/@kusto/language-service-next/bridge";
-import "../node_modules/@kusto/language-service-next/Kusto.Language.Bridge";
+import "../node_modules/@kusto/language-service-next/bridge.js";
+import "../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.js";
 
 import {
   createConnection,
@@ -111,7 +111,7 @@ connection.onRequest(
 );
 
 connection.onRequest(
-  "kuskus.loadSymbols",
+  "kuskus.addConnection",
   async ({
     clusterUri,
     tenantId,
@@ -125,7 +125,7 @@ connection.onRequest(
       clusterUri,
       tenantId,
       (tokenResponse: TokenResponse) => {
-        connection.sendRequest("kuskus.loadSymbols.auth", {
+        connection.sendRequest("kuskus.addConnection.auth", {
           clusterUri,
           tenantId,
           database,
@@ -137,12 +137,12 @@ connection.onRequest(
 
     try {
       kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
-      connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
+      connection.sendNotification("kuskus.addConnection.auth.complete.success", {
         clusterUri,
         tenantId,
         database,
       });
-      connection.sendNotification("kuskus.loadSymbols.success", {
+      connection.sendNotification("kuskus.addConnection.success", {
         clusterUri,
         database,
       });
@@ -158,7 +158,7 @@ connection.onRequest(
       } else if (typeof e === "string") {
         errorMessage = e;
       }
-      connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+      connection.sendNotification("kuskus.addConnection.auth.complete.error", {
         clusterUri,
         tenantId,
         database,
@@ -174,7 +174,7 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
   ({ clusterUri, kustoClient } = getFirstOrDefaultClient());
 
   if (!kustoGlobalState || !kustoGlobalState.Database) {
-    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+    connection.sendNotification("kuskus.addConnection.auth.complete.error", {
       clusterUri,
       database: "",
       errorMessage: "No database",
@@ -185,7 +185,7 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
   const database = kustoGlobalState.Database.Name;
 
   if (!database) {
-    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+    connection.sendNotification("kuskus.addConnection.auth.complete.error", {
       clusterUri,
       database,
       errorMessage: "No database name",
@@ -200,11 +200,11 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
       tableName,
       kustoGlobalState,
     );
-    connection.sendNotification("kuskus.loadSymbols.auth.complete.success", {
+    connection.sendNotification("kuskus.addConnection.auth.complete.success", {
       clusterUri,
       database,
     });
-    connection.sendNotification("kuskus.loadSymbols.success", {
+    connection.sendNotification("kuskus.addConnection.success", {
       clusterUri,
       database,
     });
@@ -220,13 +220,52 @@ connection.onRequest("kuskus.loadTable", async (tableName: string) => {
     } else if (typeof e === "string") {
       errorMessage = e;
     }
-    connection.sendNotification("kuskus.loadSymbols.auth.complete.error", {
+    connection.sendNotification("kuskus.addConnection.auth.complete.error", {
       clusterUri,
       database,
       errorMessage,
     });
   }
 });
+
+// Handle active database change from the client.
+// Loads symbols (tables, functions, columns) so completion, hover, etc. work.
+connection.onNotification(
+  "kuskus.setActiveDatabase",
+  async ({
+    clusterUri,
+    databaseName,
+    accessToken,
+  }: {
+    clusterUri: string;
+    databaseName: string;
+    accessToken: string;
+  }) => {
+    try {
+      connection.console.log(
+        `Loading symbols for ${clusterUri}/${databaseName}...`,
+      );
+      const kustoClient = await newGetClient(clusterUri, accessToken);
+      const newState = await getSymbolsOnCluster(kustoClient, databaseName);
+      if (newState) {
+        kustoGlobalState = newState;
+        kustoCodeScripts.forEach((value, key) => {
+          if (value) {
+            kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+          }
+        });
+        connection.console.log(
+          `Symbols loaded for ${clusterUri}/${databaseName}`,
+        );
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      connection.console.error(
+        `Failed to load symbols for ${clusterUri}/${databaseName}: ${msg}`,
+      );
+    }
+  },
+);
 
 // The example settings
 interface Settings {

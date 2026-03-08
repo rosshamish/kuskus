@@ -1,29 +1,7 @@
 import * as vscode from "vscode";
+import { formatActiveDatabaseStatusBarText } from "./activeDatabaseLabel.js";
 
 let statusBarItem: vscode.StatusBarItem | undefined;
-
-/**
- * Extracts a short cluster name from a full cluster URI.
- * e.g. "https://help.kusto.windows.net" → "help"
- */
-export function getClusterShortName(clusterUri: string): string {
-  try {
-    const url = new URL(clusterUri);
-    return url.hostname.split(".")[0];
-  } catch {
-    return clusterUri;
-  }
-}
-
-/**
- * Formats the status bar text for the active database.
- */
-export function formatStatusBarText(
-  clusterUri: string,
-  databaseName: string,
-): string {
-  return `$(database) ${getClusterShortName(clusterUri)}/${databaseName}`;
-}
 
 /**
  * Creates and returns the status bar item. Call once during activation.
@@ -50,7 +28,10 @@ export function updateStatusBar(
   }
 
   if (clusterUri && databaseName) {
-    statusBarItem.text = formatStatusBarText(clusterUri, databaseName);
+    statusBarItem.text = formatActiveDatabaseStatusBarText(
+      clusterUri,
+      databaseName,
+    );
     statusBarItem.show();
   } else {
     statusBarItem.hide();

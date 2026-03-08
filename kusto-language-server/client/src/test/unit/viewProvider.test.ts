@@ -63,7 +63,10 @@ vi.mock("../../logger.js", () => ({
   logError: vi.fn(),
 }));
 
-import { ClusterViewProvider, KustoSchemaItem } from "../../cluster-view/viewProvider.js";
+import {
+  ClusterViewProvider,
+  KustoSchemaItem,
+} from "../../cluster-view/viewProvider.js";
 import * as vscode from "vscode";
 
 describe("ClusterViewProvider", () => {
@@ -110,7 +113,9 @@ describe("ClusterViewProvider", () => {
     });
 
     it("should not throw when removing a cluster that does not exist", () => {
-      expect(() => provider.removeCluster("https://nonexistent.kusto.windows.net")).not.toThrow();
+      expect(() =>
+        provider.removeCluster("https://nonexistent.kusto.windows.net"),
+      ).not.toThrow();
       expect(mockClose).not.toHaveBeenCalled();
     });
 
@@ -125,9 +130,7 @@ describe("ClusterViewProvider", () => {
       provider.addCluster("https://test.kusto.windows.net", "token");
       provider.setActiveDatabase("https://test.kusto.windows.net", "mydb");
 
-      expect(provider.activeClusterUri).toBe(
-        "https://test.kusto.windows.net",
-      );
+      expect(provider.activeClusterUri).toBe("https://test.kusto.windows.net");
       expect(provider.activeDatabaseName).toBe("mydb");
 
       provider.removeCluster("https://test.kusto.windows.net");
@@ -154,9 +157,7 @@ describe("ClusterViewProvider", () => {
     it("should set the active cluster and database", () => {
       provider.setActiveDatabase("https://test.kusto.windows.net", "mydb");
 
-      expect(provider.activeClusterUri).toBe(
-        "https://test.kusto.windows.net",
-      );
+      expect(provider.activeClusterUri).toBe("https://test.kusto.windows.net");
       expect(provider.activeDatabaseName).toBe("mydb");
     });
 
@@ -187,18 +188,24 @@ describe("ClusterViewProvider", () => {
 
   describe("getClient", () => {
     it("should return undefined for unknown cluster", () => {
-      expect(provider.getClient("https://unknown.kusto.windows.net")).toBeUndefined();
+      expect(
+        provider.getClient("https://unknown.kusto.windows.net"),
+      ).toBeUndefined();
     });
 
     it("should return the client for a connected cluster", () => {
       provider.addCluster("https://test.kusto.windows.net", "token");
-      expect(provider.getClient("https://test.kusto.windows.net")).toBeDefined();
+      expect(
+        provider.getClient("https://test.kusto.windows.net"),
+      ).toBeDefined();
     });
 
     it("should return undefined after cluster is removed", () => {
       provider.addCluster("https://test.kusto.windows.net", "token");
       provider.removeCluster("https://test.kusto.windows.net");
-      expect(provider.getClient("https://test.kusto.windows.net")).toBeUndefined();
+      expect(
+        provider.getClient("https://test.kusto.windows.net"),
+      ).toBeUndefined();
     });
   });
 

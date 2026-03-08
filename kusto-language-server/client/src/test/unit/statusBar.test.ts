@@ -15,67 +15,51 @@ vi.mock("vscode", () => {
   };
 });
 
-import {
-  getClusterShortName,
-  formatStatusBarText,
-  createStatusBarItem,
-  updateStatusBar,
-} from "../../statusBar.js";
+import * as vscode from "vscode";
+
+import { formatActiveDatabaseStatusBarText } from "../../activeDatabaseLabel.js";
+import { createStatusBarItem, updateStatusBar } from "../../statusBar.js";
+
+function getStatusBarItem() {
+  return vi.mocked(vscode.window.createStatusBarItem).mock.results.at(-1)
+    ?.value;
+}
 
 describe("statusBar", () => {
-  describe("getClusterShortName", () => {
-    it("should extract hostname prefix from a standard Kusto URI", () => {
-      expect(getClusterShortName("https://help.kusto.windows.net")).toBe(
-        "help",
-      );
-    });
-
-    it("should extract hostname prefix from a custom cluster URI", () => {
-      expect(
-        getClusterShortName("https://mycluster.eastus.kusto.windows.net"),
-      ).toBe("mycluster");
-    });
-
-    it("should return the original string for an invalid URL", () => {
-      expect(getClusterShortName("not-a-url")).toBe("not-a-url");
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    createStatusBarItem();
   });
 
-  describe("formatStatusBarText", () => {
-    it("should format as clusterShort/database with database icon", () => {
-      const text = formatStatusBarText(
+  it("creates a status bar item and hides it initially", () => {
+    const item = getStatusBarItem();
+
+    expect(item).toBeDefined();
+    expect(item.hide).toHaveBeenCalled();
+  });
+
+  it("shows the status bar with formatted text when cluster and database are set", () => {
+    updateStatusBar("https://help.kusto.windows.net", "SampleLogs");
+
+    const item = getStatusBarItem();
+    expect(item.text).toBe(
+      formatActiveDatabaseStatusBarText(
         "https://help.kusto.windows.net",
         "SampleLogs",
-      );
-      expect(text).toBe("$(database) help/SampleLogs");
-    });
+      ),
+    );
+    expect(item.show).toHaveBeenCalled();
   });
 
-  describe("createStatusBarItem", () => {
-    it("should create a status bar item and hide it initially", () => {
-      const item = createStatusBarItem();
-      expect(item).toBeDefined();
-      expect(item.hide).toHaveBeenCalled();
-    });
+  it("hides the status bar when cluster is undefined", () => {
+    updateStatusBar(undefined, "SampleLogs");
+
+    expect(getStatusBarItem()?.hide).toHaveBeenCalled();
   });
 
-  describe("updateStatusBar", () => {
-    beforeEach(() => {
-      createStatusBarItem();
-    });
+  it("hides the status bar when database is undefined", () => {
+    updateStatusBar("https://help.kusto.windows.net", undefined);
 
-    it("should show the status bar with formatted text when cluster and database are set", () => {
-      updateStatusBar("https://help.kusto.windows.net", "SampleLogs");
-      // The item was created in beforeEach via createStatusBarItem
-      // We verify through the mock that show was called
-    });
-
-    it("should hide the status bar when cluster is undefined", () => {
-      updateStatusBar(undefined, "SampleLogs");
-    });
-
-    it("should hide the status bar when database is undefined", () => {
-      updateStatusBar("https://help.kusto.windows.net", undefined);
-    });
+    expect(getStatusBarItem()?.hide).toHaveBeenCalled();
   });
 });

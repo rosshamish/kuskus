@@ -3,6 +3,7 @@ import { Client as KustoClient } from "azure-kusto-data";
 import { runQuery, type ResultColumn } from "./queryRunner.js";
 import { log, logError } from "./logger.js";
 import { KustoQueryContentProvider } from "./queryDocumentProvider.js";
+import type { StoredQueryResults } from "./queryResultsStore.js";
 
 export interface IRunKustoQueryParameters {
   query: string;
@@ -16,6 +17,10 @@ export interface IGetTableSchemaParameters {
   tableName: string;
 }
 
+export interface ISearchQueryResultsParameters {
+  searchText: string;
+}
+
 export interface ClusterConnectionAccessor {
   getActiveClient(): KustoClient | undefined;
   getClient(clusterUri: string): KustoClient | undefined;
@@ -25,10 +30,12 @@ export interface ClusterConnectionAccessor {
 }
 
 export interface ResultsDisplayAccessor {
-  showResults(
-    columns: ResultColumn[],
-    rows: Record<string, unknown>[],
-  ): void;
+  showResults(columns: ResultColumn[], rows: Record<string, unknown>[]): void;
+}
+
+export interface QueryResultsStoreAccessor {
+  setResults(columns: ResultColumn[], rows: Record<string, unknown>[]): void;
+  getResults(): StoredQueryResults | undefined;
 }
 
 const MAX_RESULT_ROWS = 500;
@@ -40,6 +47,7 @@ export class RunKustoQueryTool
     private readonly connection: ClusterConnectionAccessor,
     private readonly resultsDisplay: ResultsDisplayAccessor,
     private readonly queryDocProvider: KustoQueryContentProvider,
+    private readonly resultsStore?: QueryResultsStoreAccessor,
   ) {}
 
   async prepareInvocation(
@@ -95,6 +103,9 @@ export class RunKustoQueryTool
 
     // Show results in the Results panel
     this.resultsDisplay.showResults(result.columns, result.rows);
+
+    // Store results for downstream tools (e.g. search_query_results)
+    this.resultsStore?.setResults(result.columns, result.rows);
 
     const truncated = result.rowCount > MAX_RESULT_ROWS;
     const rows = truncated
@@ -188,7 +199,9 @@ export class ListTablesTool
   constructor(private readonly connection: ClusterConnectionAccessor) {}
 
   async prepareInvocation(
-    _options: vscode.LanguageModelToolInvocationPrepareOptions<Record<string, never>>,
+    _options: vscode.LanguageModelToolInvocationPrepareOptions<
+      Record<string, never>
+    >,
     _token: vscode.CancellationToken,
   ) {
     const db = this.connection.activeDatabaseName ?? "unknown";
@@ -282,10 +295,7 @@ export class GetTableSchemaTool
     const { tableName } = options.input;
     log(`[LM Tool] Getting schema for table ${tableName} in ${database}`);
 
-    const result = await client.execute(
-      database,
-      `.show table ${tableName}`,
-    );
+    const result = await client.execute(database, `.show table ${tableName}`);
 
     if (result.primaryResults.length === 0) {
       return new vscode.LanguageModelToolResult([
@@ -302,12 +312,72 @@ export class GetTableSchemaTool
       });
     }
 
-    log(
-      `[LM Tool] Table ${tableName} has ${columns.length} column(s)`,
-    );
+    log(`[LM Tool] Table ${tableName} has ${columns.length} column(s)`);
 
     return new vscode.LanguageModelToolResult([
       new vscode.LanguageModelTextPart(JSON.stringify(columns)),
+    ]);
+  }
+}
+
+export class SearchQueryResultsTool
+  implements vscode.LanguageModelTool<ISearchQueryResultsParameters>
+{
+  constructor(private readonly resultsStore: QueryResultsStoreAccessor) {}
+
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<ISearchQueryResultsParameters>,
+    _token: vscode.CancellationToken,
+  ) {
+    return {
+      invocationMessage: `Searching query results for "${options.input.searchText}"`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<ISearchQueryResultsParameters>,
+    _token: vscode.CancellationToken,
+  ): Promise<vscode.LanguageModelToolResult> {
+    const stored = this.resultsStore.getResults();
+    if (!stored) {
+      throw new Error(
+        "No query results are available to search. Ask the user to run a Kusto query first using the run_kusto_query tool or by pressing Shift+Enter in a .kusto file.",
+      );
+    }
+
+    const searchText = options.input.searchText.toLowerCase();
+    log(
+      `[LM Tool] Searching ${stored.rows.length} row(s) for "${options.input.searchText}"`,
+    );
+
+    const matchedRows = stored.rows.filter((row) =>
+      stored.columns.some((col) => {
+        const val = row[col.name];
+        return val != null && String(val).toLowerCase().includes(searchText);
+      }),
+    );
+
+    const truncated = matchedRows.length > MAX_RESULT_ROWS;
+    const rows = truncated
+      ? matchedRows.slice(0, MAX_RESULT_ROWS)
+      : matchedRows;
+
+    log(`[LM Tool] Search matched ${matchedRows.length} row(s)`);
+
+    const payload = {
+      columns: stored.columns,
+      rows,
+      matchCount: matchedRows.length,
+      totalRows: stored.rows.length,
+      searchText: options.input.searchText,
+      ...(truncated && {
+        truncated: true,
+        note: `Results truncated to first ${MAX_RESULT_ROWS} of ${matchedRows.length} matching rows.`,
+      }),
+    };
+
+    return new vscode.LanguageModelToolResult([
+      new vscode.LanguageModelTextPart(JSON.stringify(payload)),
     ]);
   }
 }

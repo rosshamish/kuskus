@@ -28,6 +28,12 @@ import {
   ClusterViewProvider,
   KustoSchemaItem,
 } from "./cluster-view/viewProvider.js";
+import {
+  ActiveDatabaseCodeLensProvider,
+  activeDatabaseCodeLensCommand,
+  activeDatabaseCodeLensDocumentSelector,
+  shouldShowActiveDatabaseStatusBar,
+} from "./activeDatabaseCodeLens.js";
 import { createStatusBarItem, updateStatusBar } from "./statusBar.js";
 import { runQuery, getQueryText } from "./queryRunner.js";
 import { ResultsPanelProvider } from "./resultsPanel.js";
@@ -36,8 +42,10 @@ import {
   ListDatabasesTool,
   ListTablesTool,
   GetTableSchemaTool,
+  SearchQueryResultsTool,
 } from "./chatTool.js";
 import { KustoQueryContentProvider } from "./queryDocumentProvider.js";
+import { QueryResultsStore } from "./queryResultsStore.js";
 import {
   loadPersistedState,
   saveClusterUris,
@@ -50,6 +58,7 @@ let client: LanguageClient;
 let microsoftAccessToken: string | undefined; // stored access token
 let clusterViewProvider: ClusterViewProvider;
 let resultsPanelProvider: ResultsPanelProvider;
+let queryResultsStore: QueryResultsStore;
 const clusterUris: Set<string> = new Set<string>();
 
 export async function activate(context: ExtensionContext) {
@@ -82,7 +91,10 @@ export async function activate(context: ExtensionContext) {
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
     // Register the server for kusto documents
-    documentSelector: [{ scheme: "file", language: "kusto" }],
+    documentSelector: [
+      { scheme: "file", language: "kusto" },
+      { scheme: "untitled", language: "kusto" },
+    ],
     synchronize: {
       // Notify the server about file changes to '.clientrc files contained in the workspace
       fileEvents: workspace.createFileSystemWatcher("**/.clientrc"),
@@ -96,8 +108,8 @@ export async function activate(context: ExtensionContext) {
     serverOptions,
     clientOptions,
   );
-  // Start the client. This will also launch the server`
-  // client.start();
+  // Start the client. This will also launch the server
+  client.start();
 
   client.onDidChangeState((listener) => {
     if (listener.newState == State.Running) {
@@ -105,7 +117,7 @@ export async function activate(context: ExtensionContext) {
       log("Language server started");
 
       client.onRequest(
-        "kuskus.loadSymbols.auth",
+        "kuskus.addConnection.auth",
         ({
           // TODO: use in future
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -126,7 +138,7 @@ export async function activate(context: ExtensionContext) {
           verificationCode: string;
         }) => {
           // window.showInformationMessage(
-          //   `[kuskus.loadSymbols.auth] cluster ${clusterUri} database ${database} verificationUrl ${verificationUrl} verificationCode ${verificationCode}`,
+          //   `[kuskus.addConnection.auth] cluster ${clusterUri} database ${database} verificationUrl ${verificationUrl} verificationCode ${verificationCode}`,
           // );
           let clipboardWriteSucceeded = false;
           try {
@@ -157,7 +169,7 @@ export async function activate(context: ExtensionContext) {
       );
 
       client.onNotification(
-        "kuskus.loadSymbols.auth.complete.success",
+        "kuskus.addConnection.auth.complete.success",
         ({
           clusterUri,
           tenantId,
@@ -175,7 +187,7 @@ export async function activate(context: ExtensionContext) {
       );
 
       client.onNotification(
-        "kuskus.loadSymbols.auth.complete.error",
+        "kuskus.addConnection.auth.complete.error",
         ({
           clusterUri,
           tenantId,
@@ -197,7 +209,7 @@ export async function activate(context: ExtensionContext) {
       );
 
       client.onNotification(
-        "kuskus.loadSymbols.success",
+        "kuskus.addConnection.success",
         ({
           clusterUri,
           tenantId,
@@ -219,7 +231,59 @@ export async function activate(context: ExtensionContext) {
   clusterViewProvider = new ClusterViewProvider();
   window.registerTreeDataProvider("kuskus-clusters", clusterViewProvider);
 
+  const statusBar = createStatusBarItem();
+  const activeDatabaseCodeLensProvider = new ActiveDatabaseCodeLensProvider(
+    () => ({
+      clusterUri: clusterViewProvider.activeClusterUri,
+      databaseName: clusterViewProvider.activeDatabaseName,
+    }),
+  );
+
+  const refreshActiveDatabaseUi = () => {
+    activeDatabaseCodeLensProvider.refresh();
+
+    if (
+      shouldShowActiveDatabaseStatusBar(
+        window.visibleTextEditors,
+        clusterViewProvider.activeClusterUri,
+        clusterViewProvider.activeDatabaseName,
+      )
+    ) {
+      updateStatusBar(
+        clusterViewProvider.activeClusterUri,
+        clusterViewProvider.activeDatabaseName,
+      );
+      return;
+    }
+
+    updateStatusBar(undefined, undefined);
+  };
+
+  context.subscriptions.push(
+    statusBar,
+    activeDatabaseCodeLensProvider,
+    commands.registerCommand(activeDatabaseCodeLensCommand, async () => {
+      await commands.executeCommand("workbench.view.extension.kuskus-explorer");
+    }),
+    vscode.languages.registerCodeLensProvider(
+      activeDatabaseCodeLensDocumentSelector,
+      activeDatabaseCodeLensProvider,
+    ),
+    window.onDidChangeActiveTextEditor(() => {
+      refreshActiveDatabaseUi();
+    }),
+    window.onDidChangeVisibleTextEditors(() => {
+      refreshActiveDatabaseUi();
+    }),
+    workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration("editor.codeLens")) {
+        refreshActiveDatabaseUi();
+      }
+    }),
+  );
+
   resultsPanelProvider = new ResultsPanelProvider();
+  queryResultsStore = new QueryResultsStore();
   context.subscriptions.push(
     window.registerWebviewViewProvider(
       ResultsPanelProvider.viewType,
@@ -244,6 +308,7 @@ export async function activate(context: ExtensionContext) {
         clusterViewProvider,
         resultsPanelProvider,
         queryDocProvider,
+        queryResultsStore,
       ),
     ),
   );
@@ -269,6 +334,14 @@ export async function activate(context: ExtensionContext) {
     vscode.lm.registerTool(
       "get_table_schema",
       new GetTableSchemaTool(clusterViewProvider),
+    ),
+  );
+
+  // Register the search_query_results Language Model Tool for AI chat
+  context.subscriptions.push(
+    vscode.lm.registerTool(
+      "search_query_results",
+      new SearchQueryResultsTool(queryResultsStore),
     ),
   );
 
@@ -299,21 +372,25 @@ export async function activate(context: ExtensionContext) {
           persistedState.activeClusterUri,
           persistedState.activeDatabaseName,
         );
-        updateStatusBar(
-          persistedState.activeClusterUri,
-          persistedState.activeDatabaseName,
-        );
         await commands.executeCommand(
           "setContext",
           "kuskus.hasActiveDatabase",
           true,
         );
+        refreshActiveDatabaseUi();
+
+        // Tell the language server to load symbols for completions
+        client.sendNotification("kuskus.setActiveDatabase", {
+          clusterUri: persistedState.activeClusterUri,
+          databaseName: persistedState.activeDatabaseName,
+          accessToken: microsoftAccessToken,
+        });
       }
     }
   }
 
   context.subscriptions.push(
-    commands.registerCommand("kuskus.loadSymbols", async () => {
+    commands.registerCommand("kuskus.addConnection", async () => {
       if (!microsoftAccessToken) {
         await login();
       }
@@ -377,7 +454,6 @@ export async function activate(context: ExtensionContext) {
             item.clusterUri,
             item.databaseName,
           );
-          updateStatusBar(item.clusterUri, item.databaseName);
           await saveActiveDatabase(
             context.globalState,
             item.clusterUri,
@@ -388,10 +464,20 @@ export async function activate(context: ExtensionContext) {
             "kuskus.hasActiveDatabase",
             true,
           );
+          refreshActiveDatabaseUi();
           window.showInformationMessage(
             `[Kuskus] Active database set to ${item.databaseName}`,
           );
           log(`Active database set: ${item.clusterUri}/${item.databaseName}`);
+
+          // Tell the language server to load symbols for completions
+          if (microsoftAccessToken) {
+            client.sendNotification("kuskus.setActiveDatabase", {
+              clusterUri: item.clusterUri,
+              databaseName: item.databaseName,
+              accessToken: microsoftAccessToken,
+            });
+          }
         }
       },
     ),
@@ -486,12 +572,12 @@ export async function activate(context: ExtensionContext) {
 
         if (wasActive) {
           await saveActiveDatabase(context.globalState, undefined, undefined);
-          updateStatusBar(undefined, undefined);
           await commands.executeCommand(
             "setContext",
             "kuskus.hasActiveDatabase",
             false,
           );
+          refreshActiveDatabaseUi();
         }
 
         if (clusterViewProvider.getConnectedClusterUris().length === 0) {
@@ -504,9 +590,6 @@ export async function activate(context: ExtensionContext) {
       },
     ),
   );
-
-  const statusBar = createStatusBarItem();
-  context.subscriptions.push(statusBar);
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -613,6 +696,7 @@ async function runScriptHandler() {
   if (result.success) {
     log(`Query completed: ${result.rowCount} row(s) returned`);
     resultsPanelProvider.showResults(result.columns, result.rows);
+    queryResultsStore.setResults(result.columns, result.rows);
     window.showInformationMessage(
       `[Kuskus] Query completed. ${result.rowCount} row(s) returned.`,
     );

@@ -26,7 +26,7 @@
     "azure-kusto-data": "^7.0.4",
     "clipboardy": "^4.0.0",
     "open": "^10.2.0",
-    "vscode-languageclient": "^10.0.0-next.20"
+    "vscode-languageclient": "^10.0.0-next.21"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

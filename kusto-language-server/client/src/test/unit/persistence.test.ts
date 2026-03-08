@@ -61,18 +61,14 @@ describe("persistence", () => {
 
       const state = loadPersistedState(memento);
 
-      expect(state.activeClusterUri).toBe(
-        "https://help.kusto.windows.net",
-      );
+      expect(state.activeClusterUri).toBe("https://help.kusto.windows.net");
       expect(state.activeDatabaseName).toBe("SampleLogs");
     });
   });
 
   describe("saveClusterUris", () => {
     it("should persist cluster URIs", async () => {
-      await saveClusterUris(memento, [
-        "https://cluster1.kusto.windows.net",
-      ]);
+      await saveClusterUris(memento, ["https://cluster1.kusto.windows.net"]);
 
       expect(memento.update).toHaveBeenCalledWith("kuskus.clusterUris", [
         "https://cluster1.kusto.windows.net",
@@ -82,10 +78,7 @@ describe("persistence", () => {
     it("should persist an empty array", async () => {
       await saveClusterUris(memento, []);
 
-      expect(memento.update).toHaveBeenCalledWith(
-        "kuskus.clusterUris",
-        [],
-      );
+      expect(memento.update).toHaveBeenCalledWith("kuskus.clusterUris", []);
     });
   });
 

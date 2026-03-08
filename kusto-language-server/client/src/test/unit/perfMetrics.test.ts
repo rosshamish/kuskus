@@ -78,11 +78,9 @@ describe("perfMetrics", () => {
     });
 
     it("should include metadata when provided", async () => {
-      const { metric } = await trackAsync(
-        "test.async",
-        async () => {},
-        { foo: "bar" },
-      );
+      const { metric } = await trackAsync("test.async", async () => {}, {
+        foo: "bar",
+      });
       expect(metric.metadata).toEqual({ foo: "bar" });
     });
 

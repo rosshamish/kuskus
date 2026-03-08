@@ -48,9 +48,14 @@ export async function runQuery(
 
     return { rowCount: rows.length, success: true, columns, rows };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error";
-    return { rowCount: 0, success: false, error: message, columns: [], rows: [] };
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return {
+      rowCount: 0,
+      success: false,
+      error: message,
+      columns: [],
+      rows: [],
+    };
   }
 }
 

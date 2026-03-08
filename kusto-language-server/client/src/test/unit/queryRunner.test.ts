@@ -40,8 +40,11 @@ describe("queryRunner", () => {
         ],
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await runQuery(mockClient as any, "mydb", "People | take 2");
+      const result = await runQuery(
+        mockClient as any,
+        "mydb",
+        "People | take 2",
+      );
 
       expect(result.success).toBe(true);
       expect(result.rowCount).toBe(2);

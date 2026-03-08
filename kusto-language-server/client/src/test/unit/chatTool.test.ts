@@ -70,8 +70,10 @@ import {
   ListDatabasesTool,
   ListTablesTool,
   GetTableSchemaTool,
+  SearchQueryResultsTool,
   type ClusterConnectionAccessor,
   type ResultsDisplayAccessor,
+  type QueryResultsStoreAccessor,
 } from "../../chatTool.js";
 import { KustoQueryContentProvider } from "../../queryDocumentProvider.js";
 import { type CancellationToken } from "vscode";
@@ -96,6 +98,15 @@ function makeResultsDisplay(): ResultsDisplayAccessor {
 
 function makeQueryDocProvider(): KustoQueryContentProvider {
   return new KustoQueryContentProvider();
+}
+
+function makeResultsStore(
+  overrides: Partial<QueryResultsStoreAccessor> = {},
+): QueryResultsStoreAccessor {
+  return {
+    setResults: overrides.setResults ?? vi.fn(),
+    getResults: overrides.getResults ?? (() => undefined),
+  };
 }
 
 describe("RunKustoQueryTool", () => {
@@ -266,9 +277,7 @@ describe("RunKustoQueryTool", () => {
 
     it("should throw when query fails", async () => {
       const mockClient = {
-        execute: vi
-          .fn()
-          .mockRejectedValue(new Error("Syntax error in query")),
+        execute: vi.fn().mockRejectedValue(new Error("Syntax error in query")),
       };
 
       const connection = makeConnection({
@@ -283,10 +292,7 @@ describe("RunKustoQueryTool", () => {
       );
 
       await expect(
-        tool.invoke(
-          { input: { query: "bad query" } } as never,
-          dummyToken,
-        ),
+        tool.invoke({ input: { query: "bad query" } } as never, dummyToken),
       ).rejects.toThrow("Kusto query failed: Syntax error in query");
     });
 
@@ -352,7 +358,9 @@ describe("ListDatabasesTool", () => {
       const tool = new ListDatabasesTool(connection);
 
       const result = await tool.prepareInvocation(
-        { input: { clusterUri: "https://mycluster.kusto.windows.net" } } as never,
+        {
+          input: { clusterUri: "https://mycluster.kusto.windows.net" },
+        } as never,
         dummyToken,
       );
 
@@ -405,9 +413,7 @@ describe("ListDatabasesTool", () => {
 
     it("should throw when cluster is not connected", async () => {
       const connection = makeConnection({
-        getConnectedClusterUris: () => [
-          "https://other.kusto.windows.net",
-        ],
+        getConnectedClusterUris: () => ["https://other.kusto.windows.net"],
       });
       const tool = new ListDatabasesTool(connection);
 
@@ -649,7 +655,10 @@ describe("GetTableSchemaTool", () => {
               rows: function* () {
                 yield { AttributeName: "StartTime", AttributeType: "datetime" };
                 yield { AttributeName: "State", AttributeType: "string" };
-                yield { AttributeName: "DamageProperty", AttributeType: "long" };
+                yield {
+                  AttributeName: "DamageProperty",
+                  AttributeType: "long",
+                };
               },
             },
           ],
@@ -749,5 +758,234 @@ describe("GetTableSchemaTool", () => {
       );
       expect(parsed).toEqual([]);
     });
+  });
+});
+
+describe("SearchQueryResultsTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const sampleColumns = [
+    { name: "Name", type: "string" },
+    { name: "Count", type: "long" },
+  ];
+  const sampleRows = [
+    { Name: "Alice", Count: 10 },
+    { Name: "Bob", Count: 20 },
+    { Name: "Charlie", Count: 30 },
+  ];
+
+  describe("prepareInvocation", () => {
+    it("should return invocation message with search text", async () => {
+      const store = makeResultsStore();
+      const tool = new SearchQueryResultsTool(store);
+
+      const result = await tool.prepareInvocation(
+        { input: { searchText: "alice" } } as never,
+        dummyToken,
+      );
+
+      expect(result!.invocationMessage).toContain("alice");
+    });
+  });
+
+  describe("invoke", () => {
+    it("should throw when no results are stored", async () => {
+      const store = makeResultsStore({ getResults: () => undefined });
+      const tool = new SearchQueryResultsTool(store);
+
+      await expect(
+        tool.invoke({ input: { searchText: "test" } } as never, dummyToken),
+      ).rejects.toThrow("No query results are available to search");
+    });
+
+    it("should find matching rows with case-insensitive search", async () => {
+      const store = makeResultsStore({
+        getResults: () => ({ columns: sampleColumns, rows: sampleRows }),
+      });
+      const tool = new SearchQueryResultsTool(store);
+
+      const result = await tool.invoke(
+        { input: { searchText: "alice" } } as never,
+        dummyToken,
+      );
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed.matchCount).toBe(1);
+      expect(parsed.totalRows).toBe(3);
+      expect(parsed.rows).toEqual([{ Name: "Alice", Count: 10 }]);
+      expect(parsed.columns).toEqual(sampleColumns);
+      expect(parsed.searchText).toBe("alice");
+    });
+
+    it("should match across multiple columns", async () => {
+      const store = makeResultsStore({
+        getResults: () => ({ columns: sampleColumns, rows: sampleRows }),
+      });
+      const tool = new SearchQueryResultsTool(store);
+
+      const result = await tool.invoke(
+        { input: { searchText: "20" } } as never,
+        dummyToken,
+      );
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed.matchCount).toBe(1);
+      expect(parsed.rows).toEqual([{ Name: "Bob", Count: 20 }]);
+    });
+
+    it("should return empty results when search text not found", async () => {
+      const store = makeResultsStore({
+        getResults: () => ({ columns: sampleColumns, rows: sampleRows }),
+      });
+      const tool = new SearchQueryResultsTool(store);
+
+      const result = await tool.invoke(
+        { input: { searchText: "nonexistent" } } as never,
+        dummyToken,
+      );
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed.matchCount).toBe(0);
+      expect(parsed.totalRows).toBe(3);
+      expect(parsed.rows).toEqual([]);
+      expect(parsed.columns).toEqual(sampleColumns);
+    });
+
+    it("should handle null and undefined cell values gracefully", async () => {
+      const rows = [
+        { Name: null, Count: 10 },
+        { Name: "Alice", Count: undefined },
+        { Name: "Bob", Count: 20 },
+      ];
+      const store = makeResultsStore({
+        getResults: () => ({
+          columns: sampleColumns,
+          rows: rows as unknown as Record<string, unknown>[],
+        }),
+      });
+      const tool = new SearchQueryResultsTool(store);
+
+      const result = await tool.invoke(
+        { input: { searchText: "bob" } } as never,
+        dummyToken,
+      );
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed.matchCount).toBe(1);
+      expect(parsed.rows).toEqual([{ Name: "Bob", Count: 20 }]);
+    });
+
+    it("should truncate results beyond 500 rows", async () => {
+      const largeRows = Array.from({ length: 600 }, (_, i) => ({
+        Name: `match-${i}`,
+        Count: i,
+      }));
+      const store = makeResultsStore({
+        getResults: () => ({ columns: sampleColumns, rows: largeRows }),
+      });
+      const tool = new SearchQueryResultsTool(store);
+
+      const result = await tool.invoke(
+        { input: { searchText: "match" } } as never,
+        dummyToken,
+      );
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed.matchCount).toBe(600);
+      expect(parsed.rows).toHaveLength(500);
+      expect(parsed.truncated).toBe(true);
+      expect(parsed.note).toContain("500");
+      expect(parsed.note).toContain("600");
+    });
+
+    it("should return all column metadata with matches", async () => {
+      const columns = [
+        { name: "Id", type: "long" },
+        { name: "Description", type: "string" },
+        { name: "Timestamp", type: "datetime" },
+      ];
+      const rows = [
+        { Id: 1, Description: "Error occurred", Timestamp: "2024-01-01" },
+        { Id: 2, Description: "Success", Timestamp: "2024-01-02" },
+      ];
+      const store = makeResultsStore({
+        getResults: () => ({ columns, rows }),
+      });
+      const tool = new SearchQueryResultsTool(store);
+
+      const result = await tool.invoke(
+        { input: { searchText: "error" } } as never,
+        dummyToken,
+      );
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed.columns).toEqual(columns);
+      expect(parsed.matchCount).toBe(1);
+    });
+  });
+});
+
+describe("RunKustoQueryTool with results store", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should write results to the store on success", async () => {
+    const mockClient = {
+      execute: vi.fn().mockResolvedValue({
+        primaryResults: [
+          {
+            columns: [
+              { name: "Name", type: "string" },
+              { name: "Count", type: "long" },
+            ],
+            rows: function* () {
+              yield { Name: "Alice", Count: 10 };
+            },
+          },
+        ],
+      }),
+    };
+
+    const connection = makeConnection({
+      getActiveClient: () => mockClient as never,
+      activeDatabaseName: "testdb",
+      activeClusterUri: "https://test.kusto.windows.net",
+    });
+    const store = makeResultsStore();
+    const tool = new RunKustoQueryTool(
+      connection,
+      makeResultsDisplay(),
+      makeQueryDocProvider(),
+      store,
+    );
+
+    await tool.invoke(
+      { input: { query: "People | take 1" } } as never,
+      dummyToken,
+    );
+
+    expect(store.setResults).toHaveBeenCalledOnce();
+    expect(store.setResults).toHaveBeenCalledWith(
+      [
+        { name: "Name", type: "string" },
+        { name: "Count", type: "long" },
+      ],
+      [{ Name: "Alice", Count: 10 }],
+    );
   });
 });

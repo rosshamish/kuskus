@@ -21,12 +21,20 @@ vi.mock("fs", async () => {
     readFileSync: vi.fn((filePath: string, encoding: BufferEncoding) => {
       const filename = path.basename(filePath);
       if (filename === "results.css") {
-        const realPath = path.resolve(__dirname, "../../results-panel", filename);
+        const realPath = path.resolve(
+          __dirname,
+          "../../results-panel",
+          filename,
+        );
         return actual.readFileSync(realPath, encoding);
       }
       if (filename === "results.js") {
         // Read the compiled JS from out/results-panel
-        const realPath = path.resolve(__dirname, "../../../out/results-panel", filename);
+        const realPath = path.resolve(
+          __dirname,
+          "../../../out/results-panel",
+          filename,
+        );
         return actual.readFileSync(realPath, encoding);
       }
       return actual.readFileSync(filePath, encoding);
@@ -34,7 +42,10 @@ vi.mock("fs", async () => {
   };
 });
 
-import { generateResultsHtml, ResultsPanelProvider } from "../../resultsPanel.js";
+import {
+  generateResultsHtml,
+  ResultsPanelProvider,
+} from "../../resultsPanel.js";
 
 describe("resultsPanel", () => {
   describe("generateResultsHtml", () => {
@@ -58,10 +69,7 @@ describe("resultsPanel", () => {
     });
 
     it("should show empty message when no rows", () => {
-      const html = generateResultsHtml(
-        [{ name: "Col1", type: "string" }],
-        [],
-      );
+      const html = generateResultsHtml([{ name: "Col1", type: "string" }], []);
 
       expect(html).toContain("Query returned no results.");
       expect(html).toContain("0 row(s) × 1 column(s)");
@@ -75,7 +83,7 @@ describe("resultsPanel", () => {
       const html = generateResultsHtml(columns, rows);
 
       // Data is embedded as JSON, so angle brackets are escaped by JSON.stringify
-      expect(html).toContain("<script>");  // the main script block exists
+      expect(html).toContain("<script>"); // the main script block exists
       // The XSS payload should be JSON-encoded, not raw HTML
       expect(html).not.toContain('<script>alert("xss")</script>');
     });
