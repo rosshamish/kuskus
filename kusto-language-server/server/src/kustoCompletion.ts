@@ -18,10 +18,7 @@ export function getVSCodeCompletionItemsAtPosition(
   const vsCodeCompletionItems: CompletionItem[] = (Bridge as any)
     .toArray(completionItems)
     .map(
-      (
-        completionItem: Kusto.Language.Editor.CompletionItem,
-        index: number,
-      ) => {
+      (completionItem: Kusto.Language.Editor.CompletionItem, index: number) => {
         return {
           label: completionItem.DisplayText || "",
           kind: _getVSCodeCompletionItemKind(completionItem),

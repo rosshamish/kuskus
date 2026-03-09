@@ -102,17 +102,11 @@ describe("kustoConnection", () => {
     });
 
     it("should treat empty tenantId as undefined", async () => {
-      const { KustoConnectionStringBuilder } = await import(
-        "azure-kusto-data"
-      );
+      const { KustoConnectionStringBuilder } = await import("azure-kusto-data");
       const { getClient } = await import("../kustoConnection.js");
       const authCallback = vi.fn();
 
-      await getClient(
-        "https://test.kusto.windows.net",
-        "",
-        authCallback,
-      );
+      await getClient("https://test.kusto.windows.net", "", authCallback);
 
       expect(
         KustoConnectionStringBuilder.withAadDeviceAuthentication,
@@ -126,9 +120,7 @@ describe("kustoConnection", () => {
 
   describe("getFirstOrDefaultClient", () => {
     it("should return null client when no clients exist", async () => {
-      const { getFirstOrDefaultClient } = await import(
-        "../kustoConnection.js"
-      );
+      const { getFirstOrDefaultClient } = await import("../kustoConnection.js");
 
       const result = getFirstOrDefaultClient();
 

@@ -109,7 +109,7 @@ function getTableColumns(
  * @param kustoClient a Kusto client from azure-kusto-data
  * @param defaultDatabaseName to run `.show xyz` queries on
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 export async function getDatabasesOnCluster(
   kustoClient: KustoClient,
 ): Promise<DatabaseMetadata[]> {
@@ -175,23 +175,21 @@ function getTableMetadata(
   kustoClient: KustoClient,
   databaseName: string,
 ): Promise<TableMetadata[]> {
-  return kustoClient
-    .execute(databaseName, ".show tables")
-    .then((results) => {
-      if (!results?.primaryResults?.[0]) {
-        return [];
-      }
-      const tableMetadatas: TableMetadata[] = [];
-      for (const row of results.primaryResults[0].rows()) {
-        tableMetadatas.push({
-          TableName: row["TableName"] ?? "",
-          DatabaseName: row["DatabaseName"] ?? "",
-          Folder: row["Folder"] ?? "",
-          DocString: row["DocString"] ?? "",
-        });
-      }
-      return tableMetadatas;
-    });
+  return kustoClient.execute(databaseName, ".show tables").then((results) => {
+    if (!results?.primaryResults?.[0]) {
+      return [];
+    }
+    const tableMetadatas: TableMetadata[] = [];
+    for (const row of results.primaryResults[0].rows()) {
+      tableMetadatas.push({
+        TableName: row["TableName"] ?? "",
+        DatabaseName: row["DatabaseName"] ?? "",
+        Folder: row["Folder"] ?? "",
+        DocString: row["DocString"] ?? "",
+      });
+    }
+    return tableMetadatas;
+  });
 }
 
 function getTableSchema(

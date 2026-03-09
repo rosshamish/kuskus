@@ -137,11 +137,14 @@ connection.onRequest(
 
     try {
       kustoGlobalState = await getSymbolsOnCluster(kustoClient, database);
-      connection.sendNotification("kuskus.addConnection.auth.complete.success", {
-        clusterUri,
-        tenantId,
-        database,
-      });
+      connection.sendNotification(
+        "kuskus.addConnection.auth.complete.success",
+        {
+          clusterUri,
+          tenantId,
+          database,
+        },
+      );
       connection.sendNotification("kuskus.addConnection.success", {
         clusterUri,
         database,
