@@ -1,8 +1,9 @@
-import type { ResultColumn } from "./queryRunner.js";
+import type { ResultColumn, VisualizationInfo } from "./queryRunner.js";
 
 export interface StoredQueryResults {
   columns: ResultColumn[];
   rows: Record<string, unknown>[];
+  visualization?: VisualizationInfo;
 }
 
 /**
@@ -14,8 +15,12 @@ export interface StoredQueryResults {
 export class QueryResultsStore {
   private _results: StoredQueryResults | undefined;
 
-  setResults(columns: ResultColumn[], rows: Record<string, unknown>[]): void {
-    this._results = { columns, rows };
+  setResults(
+    columns: ResultColumn[],
+    rows: Record<string, unknown>[],
+    visualization?: VisualizationInfo,
+  ): void {
+    this._results = { columns, rows, visualization };
   }
 
   getResults(): StoredQueryResults | undefined {

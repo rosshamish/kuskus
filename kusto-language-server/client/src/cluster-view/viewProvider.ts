@@ -4,6 +4,7 @@ import {
   KustoConnectionStringBuilder,
 } from "azure-kusto-data";
 import { logError } from "../logger.js";
+import { withVpnHint } from "../errorMessages.js";
 
 export type KustoSchemaItemType =
   | "cluster"
@@ -182,7 +183,9 @@ export class ClusterViewProvider
       const msg = error instanceof Error ? error.message : "Unknown error";
       logError(`Failed to load databases from ${element.clusterUri}: ${msg}`);
       vscode.window.showErrorMessage(
-        `[Kuskus] Failed to load databases from ${element.clusterUri}: ${msg}`,
+        withVpnHint(
+          `[Kuskus] Failed to load databases from ${element.clusterUri}: ${msg}`,
+        ),
       );
       return [
         new KustoSchemaItem(
@@ -244,7 +247,9 @@ export class ClusterViewProvider
       const msg = error instanceof Error ? error.message : "Unknown error";
       logError(`Failed to load tables from ${element.databaseName}: ${msg}`);
       vscode.window.showErrorMessage(
-        `[Kuskus] Failed to load tables from ${element.databaseName}: ${msg}`,
+        withVpnHint(
+          `[Kuskus] Failed to load tables from ${element.databaseName}: ${msg}`,
+        ),
       );
       return [
         new KustoSchemaItem(
@@ -303,7 +308,9 @@ export class ClusterViewProvider
       const msg = error instanceof Error ? error.message : "Unknown error";
       logError(`Failed to load functions from ${element.databaseName}: ${msg}`);
       vscode.window.showErrorMessage(
-        `[Kuskus] Failed to load functions from ${element.databaseName}: ${msg}`,
+        withVpnHint(
+          `[Kuskus] Failed to load functions from ${element.databaseName}: ${msg}`,
+        ),
       );
       return [
         new KustoSchemaItem(
@@ -352,7 +359,9 @@ export class ClusterViewProvider
       const msg = error instanceof Error ? error.message : "Unknown error";
       logError(`Failed to load columns for ${element.label}: ${msg}`);
       vscode.window.showErrorMessage(
-        `[Kuskus] Failed to load columns for ${element.label}: ${msg}`,
+        withVpnHint(
+          `[Kuskus] Failed to load columns for ${element.label}: ${msg}`,
+        ),
       );
       return [
         new KustoSchemaItem(

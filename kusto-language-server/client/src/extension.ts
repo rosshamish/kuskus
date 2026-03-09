@@ -37,12 +37,15 @@ import {
 import { createStatusBarItem, updateStatusBar } from "./statusBar.js";
 import { runQuery, getQueryText } from "./queryRunner.js";
 import { ResultsPanelProvider } from "./resultsPanel.js";
+import { buildAdxShareLink } from "./shareLink.js";
 import {
   RunKustoQueryTool,
   ListDatabasesTool,
   ListTablesTool,
   GetTableSchemaTool,
   SearchQueryResultsTool,
+  ListClustersTool,
+  GetChartImageTool,
 } from "./chatTool.js";
 import { KustoQueryContentProvider } from "./queryDocumentProvider.js";
 import { QueryResultsStore } from "./queryResultsStore.js";
@@ -53,6 +56,11 @@ import {
 } from "./persistence.js";
 import { log, logError } from "./logger.js";
 import { trackSync } from "./perfMetrics.js";
+import {
+  getTenantIdFromToken,
+  setTenantId,
+  withVpnHint,
+} from "./errorMessages.js";
 
 let client: LanguageClient;
 let microsoftAccessToken: string | undefined; // stored access token
@@ -67,6 +75,9 @@ export async function activate(context: ExtensionContext) {
   );
   context.subscriptions.push(
     commands.registerCommand("kuskus.runScript", runScriptHandler),
+  );
+  context.subscriptions.push(
+    commands.registerCommand("kuskus.openInBrowser", openInBrowserHandler),
   );
 
   // The server is implemented in node
@@ -203,7 +214,9 @@ export async function activate(context: ExtensionContext) {
             `Auth failed: ${clusterUri}/${tenantId}/${database}: ${errorMessage}`,
           );
           window.showErrorMessage(
-            `[Kuskus] Failed to authenticate to ${clusterUri}/${tenantId}/${database} with error ${errorMessage}`,
+            withVpnHint(
+              `[Kuskus] Failed to authenticate to ${clusterUri}/${tenantId}/${database} with error ${errorMessage}`,
+            ),
           );
         },
       );
@@ -342,6 +355,22 @@ export async function activate(context: ExtensionContext) {
     vscode.lm.registerTool(
       "search_query_results",
       new SearchQueryResultsTool(queryResultsStore),
+    ),
+  );
+
+  // Register the list_clusters Language Model Tool for AI chat
+  context.subscriptions.push(
+    vscode.lm.registerTool(
+      "list_clusters",
+      new ListClustersTool(clusterViewProvider),
+    ),
+  );
+
+  // Register the get_chart_image Language Model Tool for AI chat
+  context.subscriptions.push(
+    vscode.lm.registerTool(
+      "get_chart_image",
+      new GetChartImageTool(resultsPanelProvider, queryResultsStore),
     ),
   );
 
@@ -613,6 +642,7 @@ async function login() {
 
     if (session) {
       microsoftAccessToken = session.accessToken;
+      setTenantId(getTenantIdFromToken(session.accessToken));
       log("Silently logged in with Microsoft account");
       window.showInformationMessage(
         "[Kuskus] Silently logged in with Microsoft account.",
@@ -658,6 +688,7 @@ async function login() {
       return;
     }
     microsoftAccessToken = session.accessToken;
+    setTenantId(getTenantIdFromToken(session.accessToken));
     log("Logged in with Microsoft account");
     window.showInformationMessage("[Kuskus] Logged in with Microsoft account.");
   } catch (err: unknown) {
@@ -695,14 +726,54 @@ async function runScriptHandler() {
 
   if (result.success) {
     log(`Query completed: ${result.rowCount} row(s) returned`);
-    resultsPanelProvider.showResults(result.columns, result.rows);
-    queryResultsStore.setResults(result.columns, result.rows);
+    resultsPanelProvider.showResults(
+      result.columns,
+      result.rows,
+      result.visualization,
+    );
+    queryResultsStore.setResults(
+      result.columns,
+      result.rows,
+      result.visualization,
+    );
     window.showInformationMessage(
       `[Kuskus] Query completed. ${result.rowCount} row(s) returned.`,
     );
   } else {
     logError(`Query failed: ${result.error}`);
-    window.showErrorMessage(`[Kuskus] Query failed: ${result.error}`);
+    window.showErrorMessage(
+      withVpnHint(`[Kuskus] Query failed: ${result.error}`),
+    );
+  }
+}
+
+function openInBrowserHandler() {
+  const activeClusterUri = clusterViewProvider.activeClusterUri;
+  const activeDatabase = clusterViewProvider.activeDatabaseName;
+
+  if (!activeClusterUri || !activeDatabase) {
+    window.showErrorMessage(
+      "[Kuskus] No active database selected. Right-click a database in the Kusto Explorer and select 'Set as Active Database'.",
+    );
+    return;
+  }
+
+  const queryText = getQueryText();
+  if (!queryText || queryText.trim().length === 0) {
+    window.showErrorMessage(
+      "[Kuskus] No query text found in the active editor.",
+    );
+    return;
+  }
+
+  const url = buildAdxShareLink(activeClusterUri, activeDatabase, queryText);
+  log(`Opening query in Azure Data Explorer: ${url}`);
+
+  try {
+    open(url);
+  } catch {
+    logError(`Failed to open URL: ${url}`);
+    window.showErrorMessage(`[Kuskus] Failed to open the browser.`);
   }
 }
 

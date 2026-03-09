@@ -6,9 +6,24 @@ vi.mock("vscode", () => {
   return {
     window: {
       registerWebviewViewProvider: vi.fn(),
+      showSaveDialog: vi.fn(),
+      showInformationMessage: vi.fn(),
     },
     commands: {
       executeCommand: vi.fn(),
+    },
+    env: {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    },
+    workspace: {
+      fs: {
+        writeFile: vi.fn().mockResolvedValue(undefined),
+      },
+    },
+    Uri: {
+      file: (p: string) => ({ fsPath: p, toString: () => p }),
     },
   };
 });
@@ -36,6 +51,10 @@ vi.mock("fs", async () => {
           filename,
         );
         return actual.readFileSync(realPath, encoding);
+      }
+      if (filename === "chart.umd.js") {
+        // Return a minimal stub for Chart.js in tests
+        return "/* Chart.js stub */";
       }
       return actual.readFileSync(filePath, encoding);
     }),
@@ -74,6 +93,49 @@ describe("resultsPanel", () => {
       expect(html).toContain("Query returned no results.");
       expect(html).toContain("0 row(s) × 1 column(s)");
       expect(html).not.toContain("<table>");
+    });
+
+    it("should show chart toggle when visualization is present", () => {
+      const columns = [
+        { name: "X", type: "string" },
+        { name: "Y", type: "long" },
+      ];
+      const rows = [{ X: "a", Y: 1 }];
+      const viz = { visualization: "linechart" };
+
+      const html = generateResultsHtml(columns, rows, viz);
+
+      expect(html).toContain("btn-chart");
+      expect(html).toContain("btn-table");
+      expect(html).toContain("linechart");
+      expect(html).toContain("chart-container");
+    });
+
+    it("should not show chart toggle when no visualization", () => {
+      const columns = [{ name: "X", type: "string" }];
+      const rows = [{ X: "a" }];
+
+      const html = generateResultsHtml(columns, rows);
+
+      expect(html).not.toContain('id="btn-chart"');
+      expect(html).not.toContain('id="btn-table"');
+    });
+
+    it("should show export buttons when rows exist", () => {
+      const columns = [{ name: "X", type: "string" }];
+      const rows = [{ X: "a" }];
+
+      const html = generateResultsHtml(columns, rows);
+
+      expect(html).toContain('id="btn-copy-csv"');
+      expect(html).toContain('id="btn-save-csv"');
+    });
+
+    it("should not show export buttons when no rows", () => {
+      const html = generateResultsHtml([{ name: "X", type: "string" }], []);
+
+      expect(html).not.toContain('id="btn-copy-csv"');
+      expect(html).not.toContain('id="btn-save-csv"');
     });
 
     it("should JSON-escape data to prevent XSS", () => {
@@ -173,10 +235,26 @@ describe("resultsPanel", () => {
       provider.showResults(columns, rows);
     });
 
+    it("should accept optional visualization parameter", () => {
+      const provider = new ResultsPanelProvider();
+      const columns = [
+        { name: "X", type: "string" },
+        { name: "Y", type: "long" },
+      ];
+      const rows = [{ X: "a", Y: 1 }];
+
+      // showResults with visualization — should not throw
+      provider.showResults(columns, rows, { visualization: "linechart" });
+    });
+
     it("should set HTML on resolved view with scripts enabled", () => {
       const provider = new ResultsPanelProvider();
       const mockWebviewView = {
-        webview: { html: "", options: {} },
+        webview: {
+          html: "",
+          options: {},
+          onDidReceiveMessage: vi.fn(),
+        },
         show: vi.fn(),
       };
 
@@ -184,6 +262,7 @@ describe("resultsPanel", () => {
       provider.resolveWebviewView(mockWebviewView as any);
 
       expect(mockWebviewView.webview.options).toEqual({ enableScripts: true });
+      expect(mockWebviewView.webview.onDidReceiveMessage).toHaveBeenCalled();
 
       const columns = [{ name: "A", type: "string" }];
       const rows = [{ A: "hello" }];

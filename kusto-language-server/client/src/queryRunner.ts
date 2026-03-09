@@ -6,12 +6,27 @@ export interface ResultColumn {
   type: string;
 }
 
+export interface VisualizationInfo {
+  visualization: string;
+  title?: string;
+  xColumn?: string;
+  yColumns?: string[];
+  series?: string;
+  kind?: string;
+  legend?: string;
+  xTitle?: string;
+  yTitle?: string;
+  yMin?: number;
+  yMax?: number;
+}
+
 export interface QueryResult {
   rowCount: number;
   success: boolean;
   error?: string;
   columns: ResultColumn[];
   rows: Record<string, unknown>[];
+  visualization?: VisualizationInfo;
 }
 
 /**
@@ -46,7 +61,15 @@ export async function runQuery(
       rows.push(obj);
     }
 
-    return { rowCount: rows.length, success: true, columns, rows };
+    const visualization = extractVisualization(result);
+
+    return {
+      rowCount: rows.length,
+      success: true,
+      columns,
+      rows,
+      visualization,
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return {
@@ -76,4 +99,51 @@ export function getQueryText(): string | undefined {
   }
 
   return editor.document.getText();
+}
+
+/**
+ * Extracts visualization metadata from the QueryProperties table in the Kusto response.
+ * The render operator injects a "Visualization" key with a JSON value containing
+ * the chart type and display properties.
+ */
+function extractVisualization(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  result: any,
+): VisualizationInfo | undefined {
+  const propsTable = result.tables?.find(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (t: any) => t.kind === "QueryProperties",
+  );
+  if (!propsTable) {
+    return undefined;
+  }
+
+  for (const row of propsTable.rows()) {
+    if (row["Key"] === "Visualization") {
+      try {
+        const rawValue = row["Value"];
+        const parsed =
+          typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+        if (!parsed || !parsed.Visualization) {
+          return undefined;
+        }
+        return {
+          visualization: parsed.Visualization,
+          title: parsed.Title || undefined,
+          xColumn: parsed.XColumn || undefined,
+          yColumns: parsed.YColumns || undefined,
+          series: parsed.Series || undefined,
+          kind: parsed.Kind || undefined,
+          legend: parsed.Legend || undefined,
+          xTitle: parsed.XTitle || undefined,
+          yTitle: parsed.YTitle || undefined,
+          yMin: parsed.YMin != null ? Number(parsed.YMin) : undefined,
+          yMax: parsed.YMax != null ? Number(parsed.YMax) : undefined,
+        };
+      } catch {
+        return undefined;
+      }
+    }
+  }
+  return undefined;
 }

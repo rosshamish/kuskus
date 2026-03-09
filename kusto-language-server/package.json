@@ -81,6 +81,11 @@
                 "icon": "$(play)"
             },
             {
+                "command": "kuskus.openInBrowser",
+                "title": "[Kuskus] Open in Azure Data Explorer",
+                "icon": "$(link-external)"
+            },
+            {
                 "command": "kuskus.setActiveDatabase",
                 "title": "[Kuskus] Set as Active Database"
             },
@@ -108,6 +113,11 @@
                     "command": "kuskus.runScript",
                     "when": "editorLangId == kusto && kuskus.hasActiveDatabase",
                     "group": "navigation"
+                },
+                {
+                    "command": "kuskus.openInBrowser",
+                    "when": "editorLangId == kusto && kuskus.hasActiveDatabase",
+                    "group": "navigation"
                 }
             ],
             "view/item/context": [
@@ -132,6 +142,11 @@
             {
                 "command": "kuskus.runScript",
                 "key": "shift+enter",
+                "when": "editorTextFocus && editorLangId == kusto"
+            },
+            {
+                "command": "kuskus.openInBrowser",
+                "key": "ctrl+shift+enter",
                 "when": "editorTextFocus && editorLangId == kusto"
             },
             {
@@ -232,6 +247,33 @@
                         }
                     },
                     "required": ["searchText"]
+                }
+            },
+            {
+                "name": "list_clusters",
+                "displayName": "List connected Kusto clusters",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-list-clusters",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "List all connected Kusto clusters",
+                "modelDescription": "List all Kusto clusters currently connected in the Kusto Explorer panel. Takes no input parameters. Output is a JSON array of objects with 'clusterUri' (the full cluster URI), 'isActive' (whether this is the currently active cluster), and 'activeDatabaseName' (the active database name, only present for the active cluster). Use this to discover which clusters are available before calling list_databases or other cluster-specific tools.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                },
+                "when": "kuskus.hasConnectedClusters"
+            },
+            {
+                "name": "get_chart_image",
+                "displayName": "Get chart visualization image",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-get-chart-image",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "Get an image of the currently displayed Kusto chart visualization",
+                "modelDescription": "Capture the currently displayed chart visualization from the Kusto Results panel as a base64-encoded PNG image. Takes no input parameters. Returns a JSON object with 'visualization' (the chart type, e.g. 'linechart'), 'title' (chart title if set), 'columns' (array of column names), 'rowCount' (number of data rows), and 'imageDataUrl' (a base64 data:image/png URL of the chart). Returns an error if no chart is currently displayed (e.g. results are shown as a table). Use this to see what the user's chart looks like, for example to help them customize or interpret it.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
                 }
             }
         ],

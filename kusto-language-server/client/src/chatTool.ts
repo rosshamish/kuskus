@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
 import { Client as KustoClient } from "azure-kusto-data";
-import { runQuery, type ResultColumn } from "./queryRunner.js";
+import {
+  runQuery,
+  type ResultColumn,
+  type VisualizationInfo,
+} from "./queryRunner.js";
 import { log, logError } from "./logger.js";
 import { KustoQueryContentProvider } from "./queryDocumentProvider.js";
 import type { StoredQueryResults } from "./queryResultsStore.js";
@@ -30,11 +34,23 @@ export interface ClusterConnectionAccessor {
 }
 
 export interface ResultsDisplayAccessor {
-  showResults(columns: ResultColumn[], rows: Record<string, unknown>[]): void;
+  showResults(
+    columns: ResultColumn[],
+    rows: Record<string, unknown>[],
+    visualization?: VisualizationInfo,
+  ): void;
+}
+
+export interface ChartCaptureAccessor {
+  captureChart(): Promise<string | undefined>;
 }
 
 export interface QueryResultsStoreAccessor {
-  setResults(columns: ResultColumn[], rows: Record<string, unknown>[]): void;
+  setResults(
+    columns: ResultColumn[],
+    rows: Record<string, unknown>[],
+    visualization?: VisualizationInfo,
+  ): void;
   getResults(): StoredQueryResults | undefined;
 }
 
@@ -102,10 +118,18 @@ export class RunKustoQueryTool
     log(`[LM Tool] Query returned ${result.rowCount} row(s)`);
 
     // Show results in the Results panel
-    this.resultsDisplay.showResults(result.columns, result.rows);
+    this.resultsDisplay.showResults(
+      result.columns,
+      result.rows,
+      result.visualization,
+    );
 
     // Store results for downstream tools (e.g. search_query_results)
-    this.resultsStore?.setResults(result.columns, result.rows);
+    this.resultsStore?.setResults(
+      result.columns,
+      result.rows,
+      result.visualization,
+    );
 
     const truncated = result.rowCount > MAX_RESULT_ROWS;
     const rows = truncated
@@ -375,6 +399,112 @@ export class SearchQueryResultsTool
         note: `Results truncated to first ${MAX_RESULT_ROWS} of ${matchedRows.length} matching rows.`,
       }),
     };
+
+    return new vscode.LanguageModelToolResult([
+      new vscode.LanguageModelTextPart(JSON.stringify(payload)),
+    ]);
+  }
+}
+
+export class ListClustersTool
+  implements vscode.LanguageModelTool<Record<string, never>>
+{
+  constructor(private readonly connection: ClusterConnectionAccessor) {}
+
+  async prepareInvocation(
+    _options: vscode.LanguageModelToolInvocationPrepareOptions<
+      Record<string, never>
+    >,
+    _token: vscode.CancellationToken,
+  ) {
+    return {
+      invocationMessage: "Listing connected Kusto clusters",
+      confirmationMessages: {
+        title: "List Connected Clusters",
+        message: new vscode.MarkdownString(
+          "List all clusters currently connected in the Kusto Explorer?",
+        ),
+      },
+    };
+  }
+
+  async invoke(
+    _options: vscode.LanguageModelToolInvocationOptions<Record<string, never>>,
+    _token: vscode.CancellationToken,
+  ): Promise<vscode.LanguageModelToolResult> {
+    const clusterUris = this.connection.getConnectedClusterUris();
+    log(`[LM Tool] Listing ${clusterUris.length} connected cluster(s)`);
+
+    const clusters = clusterUris.map((uri) => ({
+      clusterUri: uri,
+      isActive: uri === this.connection.activeClusterUri,
+      activeDatabaseName:
+        uri === this.connection.activeClusterUri
+          ? this.connection.activeDatabaseName
+          : undefined,
+    }));
+
+    return new vscode.LanguageModelToolResult([
+      new vscode.LanguageModelTextPart(JSON.stringify(clusters)),
+    ]);
+  }
+}
+
+export class GetChartImageTool
+  implements vscode.LanguageModelTool<Record<string, never>>
+{
+  constructor(
+    private readonly chartCapture: ChartCaptureAccessor,
+    private readonly resultsStore: QueryResultsStoreAccessor,
+  ) {}
+
+  async prepareInvocation(
+    _options: vscode.LanguageModelToolInvocationPrepareOptions<
+      Record<string, never>
+    >,
+    _token: vscode.CancellationToken,
+  ) {
+    return {
+      invocationMessage: "Capturing chart visualization",
+    };
+  }
+
+  async invoke(
+    _options: vscode.LanguageModelToolInvocationOptions<Record<string, never>>,
+    _token: vscode.CancellationToken,
+  ): Promise<vscode.LanguageModelToolResult> {
+    const stored = this.resultsStore.getResults();
+    if (!stored) {
+      throw new Error(
+        "No query results are available. Ask the user to run a Kusto query first.",
+      );
+    }
+
+    const vizType = stored.visualization?.visualization;
+    if (!vizType || vizType === "table") {
+      throw new Error(
+        "No chart visualization is currently displayed. The results are shown as a table. Ask the user to run a query with a render operator (e.g. '| render linechart').",
+      );
+    }
+
+    log(`[LM Tool] Capturing chart image for visualization: ${vizType}`);
+    const dataUrl = await this.chartCapture.captureChart();
+
+    if (!dataUrl) {
+      throw new Error(
+        "Failed to capture the chart image. The chart may not be visible in the Results panel.",
+      );
+    }
+
+    const payload = {
+      visualization: vizType,
+      title: stored.visualization?.title || undefined,
+      columns: stored.columns.map((c) => c.name),
+      rowCount: stored.rows.length,
+      imageDataUrl: dataUrl,
+    };
+
+    log(`[LM Tool] Chart image captured (${dataUrl.length} chars)`);
 
     return new vscode.LanguageModelToolResult([
       new vscode.LanguageModelTextPart(JSON.stringify(payload)),

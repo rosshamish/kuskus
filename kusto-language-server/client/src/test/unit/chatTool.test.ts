@@ -71,6 +71,7 @@ import {
   ListTablesTool,
   GetTableSchemaTool,
   SearchQueryResultsTool,
+  ListClustersTool,
   type ClusterConnectionAccessor,
   type ResultsDisplayAccessor,
   type QueryResultsStoreAccessor,
@@ -175,6 +176,7 @@ describe("RunKustoQueryTool", () => {
               },
             },
           ],
+          tables: [],
         }),
       };
 
@@ -221,6 +223,7 @@ describe("RunKustoQueryTool", () => {
           { Name: "Alice", Count: 10 },
           { Name: "Bob", Count: 20 },
         ],
+        undefined,
       );
     });
 
@@ -236,6 +239,7 @@ describe("RunKustoQueryTool", () => {
               },
             },
           ],
+          tables: [],
         }),
       };
 
@@ -316,6 +320,7 @@ describe("RunKustoQueryTool", () => {
               },
             },
           ],
+          tables: [],
         }),
       };
 
@@ -958,6 +963,7 @@ describe("RunKustoQueryTool with results store", () => {
             },
           },
         ],
+        tables: [],
       }),
     };
 
@@ -986,6 +992,89 @@ describe("RunKustoQueryTool with results store", () => {
         { name: "Count", type: "long" },
       ],
       [{ Name: "Alice", Count: 10 }],
+      undefined,
     );
+  });
+});
+
+describe("ListClustersTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("prepareInvocation", () => {
+    it("should return confirmation message", async () => {
+      const connection = makeConnection();
+      const tool = new ListClustersTool(connection);
+
+      const result = await tool.prepareInvocation(
+        { input: {} } as never,
+        dummyToken,
+      );
+
+      expect(result.invocationMessage).toBe("Listing connected Kusto clusters");
+      expect(result.confirmationMessages).toBeDefined();
+    });
+  });
+
+  describe("invoke", () => {
+    it("should return list of connected clusters with active status", async () => {
+      const connection = makeConnection({
+        getConnectedClusterUris: () => [
+          "https://cluster1.kusto.windows.net",
+          "https://cluster2.kusto.windows.net",
+        ],
+        activeClusterUri: "https://cluster1.kusto.windows.net",
+        activeDatabaseName: "mydb",
+      });
+      const tool = new ListClustersTool(connection);
+
+      const result = await tool.invoke({ input: {} } as never, dummyToken);
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed).toHaveLength(2);
+      expect(parsed[0]).toEqual({
+        clusterUri: "https://cluster1.kusto.windows.net",
+        isActive: true,
+        activeDatabaseName: "mydb",
+      });
+      expect(parsed[1]).toEqual({
+        clusterUri: "https://cluster2.kusto.windows.net",
+        isActive: false,
+      });
+    });
+
+    it("should return empty array when no clusters are connected", async () => {
+      const connection = makeConnection({
+        getConnectedClusterUris: () => [],
+      });
+      const tool = new ListClustersTool(connection);
+
+      const result = await tool.invoke({ input: {} } as never, dummyToken);
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed).toEqual([]);
+    });
+
+    it("should not include activeDatabaseName for non-active clusters", async () => {
+      const connection = makeConnection({
+        getConnectedClusterUris: () => ["https://cluster1.kusto.windows.net"],
+        activeClusterUri: "https://other.kusto.windows.net",
+        activeDatabaseName: "somedb",
+      });
+      const tool = new ListClustersTool(connection);
+
+      const result = await tool.invoke({ input: {} } as never, dummyToken);
+
+      const parsed = JSON.parse(
+        (result as unknown as { parts: { value: string }[] }).parts[0].value,
+      );
+      expect(parsed[0].isActive).toBe(false);
+      expect(parsed[0].activeDatabaseName).toBeUndefined();
+    });
   });
 });

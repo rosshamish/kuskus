@@ -3,14 +3,37 @@ interface ResultColumn {
   type: string;
 }
 
+interface VisualizationInfo {
+  visualization: string;
+  title?: string;
+  xColumn?: string;
+  yColumns?: string[];
+  series?: string;
+  kind?: string;
+  legend?: string;
+  xTitle?: string;
+  yTitle?: string;
+  yMin?: number;
+  yMax?: number;
+}
+
 type SortDirection = "none" | "asc" | "desc";
+
+// Chart.js is loaded as a global via a preceding <script> tag
+declare const Chart: any;
+
+// VS Code webview API for posting messages to the extension host
+declare function acquireVsCodeApi(): { postMessage(msg: unknown): void };
+const vscode = acquireVsCodeApi();
 
 // DATA_PLACEHOLDER markers are replaced at runtime by resultsPanel.ts
 const columns: ResultColumn[] = /*DATA_COLUMNS*/[] as ResultColumn[]/*END_DATA_COLUMNS*/;
 const originalRows: Record<string, unknown>[] = /*DATA_ROWS*/[] as Record<string, unknown>[]/*END_DATA_ROWS*/;
+const visualization: VisualizationInfo | null = /*DATA_VISUALIZATION*/null as VisualizationInfo | null/*END_DATA_VISUALIZATION*/;
 let rows = originalRows.slice();
 let sortCol = -1;
 let sortDir: SortDirection = "none";
+let chartInstance: any = null;
 
 function escapeHtml(t: unknown): string {
   return String(t)
@@ -168,5 +191,498 @@ document
     });
   });
 
+// --- View toggle ---
+const btnChart = document.getElementById("btn-chart");
+const btnTable = document.getElementById("btn-table");
+const chartContainer = document.getElementById("chart-container");
+const tableContainer = document.getElementById("table-container");
+
+function showChartView(): void {
+  if (chartContainer) chartContainer.style.display = "block";
+  if (tableContainer) tableContainer.style.display = "none";
+  btnChart?.classList.add("active");
+  btnTable?.classList.remove("active");
+}
+
+function showTableView(): void {
+  if (chartContainer) chartContainer.style.display = "none";
+  if (tableContainer) tableContainer.style.display = "block";
+  btnChart?.classList.remove("active");
+  btnTable?.classList.add("active");
+}
+
+if (btnChart) btnChart.addEventListener("click", showChartView);
+if (btnTable) btnTable.addEventListener("click", showTableView);
+
+// --- Chart rendering ---
+
+const CHART_COLORS = [
+  "#4dc9f6", "#f67019", "#f53794", "#537bc4", "#acc236",
+  "#166a8f", "#00a950", "#58595b", "#8549ba", "#e6194b",
+];
+
+function getThemeColor(varName: string, fallback: string): string {
+  const val = getComputedStyle(document.body).getPropertyValue(varName).trim();
+  return val || fallback;
+}
+
+function isNumericType(type: string): boolean {
+  const t = type.toLowerCase();
+  return ["int", "long", "real", "double", "decimal", "float", "int32", "int64"].includes(t);
+}
+
+function isDateTimeType(type: string): boolean {
+  return type.toLowerCase() === "datetime";
+}
+
+function resolveXColumn(): string {
+  if (visualization?.xColumn) {
+    return visualization.xColumn;
+  }
+  return columns.length > 0 ? columns[0].name : "";
+}
+
+function resolveYColumns(): string[] {
+  if (visualization?.yColumns && visualization.yColumns.length > 0) {
+    return visualization.yColumns;
+  }
+  const xCol = resolveXColumn();
+  return columns
+    .filter((c) => c.name !== xCol && isNumericType(c.type))
+    .map((c) => c.name);
+}
+
+function renderChart(): void {
+  if (!visualization || visualization.visualization === "table") return;
+  if (originalRows.length === 0 || columns.length === 0) return;
+  if (typeof Chart === "undefined") return;
+
+  const canvas = document.getElementById("results-chart") as HTMLCanvasElement | null;
+  if (!canvas) return;
+
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+
+  const config = buildChartConfig();
+  if (!config) return;
+
+  chartInstance = new Chart(canvas, config);
+}
+
+function buildChartConfig(): any | null {
+  const vizType = visualization!.visualization.toLowerCase();
+  switch (vizType) {
+    case "linechart":
+      return buildLineChartConfig();
+    case "barchart":
+      return buildBarChartConfig(true);
+    case "columnchart":
+      return buildBarChartConfig(false);
+    case "areachart":
+      return buildAreaChartConfig();
+    case "piechart":
+      return buildPieChartConfig();
+    case "scatterchart":
+      return buildScatterChartConfig();
+    case "stackedareachart":
+      return buildStackedAreaChartConfig();
+    case "timechart":
+      return buildTimeChartConfig();
+    case "card":
+      renderCard();
+      return null;
+    default:
+      return null;
+  }
+}
+
+function buildCommonOptions(yCols: string[]): any {
+  const fg = getThemeColor("--vscode-foreground", "#cccccc");
+  const gridColor = getThemeColor("--vscode-panel-border", "#444444");
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: !!visualization!.title,
+        text: visualization!.title || "",
+        color: fg,
+      },
+      legend: {
+        display: visualization!.legend !== "hidden" && yCols.length > 1,
+        labels: { color: fg },
+      },
+      tooltip: { mode: "index", intersect: false },
+    },
+    scales: {
+      x: {
+        title: {
+          display: !!visualization!.xTitle,
+          text: visualization!.xTitle || "",
+          color: fg,
+        },
+        ticks: { color: fg, maxRotation: 45 },
+        grid: { color: gridColor },
+      },
+      y: {
+        title: {
+          display: !!visualization!.yTitle,
+          text: visualization!.yTitle || "",
+          color: fg,
+        },
+        ticks: { color: fg },
+        grid: { color: gridColor },
+        min: visualization!.yMin,
+        max: visualization!.yMax,
+      },
+    },
+    interaction: { mode: "nearest", axis: "x", intersect: false },
+  };
+}
+
+function buildLabelsAndDatasets(fill: boolean): { labels: string[]; datasets: any[] } {
+  const xCol = resolveXColumn();
+  const yCols = resolveYColumns();
+
+  const labels = originalRows.map((r) => {
+    const val = r[xCol];
+    if (val instanceof Date) return val.toLocaleString();
+    if (typeof val === "string" && isDateTimeType(columns.find((c) => c.name === xCol)?.type ?? "")) {
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? val : d.toLocaleString();
+    }
+    return String(val ?? "");
+  });
+
+  const datasets = yCols.map((yCol, idx) => ({
+    label: yCol,
+    data: originalRows.map((r) => {
+      const v = r[yCol];
+      return typeof v === "number" ? v : v != null ? Number(v) : null;
+    }),
+    borderColor: CHART_COLORS[idx % CHART_COLORS.length],
+    backgroundColor: fill
+      ? CHART_COLORS[idx % CHART_COLORS.length] + "80"
+      : CHART_COLORS[idx % CHART_COLORS.length] + "33",
+    borderWidth: 2,
+    pointRadius: originalRows.length > 50 ? 0 : 3,
+    tension: 0.1,
+    fill,
+  }));
+
+  return { labels, datasets };
+}
+
+function applyStackingOptions(options: any): void {
+  const kind = visualization!.kind?.toLowerCase();
+  if (kind === "stacked" || kind === "stacked100") {
+    options.scales.x.stacked = true;
+    options.scales.y.stacked = true;
+    if (kind === "stacked100") {
+      options.scales.y.max = 100;
+    }
+  }
+}
+
+function buildLineChartConfig(): any {
+  const yCols = resolveYColumns();
+  const { labels, datasets } = buildLabelsAndDatasets(false);
+  return {
+    type: "line",
+    data: { labels, datasets },
+    options: buildCommonOptions(yCols),
+  };
+}
+
+function buildBarChartConfig(horizontal: boolean): any {
+  const yCols = resolveYColumns();
+  const { labels, datasets } = buildLabelsAndDatasets(true);
+  const options = buildCommonOptions(yCols);
+  if (horizontal) {
+    options.indexAxis = "y";
+  }
+  applyStackingOptions(options);
+  return { type: "bar", data: { labels, datasets }, options };
+}
+
+function buildAreaChartConfig(): any {
+  const yCols = resolveYColumns();
+  const { labels, datasets } = buildLabelsAndDatasets(true);
+  const options = buildCommonOptions(yCols);
+  applyStackingOptions(options);
+  return { type: "line", data: { labels, datasets }, options };
+}
+
+function buildPieChartConfig(): any {
+  const xCol = resolveXColumn();
+  const yCols = resolveYColumns();
+  const yCol = yCols.length > 0 ? yCols[0] : columns.length > 1 ? columns[1].name : "";
+
+  const labels = originalRows.map((r) => String(r[xCol] ?? ""));
+  const data = originalRows.map((r) => {
+    const v = r[yCol];
+    return typeof v === "number" ? v : v != null ? Number(v) : 0;
+  });
+  const bgColors = labels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
+  const fg = getThemeColor("--vscode-foreground", "#cccccc");
+
+  return {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: bgColors,
+          borderColor: getThemeColor("--vscode-editor-background", "#1e1e1e"),
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: !!visualization!.title,
+          text: visualization!.title || "",
+          color: fg,
+        },
+        legend: {
+          display: visualization!.legend !== "hidden",
+          labels: { color: fg },
+        },
+      },
+    },
+  };
+}
+
+function buildScatterChartConfig(): any {
+  const xCol = resolveXColumn();
+  const yCols = resolveYColumns();
+  const fg = getThemeColor("--vscode-foreground", "#cccccc");
+  const gridColor = getThemeColor("--vscode-panel-border", "#444444");
+
+  const datasets = yCols.map((yCol, idx) => ({
+    label: yCol,
+    data: originalRows.map((r) => ({
+      x: typeof r[xCol] === "number" ? r[xCol] : Number(r[xCol]) || 0,
+      y: typeof r[yCol] === "number" ? r[yCol] : Number(r[yCol]) || 0,
+    })),
+    backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] + "99",
+    borderColor: CHART_COLORS[idx % CHART_COLORS.length],
+    pointRadius: 4,
+  }));
+
+  return {
+    type: "scatter",
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: !!visualization!.title,
+          text: visualization!.title || "",
+          color: fg,
+        },
+        legend: {
+          display: visualization!.legend !== "hidden" && yCols.length > 1,
+          labels: { color: fg },
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: !!visualization!.xTitle,
+            text: visualization!.xTitle || xCol,
+            color: fg,
+          },
+          ticks: { color: fg },
+          grid: { color: gridColor },
+        },
+        y: {
+          title: {
+            display: !!visualization!.yTitle,
+            text: visualization!.yTitle || "",
+            color: fg,
+          },
+          ticks: { color: fg },
+          grid: { color: gridColor },
+          min: visualization!.yMin,
+          max: visualization!.yMax,
+        },
+      },
+    },
+  };
+}
+
+function buildStackedAreaChartConfig(): any {
+  const yCols = resolveYColumns();
+  const { labels, datasets } = buildLabelsAndDatasets(true);
+  const options = buildCommonOptions(yCols);
+  options.scales.x.stacked = true;
+  options.scales.y.stacked = true;
+  return { type: "line", data: { labels, datasets }, options };
+}
+
+function buildTimeChartConfig(): any {
+  const xCol = resolveXColumn();
+  const yCols = resolveYColumns();
+  const fg = getThemeColor("--vscode-foreground", "#cccccc");
+  const gridColor = getThemeColor("--vscode-panel-border", "#444444");
+
+  // Parse datetime x values and pair with y data
+  const timeRows = originalRows.map((r) => {
+    const raw = r[xCol];
+    let t: number;
+    if (raw instanceof Date) {
+      t = raw.getTime();
+    } else if (typeof raw === "string") {
+      t = new Date(raw).getTime();
+    } else {
+      t = Number(raw) || 0;
+    }
+    return { t, row: r };
+  }).filter((d) => !isNaN(d.t));
+
+  // Sort by time
+  timeRows.sort((a, b) => a.t - b.t);
+
+  const labels = timeRows.map((d) => new Date(d.t).toLocaleString());
+
+  const datasets = yCols.map((yCol, idx) => ({
+    label: yCol,
+    data: timeRows.map((d) => {
+      const v = d.row[yCol];
+      return typeof v === "number" ? v : v != null ? Number(v) : null;
+    }),
+    borderColor: CHART_COLORS[idx % CHART_COLORS.length],
+    backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] + "33",
+    borderWidth: 2,
+    pointRadius: timeRows.length > 50 ? 0 : 3,
+    tension: 0.1,
+    fill: false,
+  }));
+
+  return {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: !!visualization!.title,
+          text: visualization!.title || "",
+          color: fg,
+        },
+        legend: {
+          display: visualization!.legend !== "hidden" && yCols.length > 1,
+          labels: { color: fg },
+        },
+        tooltip: { mode: "index", intersect: false },
+      },
+      scales: {
+        x: {
+          title: {
+            display: !!visualization!.xTitle,
+            text: visualization!.xTitle || xCol,
+            color: fg,
+          },
+          ticks: { color: fg, maxRotation: 45, maxTicksLimit: 20 },
+          grid: { color: gridColor },
+        },
+        y: {
+          title: {
+            display: !!visualization!.yTitle,
+            text: visualization!.yTitle || "",
+            color: fg,
+          },
+          ticks: { color: fg },
+          grid: { color: gridColor },
+          min: visualization!.yMin,
+          max: visualization!.yMax,
+        },
+      },
+      interaction: { mode: "nearest", axis: "x", intersect: false },
+    },
+  };
+}
+
+function renderCard(): void {
+  const canvas = document.getElementById("results-chart") as HTMLCanvasElement | null;
+  if (canvas) canvas.style.display = "none";
+
+  const container = document.getElementById("card-container");
+  if (!container || originalRows.length === 0) return;
+
+  let html = "";
+  const row = originalRows[0];
+
+  for (const col of columns) {
+    const val = row[col.name];
+    const display = val == null ? "—" : String(val);
+    html += `<div class="card-item">
+      <div class="card-value">${escapeHtml(display)}</div>
+      <div class="card-label">${escapeHtml(col.name)}</div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// --- CSV Export ---
+
+function escapeCsvField(value: unknown): string {
+  if (value == null) return "";
+  const str = String(value);
+  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+function generateCsv(): string {
+  const header = columns.map((c) => escapeCsvField(c.name)).join(",");
+  const dataRows = originalRows.map((row) =>
+    columns.map((c) => escapeCsvField(row[c.name])).join(","),
+  );
+  return header + "\r\n" + dataRows.join("\r\n");
+}
+
+const btnCopyCsv = document.getElementById("btn-copy-csv");
+const btnSaveCsv = document.getElementById("btn-save-csv");
+
+if (btnCopyCsv) {
+  btnCopyCsv.addEventListener("click", () => {
+    vscode.postMessage({ type: "exportCsv", action: "clipboard", csv: generateCsv() });
+  });
+}
+
+if (btnSaveCsv) {
+  btnSaveCsv.addEventListener("click", () => {
+    vscode.postMessage({ type: "exportCsv", action: "save", csv: generateCsv() });
+  });
+}
+
+// --- Chart capture for LM tool ---
+
+window.addEventListener("message", (event) => {
+  const message = event.data;
+  if (message && message.type === "captureChart") {
+    const canvas = document.getElementById("results-chart") as HTMLCanvasElement | null;
+    if (canvas && chartInstance) {
+      const dataUrl = canvas.toDataURL("image/png");
+      vscode.postMessage({ type: "chartImage", data: dataUrl });
+    } else {
+      vscode.postMessage({ type: "chartImage", data: null });
+    }
+  }
+});
+
 // Initial render
 renderBody();
+renderChart();

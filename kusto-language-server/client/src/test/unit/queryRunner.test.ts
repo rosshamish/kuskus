@@ -38,6 +38,7 @@ describe("queryRunner", () => {
             },
           },
         ],
+        tables: [],
       });
 
       const result = await runQuery(
@@ -57,6 +58,7 @@ describe("queryRunner", () => {
         { Name: "Bob", Age: 25 },
       ]);
       expect(result.error).toBeUndefined();
+      expect(result.visualization).toBeUndefined();
     });
 
     it("should return empty columns and rows when primaryResults is empty", async () => {
@@ -106,12 +108,78 @@ describe("queryRunner", () => {
             },
           },
         ],
+        tables: [],
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await runQuery(mockClient as any, "mydb", "query");
 
       expect(result.columns).toEqual([{ name: "", type: "" }]);
+    });
+
+    it("should extract visualization from QueryProperties table", async () => {
+      mockClient.execute.mockResolvedValue({
+        primaryResults: [
+          {
+            columns: [
+              { name: "Timestamp", type: "datetime" },
+              { name: "Value", type: "long" },
+            ],
+            rows: function* () {
+              yield { Timestamp: "2024-01-01", Value: 42 };
+            },
+          },
+        ],
+        tables: [
+          {
+            kind: "QueryProperties",
+            rows: function* () {
+              yield {
+                Key: "Visualization",
+                Value: JSON.stringify({
+                  Visualization: "linechart",
+                  Title: "My Chart",
+                  XColumn: "Timestamp",
+                  YColumns: ["Value"],
+                }),
+              };
+            },
+          },
+        ],
+      });
+
+      const result = await runQuery(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockClient as any,
+        "mydb",
+        "T | render linechart",
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.visualization).toBeDefined();
+      expect(result.visualization!.visualization).toBe("linechart");
+      expect(result.visualization!.title).toBe("My Chart");
+      expect(result.visualization!.xColumn).toBe("Timestamp");
+      expect(result.visualization!.yColumns).toEqual(["Value"]);
+    });
+
+    it("should return undefined visualization when no QueryProperties table", async () => {
+      mockClient.execute.mockResolvedValue({
+        primaryResults: [
+          {
+            columns: [{ name: "X", type: "string" }],
+            rows: function* () {
+              yield { X: "val" };
+            },
+          },
+        ],
+        tables: [],
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await runQuery(mockClient as any, "mydb", "query");
+
+      expect(result.visualization).toBeUndefined();
     });
   });
 });
