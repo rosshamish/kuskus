@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Client as KustoClient } from "azure-kusto-data";
 
 vi.mock("vscode", () => ({
   window: {
@@ -42,7 +43,7 @@ describe("queryRunner", () => {
       });
 
       const result = await runQuery(
-        mockClient as any,
+        mockClient as unknown as KustoClient,
         "mydb",
         "People | take 2",
       );
@@ -66,8 +67,11 @@ describe("queryRunner", () => {
         primaryResults: [],
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await runQuery(mockClient as any, "mydb", "print 'hello'");
+      const result = await runQuery(
+        mockClient as unknown as KustoClient,
+        "mydb",
+        "print 'hello'",
+      );
 
       expect(result.success).toBe(true);
       expect(result.rowCount).toBe(0);
@@ -78,8 +82,11 @@ describe("queryRunner", () => {
     it("should return failure with error message on query error", async () => {
       mockClient.execute.mockRejectedValue(new Error("Syntax error in query"));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await runQuery(mockClient as any, "mydb", "bad query");
+      const result = await runQuery(
+        mockClient as unknown as KustoClient,
+        "mydb",
+        "bad query",
+      );
 
       expect(result.success).toBe(false);
       expect(result.rowCount).toBe(0);
@@ -91,8 +98,11 @@ describe("queryRunner", () => {
     it("should handle non-Error thrown values", async () => {
       mockClient.execute.mockRejectedValue("network failure");
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await runQuery(mockClient as any, "mydb", "query");
+      const result = await runQuery(
+        mockClient as unknown as KustoClient,
+        "mydb",
+        "query",
+      );
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("Unknown error");
@@ -111,8 +121,11 @@ describe("queryRunner", () => {
         tables: [],
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await runQuery(mockClient as any, "mydb", "query");
+      const result = await runQuery(
+        mockClient as unknown as KustoClient,
+        "mydb",
+        "query",
+      );
 
       expect(result.columns).toEqual([{ name: "", type: "" }]);
     });
@@ -149,8 +162,7 @@ describe("queryRunner", () => {
       });
 
       const result = await runQuery(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockClient as any,
+        mockClient as unknown as KustoClient,
         "mydb",
         "T | render linechart",
       );
@@ -176,8 +188,11 @@ describe("queryRunner", () => {
         tables: [],
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await runQuery(mockClient as any, "mydb", "query");
+      const result = await runQuery(
+        mockClient as unknown as KustoClient,
+        "mydb",
+        "query",
+      );
 
       expect(result.visualization).toBeUndefined();
     });

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from "vitest";
-import * as fs from "fs";
 import * as path from "path";
 
 vi.mock("vscode", () => {
