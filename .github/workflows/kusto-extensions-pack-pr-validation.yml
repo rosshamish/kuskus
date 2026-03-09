@@ -8,8 +8,10 @@ on:
       - 'kusto-extensions-pack/**'
       - '.github/workflows/kusto-extensions-pack-pr-validation.yml'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   validate:
@@ -19,5 +21,30 @@ jobs:
         working-directory: kusto-extensions-pack
 
     steps:
-      # TODO validate that the extensions listed in the pack exist
-      - uses: actions/checkout@v4
+      # extensions-pack is a pure manifest (no deps, no build). Nothing to validate locally.
+      # CI validates at publish time via vsce package.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Detect publish-triggering changes
+        id: publish-trigger
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
+        with:
+          files: |
+            kusto-extensions-pack/**
+            .github/workflows/kusto-extensions-pack-publish.yml
+
+      - name: Check version bump
+        id: check-version-bump
+        if: steps.publish-trigger.outputs.any_changed == 'true'
+        uses: del-systems/check-if-version-bumped@d5d13ffd75dc8aa9c2e1dca10d9bb27be10307b2 # v2
+        with:
+          path: kusto-extensions-pack/package.json
+
+      - name: Version bump required
+        if: failure()
+        run: |
+          echo "ERROR: kusto-extensions-pack/package.json version not bumped."
+          echo "  Fix: cd kusto-extensions-pack && npm version patch --no-git-tag-version"
+          echo "  Docs: .github/skills/kuskus-version-bump/SKILL.md"
+          exit 1
+
