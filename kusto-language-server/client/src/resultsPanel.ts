@@ -218,11 +218,11 @@ ${getCss()}
     }
     </div>
   </div>
-  <div id="chart-container" class="chart-container" style="display:${hasChart ? "block" : "none"}">
+  <div id="chart-container" class="chart-container" style="display:${hasChart ? "flex" : "none"}; flex-direction: column; flex: 1; overflow: auto;">
     <canvas id="results-chart"></canvas>
     <div id="card-container" class="card-container"></div>
   </div>
-  <div id="table-container" style="display:${hasChart ? "none" : "block"}">
+  <div id="table-container" style="display:${hasChart ? "none" : "flex"}; flex-direction: column; flex: 1; overflow: auto; padding: 0 8px 8px 8px;">
   ${
     rows.length === 0
       ? '<div class="empty">Query returned no results.</div>'

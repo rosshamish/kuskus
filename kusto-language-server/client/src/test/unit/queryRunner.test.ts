@@ -14,7 +14,7 @@ vi.mock("azure-kusto-data", () => {
   return { Client: MockKustoClient };
 });
 
-import { runQuery } from "../../queryRunner.js";
+import { runQuery, getActiveQueryAtCursor } from "../../queryRunner.js";
 
 describe("queryRunner", () => {
   describe("runQuery", () => {
@@ -224,6 +224,88 @@ describe("queryRunner", () => {
       );
 
       expect(result.visualization).toBeUndefined();
+    });
+  });
+
+  describe("getActiveQueryAtCursor", () => {
+    it("should return entire text when there are no blank lines", () => {
+      const text = "StormEvents\n| take 10";
+      expect(getActiveQueryAtCursor(text, 0)).toBe("StormEvents\n| take 10");
+      expect(getActiveQueryAtCursor(text, 1)).toBe("StormEvents\n| take 10");
+    });
+
+    it("should return the first query when cursor is on it", () => {
+      const text = "query1\n| take 5\n\nquery2\n| take 10";
+      // Lines: 0="query1", 1="| take 5", 2="", 3="query2", 4="| take 10"
+      expect(getActiveQueryAtCursor(text, 0)).toBe("query1\n| take 5");
+      expect(getActiveQueryAtCursor(text, 1)).toBe("query1\n| take 5");
+    });
+
+    it("should return the second query when cursor is on it", () => {
+      const text = "query1\n| take 5\n\nquery2\n| take 10";
+      expect(getActiveQueryAtCursor(text, 3)).toBe("query2\n| take 10");
+      expect(getActiveQueryAtCursor(text, 4)).toBe("query2\n| take 10");
+    });
+
+    it("should handle multiple blank lines between queries", () => {
+      const text = "query1\n\n\n\nquery2";
+      // Lines: 0="query1", 1="", 2="", 3="", 4="query2"
+      expect(getActiveQueryAtCursor(text, 0)).toBe("query1");
+      expect(getActiveQueryAtCursor(text, 4)).toBe("query2");
+    });
+
+    it("should return preceding block when cursor is on a blank line", () => {
+      const text = "query1\n\nquery2";
+      // Lines: 0="query1", 1="", 2="query2"
+      expect(getActiveQueryAtCursor(text, 1)).toBe("query1");
+    });
+
+    it("should return first block when cursor is on a leading blank line", () => {
+      const text = "\nquery1\n\nquery2";
+      // Lines: 0="", 1="query1", 2="", 3="query2"
+      expect(getActiveQueryAtCursor(text, 0)).toBe("query1");
+    });
+
+    it("should return last block when cursor is on a trailing blank line", () => {
+      const text = "query1\n\nquery2\n";
+      // Lines: 0="query1", 1="", 2="query2", 3=""
+      expect(getActiveQueryAtCursor(text, 3)).toBe("query2");
+    });
+
+    it("should handle three queries", () => {
+      const text = "q1\n\nq2\n\nq3";
+      expect(getActiveQueryAtCursor(text, 0)).toBe("q1");
+      expect(getActiveQueryAtCursor(text, 2)).toBe("q2");
+      expect(getActiveQueryAtCursor(text, 4)).toBe("q3");
+    });
+
+    it("should handle Windows line endings (CRLF)", () => {
+      const text = "query1\r\n| take 5\r\n\r\nquery2\r\n| take 10";
+      // After split on /\r?\n/: 0="query1", 1="| take 5", 2="", 3="query2", 4="| take 10"
+      expect(getActiveQueryAtCursor(text, 0)).toBe("query1\n| take 5");
+      expect(getActiveQueryAtCursor(text, 3)).toBe("query2\n| take 10");
+    });
+
+    it("should return undefined for empty document", () => {
+      expect(getActiveQueryAtCursor("", 0)).toBeUndefined();
+    });
+
+    it("should return undefined for whitespace-only document", () => {
+      expect(getActiveQueryAtCursor("  \n  \n  ", 0)).toBeUndefined();
+    });
+
+    it("should handle blank lines with whitespace as separators", () => {
+      const text = "query1\n   \nquery2";
+      // Lines: 0="query1", 1="   ", 2="query2"
+      expect(getActiveQueryAtCursor(text, 0)).toBe("query1");
+      expect(getActiveQueryAtCursor(text, 2)).toBe("query2");
+    });
+
+    it("should return preceding block when cursor is between multiple blank lines", () => {
+      const text = "query1\n\n\nquery2";
+      // Lines: 0="query1", 1="", 2="", 3="query2"
+      expect(getActiveQueryAtCursor(text, 1)).toBe("query1");
+      expect(getActiveQueryAtCursor(text, 2)).toBe("query1");
     });
   });
 });

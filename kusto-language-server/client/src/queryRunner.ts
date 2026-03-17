@@ -165,8 +165,13 @@ function appendResponseInfo(
 
 /**
  * Gets the query text from the active editor.
- * If there is a non-empty selection, uses the selected text.
- * Otherwise, uses the entire document text.
+ *
+ * Priority:
+ * 1. If there is a non-empty selection, uses the selected text.
+ * 2. For untitled (unsaved) files, returns the query block at the cursor
+ *    position. Blocks are separated by one or more blank lines, matching
+ *    Azure Data Explorer's convention.
+ * 3. For saved files, uses the entire document text.
  */
 export function getQueryText(): string | undefined {
   const editor = vscode.window.activeTextEditor;
@@ -179,7 +184,71 @@ export function getQueryText(): string | undefined {
     return editor.document.getText(selection);
   }
 
+  if (editor.document.isUntitled) {
+    return getActiveQueryAtCursor(
+      editor.document.getText(),
+      editor.selection.active.line,
+    );
+  }
+
   return editor.document.getText();
+}
+
+/**
+ * Returns the query block at the given cursor line.
+ *
+ * Queries are separated by one or more blank lines (lines that are empty or
+ * contain only whitespace). This mirrors how Azure Data Explorer identifies
+ * individual query boundaries.
+ *
+ * If the cursor is on a blank line, the preceding query block is returned.
+ * If there is no preceding block, the next block is returned.
+ */
+export function getActiveQueryAtCursor(
+  documentText: string,
+  cursorLine: number,
+): string | undefined {
+  const lines = documentText.split(/\r?\n/);
+
+  // Identify contiguous query blocks (ranges of non-blank lines).
+  const blocks: { start: number; end: number }[] = [];
+  let blockStart: number | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const isBlank = lines[i].trim().length === 0;
+    if (!isBlank && blockStart === null) {
+      blockStart = i;
+    } else if (isBlank && blockStart !== null) {
+      blocks.push({ start: blockStart, end: i - 1 });
+      blockStart = null;
+    }
+  }
+  if (blockStart !== null) {
+    blocks.push({ start: blockStart, end: lines.length - 1 });
+  }
+
+  if (blocks.length === 0) {
+    return undefined;
+  }
+
+  // Find the block that contains the cursor line.
+  for (const block of blocks) {
+    if (cursorLine >= block.start && cursorLine <= block.end) {
+      return lines.slice(block.start, block.end + 1).join("\n");
+    }
+  }
+
+  // Cursor is on a blank line — return the nearest preceding block,
+  // or the first block if the cursor is before all blocks.
+  let preceding: { start: number; end: number } | undefined;
+  for (const block of blocks) {
+    if (block.end < cursorLine) {
+      preceding = block;
+    }
+  }
+
+  const target = preceding ?? blocks[0];
+  return lines.slice(target.start, target.end + 1).join("\n");
 }
 
 /**

@@ -198,7 +198,7 @@ const chartContainer = document.getElementById("chart-container");
 const tableContainer = document.getElementById("table-container");
 
 function showChartView(): void {
-  if (chartContainer) chartContainer.style.display = "block";
+  if (chartContainer) chartContainer.style.display = "flex";
   if (tableContainer) tableContainer.style.display = "none";
   btnChart?.classList.add("active");
   btnTable?.classList.remove("active");
@@ -206,7 +206,7 @@ function showChartView(): void {
 
 function showTableView(): void {
   if (chartContainer) chartContainer.style.display = "none";
-  if (tableContainer) tableContainer.style.display = "block";
+  if (tableContainer) tableContainer.style.display = "flex";
   btnChart?.classList.remove("active");
   btnTable?.classList.add("active");
 }
