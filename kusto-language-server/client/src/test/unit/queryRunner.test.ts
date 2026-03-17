@@ -91,6 +91,8 @@ describe("queryRunner", () => {
       expect(result.success).toBe(false);
       expect(result.rowCount).toBe(0);
       expect(result.error).toBe("Syntax error in query");
+      expect(result.fullError).toBeDefined();
+      expect(result.fullError).toContain("Syntax error in query");
       expect(result.columns).toEqual([]);
       expect(result.rows).toEqual([]);
     });
@@ -105,7 +107,34 @@ describe("queryRunner", () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Unknown error");
+      expect(result.error).toBe("network failure");
+      expect(result.fullError).toContain("network failure");
+    });
+
+    it("should include inner error and response details in fullError", async () => {
+      const inner = new Error("connection reset");
+      Object.assign(inner, {
+        response: { status: 503, data: { error: "Service Unavailable" } },
+      });
+      const outer = new Error("Request failed");
+      Object.assign(outer, { name: "ThrottlingError", inner });
+
+      mockClient.execute.mockRejectedValue(outer);
+
+      const result = await runQuery(
+        mockClient as unknown as KustoClient,
+        "mydb",
+        "query",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Request failed");
+      expect(result.fullError).toContain("[ThrottlingError]");
+      expect(result.fullError).toContain(
+        "Inner error: Error: connection reset",
+      );
+      expect(result.fullError).toContain("HTTP status: 503");
+      expect(result.fullError).toContain("Service Unavailable");
     });
 
     it("should handle null column names and types", async () => {

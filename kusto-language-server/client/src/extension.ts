@@ -741,6 +741,9 @@ async function runScriptHandler() {
     );
   } else {
     logError(`Query failed: ${result.error}`);
+    if (result.fullError) {
+      logError(`Full error details:\n${result.fullError}`);
+    }
     window.showErrorMessage(
       withVpnHint(`[Kuskus] Query failed: ${result.error}`),
     );

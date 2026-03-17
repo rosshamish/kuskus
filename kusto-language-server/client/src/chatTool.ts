@@ -112,6 +112,9 @@ export class RunKustoQueryTool
 
     if (!result.success) {
       logError(`[LM Tool] Query failed: ${result.error}`);
+      if (result.fullError) {
+        logError(`[LM Tool] Full error details:\n${result.fullError}`);
+      }
       throw new Error(`Kusto query failed: ${result.error}`);
     }
 

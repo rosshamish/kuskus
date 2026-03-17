@@ -24,6 +24,8 @@ export interface QueryResult {
   rowCount: number;
   success: boolean;
   error?: string;
+  /** Full structured error details for logging (includes stack, inner errors, response info). */
+  fullError?: string;
   columns: ResultColumn[];
   rows: Record<string, unknown>[];
   visualization?: VisualizationInfo;
@@ -71,14 +73,93 @@ export async function runQuery(
       visualization,
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = error instanceof Error ? error.message : String(error);
+    const fullError = formatFullError(error);
     return {
       rowCount: 0,
       success: false,
       error: message,
+      fullError,
       columns: [],
       rows: [],
     };
+  }
+}
+
+/**
+ * Builds a multi-line string with all available details from a query error.
+ * Handles ThrottlingError, KustoAuthenticationError, AxiosError, and plain Error.
+ */
+function formatFullError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return `Non-Error value thrown: ${String(error)}`;
+  }
+
+  const parts: string[] = [];
+
+  if (error.name) {
+    parts.push(`[${error.name}] ${error.message}`);
+  } else {
+    parts.push(error.message);
+  }
+
+  // KustoAuthenticationError fields
+  const authError = error as unknown as Record<string, unknown>;
+  if (typeof authError.tokenProviderName === "string") {
+    parts.push(`Token provider: ${authError.tokenProviderName}`);
+  }
+  if (authError.context != null) {
+    try {
+      parts.push(`Auth context: ${JSON.stringify(authError.context)}`);
+    } catch {
+      // ignore serialization failures
+    }
+  }
+
+  // AxiosError / HTTP response fields
+  const resp = (authError.response ?? authError.inner?.valueOf()) as
+    | Record<string, unknown>
+    | undefined;
+  appendResponseInfo(parts, resp);
+
+  // Inner error (ThrottlingError, KustoAuthenticationError)
+  if (authError.inner instanceof Error) {
+    parts.push(
+      `Inner error: ${authError.inner.name}: ${authError.inner.message}`,
+    );
+    const innerAny = authError.inner as unknown as Record<string, unknown>;
+    if (innerAny.response != null) {
+      appendResponseInfo(parts, innerAny.response as Record<string, unknown>);
+    }
+  }
+
+  if (error.stack) {
+    parts.push(`Stack: ${error.stack}`);
+  }
+
+  return parts.join("\n");
+}
+
+function appendResponseInfo(
+  parts: string[],
+  resp: Record<string, unknown> | undefined,
+): void {
+  if (resp == null) {
+    return;
+  }
+  if (typeof resp.status === "number") {
+    parts.push(`HTTP status: ${resp.status}`);
+  }
+  if (resp.data != null) {
+    try {
+      const dataStr =
+        typeof resp.data === "string"
+          ? resp.data
+          : JSON.stringify(resp.data, null, 2);
+      parts.push(`Response body: ${dataStr}`);
+    } catch {
+      // ignore serialization failures
+    }
   }
 }
 
