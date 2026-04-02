@@ -21,11 +21,11 @@ jobs:
         working-directory: kusto-language-server
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
       - name: Detect publish-triggering changes
         id: publish-trigger
-        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             kusto-language-server/**
@@ -46,7 +46,7 @@ jobs:
           echo "  Docs: .github/skills/kuskus-version-bump/SKILL.md"
           exit 1
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 20
       - run: npm ci
