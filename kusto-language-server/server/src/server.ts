@@ -23,6 +23,7 @@ import {
   TokenResponse,
   getFirstOrDefaultClient,
   newGetClient,
+  getExistingClient,
 } from "./kustoConnection.js";
 import {
   getDatabasesOnCluster,
@@ -31,6 +32,7 @@ import {
 } from "./kustoSymbols.js";
 import { formatCodeScript } from "./kustoFormat.js";
 import { getVSCodeCompletionItemsAtPosition } from "./kustoCompletion.js";
+import { parseConnectionComment } from "./connectionComment.js";
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -47,6 +49,18 @@ const kustoCodeScripts: Map<
   documentURI,
   Kusto.Language.Editor.CodeScript | null
 > = new Map();
+
+// Per-file connection: cache loaded schemas by "clusterUri|databaseName"
+type SchemaKey = string;
+const schemaCache: Map<SchemaKey, Kusto.Language.GlobalState> = new Map();
+// Track which connection key each document is using
+const documentConnectionKeys: Map<documentURI, SchemaKey> = new Map();
+// Track in-flight schema loads to avoid duplicate requests
+const pendingSchemaLoads: Set<SchemaKey> = new Set();
+
+function buildSchemaKey(clusterUri: string, databaseName: string): SchemaKey {
+  return `${clusterUri}|${databaseName}`;
+}
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -107,6 +121,18 @@ connection.onRequest(
   async ({ clusterUri, accessToken }) => {
     const kustoClient = await newGetClient(clusterUri, accessToken);
     await getDatabasesOnCluster(kustoClient);
+
+    // Re-resolve schemas for any open documents whose connection comment
+    // references this cluster, since the server-side client now exists.
+    const normalize = (uri: string) => uri.toLowerCase().replace(/\/+$/, "");
+    const normalizedCluster = normalize(clusterUri);
+    for (const doc of documents.all()) {
+      const firstLine = doc.getText().split(/\r?\n/, 1)[0] ?? "";
+      const parsed = parseConnectionComment(firstLine);
+      if (parsed && normalize(parsed.clusterUri) === normalizedCluster) {
+        resolveDocumentSchema(doc);
+      }
+    }
   },
 );
 
@@ -252,9 +278,21 @@ connection.onNotification(
       const newState = await getSymbolsOnCluster(kustoClient, databaseName);
       if (newState) {
         kustoGlobalState = newState;
-        kustoCodeScripts.forEach((value, key) => {
+
+        // Also populate the schema cache for per-file intellisense
+        const key = buildSchemaKey(clusterUri, databaseName);
+        schemaCache.set(key, newState);
+
+        // Update documents: per-file connections keep their own schema,
+        // documents without a connection comment get the new global state
+        kustoCodeScripts.forEach((value, docUri) => {
           if (value) {
-            kustoCodeScripts.set(key, value.WithGlobals(kustoGlobalState));
+            const docKey = documentConnectionKeys.get(docUri);
+            if (docKey && schemaCache.has(docKey)) {
+              // Document has its own per-file connection — don't override
+              return;
+            }
+            kustoCodeScripts.set(docUri, value.WithGlobals(kustoGlobalState));
           }
         });
         connection.console.log(
@@ -266,6 +304,42 @@ connection.onNotification(
       connection.console.error(
         `Failed to load symbols for ${clusterUri}/${databaseName}: ${msg}`,
       );
+    }
+  },
+);
+
+// Handle schema cache invalidation when the user refreshes a cluster in the Tree View.
+connection.onNotification(
+  "kuskus.invalidateSchemaCache",
+  async ({ clusterUri }: { clusterUri: string }) => {
+    connection.console.log(
+      `Invalidating schema cache for cluster ${clusterUri}`,
+    );
+
+    // Evict all cache entries for this cluster
+    const keysToDelete: string[] = [];
+    for (const key of schemaCache.keys()) {
+      if (key.startsWith(`${clusterUri}|`)) {
+        keysToDelete.push(key);
+      }
+    }
+    for (const key of keysToDelete) {
+      schemaCache.delete(key);
+      pendingSchemaLoads.delete(key);
+    }
+
+    // Re-resolve schemas for any open documents using this cluster
+    for (const [docUri, codeScript] of kustoCodeScripts.entries()) {
+      if (!codeScript) {
+        continue;
+      }
+      const docKey = documentConnectionKeys.get(docUri);
+      if (docKey && keysToDelete.includes(docKey)) {
+        const doc = documents.get(docUri);
+        if (doc) {
+          resolveDocumentSchema(doc);
+        }
+      }
     }
   },
 );
@@ -318,6 +392,7 @@ function getDocumentSettings(resource: string): Thenable<Settings> {
 // Only keep settings for open documents
 documents.onDidClose((e) => {
   documentSettings.delete(e.document.uri);
+  documentConnectionKeys.delete(e.document.uri);
 });
 
 // The content of a text document has changed. This event is emitted
@@ -339,8 +414,134 @@ documents.onDidChangeContent((change) => {
       );
     }
   }
+
+  // Resolve per-file connection from first-line comment
+  resolveDocumentSchema(change.document);
+
   validateTextDocument(change.document);
 });
+
+/**
+ * Resolves the schema for a document based on its first-line connection comment.
+ * If a comment is found and the schema is cached, applies it immediately.
+ * If the schema is not cached but a client exists, loads it asynchronously.
+ * Falls back to the global schema if no comment or no client is available.
+ */
+function resolveDocumentSchema(document: TextDocument): void {
+  const text = document.getText();
+  const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
+  const commentConnection = parseConnectionComment(firstLine);
+
+  if (!commentConnection) {
+    // No connection comment — use global schema
+    const prevKey = documentConnectionKeys.get(document.uri);
+    if (prevKey) {
+      connection.console.info(
+        `[per-file] Connection comment removed from ${document.uri}, reverting to global schema`,
+      );
+      documentConnectionKeys.delete(document.uri);
+      const codeScript = kustoCodeScripts.get(document.uri);
+      if (codeScript) {
+        kustoCodeScripts.set(
+          document.uri,
+          codeScript.WithGlobals(kustoGlobalState),
+        );
+      }
+    }
+    return;
+  }
+
+  const { clusterUri, databaseName } = commentConnection;
+  const key = buildSchemaKey(clusterUri, databaseName);
+  const prevKey = documentConnectionKeys.get(document.uri);
+
+  if (prevKey !== key) {
+    connection.console.info(
+      `[per-file] Parsed connection comment: cluster=${clusterUri} database=${databaseName} (key=${key})`,
+    );
+  }
+
+  documentConnectionKeys.set(document.uri, key);
+
+  // If cached, apply immediately
+  const cached = schemaCache.get(key);
+  if (cached) {
+    if (prevKey !== key) {
+      connection.console.info(
+        `[per-file] Schema cache hit for ${key}, applying to ${document.uri}`,
+      );
+    }
+    const codeScript = kustoCodeScripts.get(document.uri);
+    if (codeScript) {
+      kustoCodeScripts.set(document.uri, codeScript.WithGlobals(cached));
+    }
+    return;
+  }
+
+  // If the connection key hasn't changed and we've already tried loading, skip
+  if (prevKey === key && pendingSchemaLoads.has(key)) {
+    return;
+  }
+
+  // Try to load the schema asynchronously if we have a client for this cluster
+  const existingClient = getExistingClient(clusterUri);
+  if (!existingClient) {
+    connection.console.info(
+      `[per-file] No authenticated client for cluster ${clusterUri}, falling back to global schema`,
+    );
+    return;
+  }
+
+  if (pendingSchemaLoads.has(key)) {
+    connection.console.info(
+      `[per-file] Schema load already in progress for ${key}`,
+    );
+    return;
+  }
+
+  pendingSchemaLoads.add(key);
+  connection.console.info(
+    `[per-file] Loading schema for ${clusterUri}/${databaseName}...`,
+  );
+
+  getSymbolsOnCluster(existingClient, databaseName)
+    .then((state) => {
+      pendingSchemaLoads.delete(key);
+      if (!state) {
+        connection.console.info(
+          `[per-file] getSymbolsOnCluster returned null for ${key}`,
+        );
+        return;
+      }
+
+      schemaCache.set(key, state);
+      connection.console.info(`[per-file] Schema loaded and cached for ${key}`);
+
+      // Update all documents using this connection key
+      for (const [docUri, docKey] of documentConnectionKeys.entries()) {
+        if (docKey === key) {
+          connection.console.info(
+            `[per-file] Applying loaded schema to ${docUri}`,
+          );
+          const codeScript = kustoCodeScripts.get(docUri);
+          if (codeScript) {
+            kustoCodeScripts.set(docUri, codeScript.WithGlobals(state));
+          }
+          const doc = documents.get(docUri);
+          if (doc) {
+            validateTextDocument(doc);
+          }
+        }
+      }
+    })
+    .catch((e) => {
+      pendingSchemaLoads.delete(key);
+      const msg = e instanceof Error ? e.message : String(e);
+      connection.console.error(
+        `[per-file] Failed to load schema for ${key}: ${msg}`,
+      );
+    });
+}
 
 function _getCodeScriptForDocumentOrNewCodeScript(
   document: TextDocument,

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 
 import { formatActiveDatabaseCodeLensTitle } from "./activeDatabaseLabel.js";
+import { parseConnectionComment } from "./connectionComment.js";
 
 export const activeDatabaseCodeLensCommand = "kuskus.openExplorerView";
 
@@ -59,7 +60,15 @@ export class ActiveDatabaseCodeLensProvider
       return [];
     }
 
-    const { clusterUri, databaseName } = this.getActiveDatabase();
+    // Check for a per-file connection comment on the first line
+    const firstLine = document.lineAt(0).text;
+    const commentConnection = parseConnectionComment(firstLine);
+
+    const clusterUri =
+      commentConnection?.clusterUri ?? this.getActiveDatabase().clusterUri;
+    const databaseName =
+      commentConnection?.databaseName ?? this.getActiveDatabase().databaseName;
+
     if (!clusterUri || !databaseName) {
       return [];
     }

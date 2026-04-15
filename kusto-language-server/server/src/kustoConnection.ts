@@ -84,14 +84,35 @@ export function getFirstOrDefaultClient(): {
   kustoClient: any;
 } {
   if (clients.size > 0) {
-    const key = clients.keys().next().value;
+    const key = clients.keys().next().value!;
     return {
       clusterUri: key,
-      kustoClient: clients.get(clients.keys().next().value),
+      kustoClient: clients.get(key),
     };
   }
   return {
     clusterUri: "none",
     kustoClient: null,
   };
+}
+
+/**
+ * Returns an existing client for the given cluster URI without creating one.
+ * Returns undefined if no client is cached for this cluster.
+ * Uses normalized matching (case-insensitive, trailing-slash-insensitive).
+ */
+export function getExistingClient(clusterUri: string): KustoClient | undefined {
+  const exact = clients.get(clusterUri);
+  if (exact) {
+    return exact;
+  }
+
+  const normalize = (uri: string) => uri.toLowerCase().replace(/\/+$/, "");
+  const normalized = normalize(clusterUri);
+  for (const [key, client] of clients.entries()) {
+    if (normalize(key) === normalized) {
+      return client;
+    }
+  }
+  return undefined;
 }

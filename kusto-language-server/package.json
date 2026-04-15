@@ -317,7 +317,8 @@
         "watch": "tsc -b -w",
         "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
         "test": "vscode-test",
-        "test:unit": "cd client && npm run test:unit && cd ../server && npm run test:unit && cd .."
+        "test:unit": "cd client && npm run test:unit && cd ../server && npm run test:unit && cd ..",
+        "clean": "npx rimraf out client/out server/out"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3.3.1",

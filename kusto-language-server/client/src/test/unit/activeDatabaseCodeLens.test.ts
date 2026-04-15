@@ -60,11 +60,16 @@ import {
   shouldShowActiveDatabaseStatusBar,
 } from "../../activeDatabaseCodeLens.js";
 
-function createDocument(languageId = "kusto", scheme = "file") {
+function createDocument(
+  languageId = "kusto",
+  scheme = "file",
+  firstLineText = "",
+) {
   return {
     languageId,
     uri: { scheme },
-  } as vscode.TextDocument;
+    lineAt: (line: number) => ({ text: line === 0 ? firstLineText : "" }),
+  } as unknown as vscode.TextDocument;
 }
 
 function createEditor(languageId = "kusto", scheme = "file") {
@@ -134,6 +139,70 @@ describe("ActiveDatabaseCodeLensProvider", () => {
     provider.refresh();
 
     expect(fired).toBe(true);
+  });
+
+  it("uses connection comment from first line when present", () => {
+    const provider = new ActiveDatabaseCodeLensProvider(() => ({
+      clusterUri: "https://help.kusto.windows.net",
+      databaseName: "SampleLogs",
+    }));
+
+    const doc = createDocument(
+      "kusto",
+      "file",
+      "// https://other.kusto.windows.net/OtherDB",
+    );
+    const lenses = provider.provideCodeLenses(doc);
+
+    expect(lenses).toHaveLength(1);
+    expect(lenses[0].command?.title).toBe(
+      "Active Kusto Database: other/OtherDB",
+    );
+  });
+
+  it("uses connection comment with short cluster name", () => {
+    const provider = new ActiveDatabaseCodeLensProvider(() => ({
+      clusterUri: "https://help.kusto.windows.net",
+      databaseName: "SampleLogs",
+    }));
+
+    const doc = createDocument("kusto", "file", "// mycluster/TestDB");
+    const lenses = provider.provideCodeLenses(doc);
+
+    expect(lenses).toHaveLength(1);
+    expect(lenses[0].command?.title).toBe(
+      "Active Kusto Database: mycluster/TestDB",
+    );
+  });
+
+  it("falls back to global connection when first line is not a connection comment", () => {
+    const provider = new ActiveDatabaseCodeLensProvider(() => ({
+      clusterUri: "https://help.kusto.windows.net",
+      databaseName: "SampleLogs",
+    }));
+
+    const doc = createDocument("kusto", "file", "StormEvents | take 10");
+    const lenses = provider.provideCodeLenses(doc);
+
+    expect(lenses).toHaveLength(1);
+    expect(lenses[0].command?.title).toBe(
+      "Active Kusto Database: help/SampleLogs",
+    );
+  });
+
+  it("shows CodeLens from connection comment even without global connection", () => {
+    const provider = new ActiveDatabaseCodeLensProvider(() => ({
+      clusterUri: undefined,
+      databaseName: undefined,
+    }));
+
+    const doc = createDocument("kusto", "file", "// help/SampleLogs");
+    const lenses = provider.provideCodeLenses(doc);
+
+    expect(lenses).toHaveLength(1);
+    expect(lenses[0].command?.title).toBe(
+      "Active Kusto Database: help/SampleLogs",
+    );
   });
 });
 

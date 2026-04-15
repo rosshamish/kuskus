@@ -61,6 +61,7 @@ import {
   setTenantId,
   withVpnHint,
 } from "./errorMessages.js";
+import { parseConnectionComment } from "./connectionComment.js";
 
 let client: LanguageClient;
 let microsoftAccessToken: string | undefined; // stored access token
@@ -68,6 +69,9 @@ let clusterViewProvider: ClusterViewProvider;
 let resultsPanelProvider: ResultsPanelProvider;
 let queryResultsStore: QueryResultsStore;
 const clusterUris: Set<string> = new Set<string>();
+// Tracks clusters for which we've already sent kuskus.loadDatabases to the
+// server, so the server-side clients map is populated for per-file connections.
+const serverRegisteredClusters: Set<string> = new Set<string>();
 
 export async function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -282,8 +286,9 @@ export async function activate(context: ExtensionContext) {
       activeDatabaseCodeLensDocumentSelector,
       activeDatabaseCodeLensProvider,
     ),
-    window.onDidChangeActiveTextEditor(() => {
+    window.onDidChangeActiveTextEditor((editor) => {
       refreshActiveDatabaseUi();
+      ensureServerClientForComment(editor);
     }),
     window.onDidChangeVisibleTextEditors(() => {
       refreshActiveDatabaseUi();
@@ -291,6 +296,21 @@ export async function activate(context: ExtensionContext) {
     workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("editor.codeLens")) {
         refreshActiveDatabaseUi();
+      }
+    }),
+    workspace.onDidChangeTextDocument((event) => {
+      // Refresh CodeLens when the first line of a Kusto file changes
+      if (
+        event.document.languageId === "kusto" &&
+        event.contentChanges.some((change) => change.range.start.line === 0)
+      ) {
+        activeDatabaseCodeLensProvider.refresh();
+        // If the first line now has a connection comment for a saved cluster,
+        // ensure the server has a client for it.
+        const editor = window.activeTextEditor;
+        if (editor && editor.document === event.document) {
+          ensureServerClientForComment(editor);
+        }
       }
     }),
   );
@@ -414,6 +434,7 @@ export async function activate(context: ExtensionContext) {
           databaseName: persistedState.activeDatabaseName,
           accessToken: microsoftAccessToken,
         });
+        serverRegisteredClusters.add(persistedState.activeClusterUri);
       }
     }
   }
@@ -506,6 +527,7 @@ export async function activate(context: ExtensionContext) {
               databaseName: item.databaseName,
               accessToken: microsoftAccessToken,
             });
+            serverRegisteredClusters.add(item.clusterUri);
           }
         }
       },
@@ -537,6 +559,10 @@ export async function activate(context: ExtensionContext) {
             window.showInformationMessage(
               `[Kuskus] Refreshed cluster ${clusterUri}`,
             );
+            // Invalidate per-file schema cache on the language server
+            client.sendNotification("kuskus.invalidateSchemaCache", {
+              clusterUri,
+            });
             return;
           } catch {
             log(
@@ -567,6 +593,10 @@ export async function activate(context: ExtensionContext) {
         window.showInformationMessage(
           `[Kuskus] Refreshed cluster ${clusterUri}`,
         );
+        // Invalidate per-file schema cache on the language server
+        client.sendNotification("kuskus.invalidateSchemaCache", {
+          clusterUri,
+        });
       },
     ),
   );
@@ -698,15 +728,101 @@ async function login() {
   }
 }
 
-async function runScriptHandler() {
-  const activeClient = clusterViewProvider.getActiveClient();
-  const activeDatabase = clusterViewProvider.activeDatabaseName;
+/**
+ * If the given editor has a first-line connection comment referencing a cluster
+ * that the client has connected to, ensures the language server also has a
+ * client for that cluster by sending kuskus.loadDatabases.
+ */
+function ensureServerClientForComment(
+  editor: vscode.TextEditor | undefined,
+): void {
+  if (!editor || editor.document.languageId !== "kusto") {
+    return;
+  }
+  if (!microsoftAccessToken) {
+    return;
+  }
+  const firstLine = editor.document.lineAt(0).text;
+  const commentConnection = parseConnectionComment(firstLine);
+  if (!commentConnection) {
+    return;
+  }
+  const { clusterUri } = commentConnection;
+  if (serverRegisteredClusters.has(clusterUri)) {
+    return;
+  }
+  // Only send if this cluster is one the user has connected to
+  if (!clusterViewProvider.getClient(clusterUri)) {
+    return;
+  }
+  serverRegisteredClusters.add(clusterUri);
+  client.sendRequest("kuskus.loadDatabases", {
+    clusterUri,
+    accessToken: microsoftAccessToken,
+  });
+}
 
-  if (!activeClient || !activeDatabase) {
+/**
+ * Resolves the effective connection for the active editor.
+ * Checks for a per-file connection comment on the first line.
+ * Falls back to the global active connection if no comment is found.
+ */
+function getEffectiveConnection(): {
+  clusterUri: string | undefined;
+  databaseName: string | undefined;
+  client: import("azure-kusto-data").Client | undefined;
+  isPerFile: boolean;
+} {
+  const editor = window.activeTextEditor;
+  if (editor && editor.document.languageId === "kusto") {
+    const firstLine = editor.document.lineAt(0).text;
+    const commentConnection = parseConnectionComment(firstLine);
+    if (commentConnection) {
+      const perFileClient = clusterViewProvider.getClient(
+        commentConnection.clusterUri,
+      );
+      return {
+        clusterUri: commentConnection.clusterUri,
+        databaseName: commentConnection.databaseName,
+        client: perFileClient,
+        isPerFile: true,
+      };
+    }
+  }
+
+  return {
+    clusterUri: clusterViewProvider.activeClusterUri,
+    databaseName: clusterViewProvider.activeDatabaseName,
+    client: clusterViewProvider.getActiveClient(),
+    isPerFile: false,
+  };
+}
+
+async function runScriptHandler() {
+  const conn = getEffectiveConnection();
+
+  if (!conn.clusterUri || !conn.databaseName) {
     logError("No active database selected");
     window.showErrorMessage(
       "[Kuskus] No active database selected. Right-click a database in the Kusto Explorer and select 'Set as Active Database'.",
     );
+    return;
+  }
+
+  if (!conn.client) {
+    if (conn.isPerFile) {
+      logError(
+        `Cluster ${conn.clusterUri} is not connected (referenced in file comment)`,
+      );
+      window.showErrorMessage(
+        `[Kuskus] Cluster ${conn.clusterUri} from file connection comment is not connected. Add this cluster via the Kusto Explorer first.`,
+      );
+    } else {
+      logError("No active database selected");
+      window.showErrorMessage(
+        "[Kuskus] No active database selected. Right-click a database in the Kusto Explorer and select 'Set as Active Database'.",
+      );
+    }
     return;
   }
 
@@ -719,10 +835,10 @@ async function runScriptHandler() {
     return;
   }
 
-  log(`Running query on ${activeDatabase}...`);
+  log(`Running query on ${conn.databaseName}...`);
   window.showInformationMessage("[Kuskus] Running query...");
 
-  const result = await runQuery(activeClient, activeDatabase, queryText);
+  const result = await runQuery(conn.client, conn.databaseName, queryText);
 
   if (result.success) {
     log(`Query completed: ${result.rowCount} row(s) returned`);
@@ -751,12 +867,18 @@ async function runScriptHandler() {
 }
 
 function openInBrowserHandler() {
-  const activeClusterUri = clusterViewProvider.activeClusterUri;
-  const activeDatabase = clusterViewProvider.activeDatabaseName;
+  const conn = getEffectiveConnection();
 
-  if (!activeClusterUri || !activeDatabase) {
+  if (!conn.clusterUri || !conn.databaseName) {
     window.showErrorMessage(
       "[Kuskus] No active database selected. Right-click a database in the Kusto Explorer and select 'Set as Active Database'.",
+    );
+    return;
+  }
+
+  if (conn.isPerFile && !conn.client) {
+    window.showErrorMessage(
+      `[Kuskus] Cluster ${conn.clusterUri} from file connection comment is not connected. Add this cluster via the Kusto Explorer first.`,
     );
     return;
   }
@@ -769,7 +891,7 @@ function openInBrowserHandler() {
     return;
   }
 
-  const url = buildAdxShareLink(activeClusterUri, activeDatabase, queryText);
+  const url = buildAdxShareLink(conn.clusterUri, conn.databaseName, queryText);
   log(`Opening query in Azure Data Explorer: ${url}`);
 
   try {

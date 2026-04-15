@@ -88,7 +88,21 @@ export class ClusterViewProvider
   }
 
   public getClient(clusterUri: string): KustoClient | undefined {
-    return this.clients.get(clusterUri);
+    // Try exact match first
+    const exact = this.clients.get(clusterUri);
+    if (exact) {
+      return exact;
+    }
+
+    // Fuzzy match: normalize both sides (lowercase, strip trailing slash)
+    const normalize = (uri: string) => uri.toLowerCase().replace(/\/+$/, "");
+    const normalized = normalize(clusterUri);
+    for (const [key, client] of this.clients.entries()) {
+      if (normalize(key) === normalized) {
+        return client;
+      }
+    }
+    return undefined;
   }
 
   getTreeItem(
