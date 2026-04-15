@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as assert from "assert";
-import { getDocUri, activate } from "./helper";
+import { getDocUri, activate } from "./helper.js";
 
 describe("Should get diagnostics", () => {
   const docUri = getDocUri("diagnostics.txt");

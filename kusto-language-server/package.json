@@ -2,7 +2,8 @@
     "name": "kuskus-kusto-language-server",
     "displayName": "[Kuskus] Kusto Language Server",
     "description": "Language server for the Kusto query language",
-    "version": "3.4.3",
+    "version": "4.0.0",
+    "type": "module",
     "publisher": "rosshamish",
     "license": "Apache-2.0",
     "homepage": "https://github.com/rosshamish/kuskus",
@@ -14,7 +15,7 @@
         "url": "https://github.com/rosshamish/kuskus/issues"
     },
     "engines": {
-        "vscode": "^1.33.0"
+        "vscode": "^1.98.0"
     },
     "categories": [
         "Programming Languages",
@@ -32,9 +33,10 @@
     ],
     "activationEvents": [
         "onLanguage:kusto",
-        "onCommand:kuskus.loadSymbols"
+        "onCommand:kuskus.addConnection",
+        "onCommand:kuskus.login"
     ],
-    "main": "./client/out/extension",
+    "main": "./client/out/extension.js",
     "contributes": {
         "languages": [
             {
@@ -65,22 +67,266 @@
         },
         "commands": [
             {
-                "command": "kuskus.loadSymbols",
-                "title": "[Kuskus] Load Symbols from Cluster"
+                "command": "kuskus.addConnection",
+                "title": "[Kuskus] Add Connection",
+                "icon": "$(add)"
+            },
+            {
+                "command": "kuskus.login",
+                "title": "[Kuskus] Login"
+            },
+            {
+                "command": "kuskus.runScript",
+                "title": "[Kuskus] Run Script",
+                "icon": "$(play)"
+            },
+            {
+                "command": "kuskus.openInBrowser",
+                "title": "[Kuskus] Open in Azure Data Explorer",
+                "icon": "$(link-external)"
+            },
+            {
+                "command": "kuskus.setActiveDatabase",
+                "title": "[Kuskus] Set as Active Database"
+            },
+            {
+                "command": "kuskus.refreshCluster",
+                "title": "[Kuskus] Refresh Cluster",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "kuskus.removeCluster",
+                "title": "[Kuskus] Remove Cluster",
+                "icon": "$(trash)"
             }
-        ]
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "kuskus.addConnection",
+                    "when": "view == kuskus-clusters",
+                    "group": "navigation"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "kuskus.runScript",
+                    "when": "editorLangId == kusto && kuskus.hasActiveDatabase",
+                    "group": "navigation"
+                },
+                {
+                    "command": "kuskus.openInBrowser",
+                    "when": "editorLangId == kusto && kuskus.hasActiveDatabase",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "kuskus.setActiveDatabase",
+                    "when": "view == kuskus-clusters && viewItem == database",
+                    "group": "inline"
+                },
+                {
+                    "command": "kuskus.refreshCluster",
+                    "when": "view == kuskus-clusters && viewItem == cluster",
+                    "group": "inline"
+                },
+                {
+                    "command": "kuskus.removeCluster",
+                    "when": "view == kuskus-clusters && viewItem == cluster",
+                    "group": "inline"
+                }
+            ]
+        },
+        "keybindings": [
+            {
+                "command": "kuskus.runScript",
+                "key": "shift+enter",
+                "when": "editorTextFocus && editorLangId == kusto"
+            },
+            {
+                "command": "kuskus.openInBrowser",
+                "key": "ctrl+shift+enter",
+                "when": "editorTextFocus && editorLangId == kusto"
+            },
+            {
+                "command": "kuskus.addNewLine",
+                "key": "ctrl+enter",
+                "when": "editorTextFocus && editorLangId == kusto"
+            }
+        ],
+        "languageModelTools": [
+            {
+                "name": "run_kusto_query",
+                "displayName": "Run Kusto query",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-run-kusto-query",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "Run Kusto query",
+                "modelDescription": "Run a Kusto query against the active database. Input should be a JSON object with a 'query' property containing the Kusto query to run. Output will be a JSON object with either a 'result' property containing the query results or an 'error' property containing an error message if the query failed.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The Kusto query to run"
+                        }
+                    },
+                    "required": ["query"]
+                },
+                "when": "kuskus.hasActiveDatabase"
+            },
+            {
+                "name": "list_databases",
+                "displayName": "List Kusto databases",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-list-databases",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "List databases in a connected Kusto cluster",
+                "modelDescription": "List all databases in a connected Kusto cluster. Input should be a JSON object with a 'clusterUri' property containing the full cluster URI (e.g. 'https://help.kusto.windows.net'). The cluster must already be connected in the Kusto Explorer panel. Output is a JSON array of objects with 'name' and 'prettyName' properties for each database.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "clusterUri": {
+                            "type": "string",
+                            "description": "The full URI of the connected Kusto cluster (e.g. 'https://help.kusto.windows.net')"
+                        }
+                    },
+                    "required": ["clusterUri"]
+                },
+                "when": "kuskus.hasConnectedClusters"
+            },
+            {
+                "name": "list_tables",
+                "displayName": "List Kusto tables",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-list-tables",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "List tables in the active Kusto database",
+                "modelDescription": "List all tables in the currently active Kusto database. Takes no input parameters. The user must have an active database selected in the Kusto Explorer panel. Output is a JSON array of table name strings.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                },
+                "when": "kuskus.hasActiveDatabase"
+            },
+            {
+                "name": "get_table_schema",
+                "displayName": "Get Kusto table schema",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-get-table-schema",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "Get the column names and types for a table in the active Kusto database",
+                "modelDescription": "Get the schema (column names and types) of a specific table in the currently active Kusto database. Input should be a JSON object with a 'tableName' property. The user must have an active database selected. Output is a JSON array of objects with 'name' and 'type' properties for each column.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "tableName": {
+                            "type": "string",
+                            "description": "The name of the table to get the schema for"
+                        }
+                    },
+                    "required": ["tableName"]
+                },
+                "when": "kuskus.hasActiveDatabase"
+            },
+            {
+                "name": "search_query_results",
+                "displayName": "Search Kusto query results",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-search-query-results",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "Search the most recent Kusto query results",
+                "modelDescription": "Search the most recent Kusto query results using a case-insensitive text filter. This searches across all column values in the result set without making a new query to the cluster. Input should be a JSON object with a 'searchText' property. Output is a JSON object with 'columns' (array of column name/type objects), 'rows' (matching rows), 'matchCount', 'totalRows', and 'searchText'. Returns an error if no query has been run yet. Use this to explore or filter results that were returned by the run_kusto_query tool or by the user pressing Shift+Enter.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "searchText": {
+                            "type": "string",
+                            "description": "The text to search for across all columns (case-insensitive substring match)"
+                        }
+                    },
+                    "required": ["searchText"]
+                }
+            },
+            {
+                "name": "list_clusters",
+                "displayName": "List connected Kusto clusters",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-list-clusters",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "List all connected Kusto clusters",
+                "modelDescription": "List all Kusto clusters currently connected in the Kusto Explorer panel. Takes no input parameters. Output is a JSON array of objects with 'clusterUri' (the full cluster URI), 'isActive' (whether this is the currently active cluster), and 'activeDatabaseName' (the active database name, only present for the active cluster). Use this to discover which clusters are available before calling list_databases or other cluster-specific tools.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                },
+                "when": "kuskus.hasConnectedClusters"
+            },
+            {
+                "name": "get_chart_image",
+                "displayName": "Get chart visualization image",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "kuskus-get-chart-image",
+                "icon": "resources/kusto-logo-new-2.svg",
+                "userDescription": "Get an image of the currently displayed Kusto chart visualization",
+                "modelDescription": "Capture the currently displayed chart visualization from the Kusto Results panel as a base64-encoded PNG image. Takes no input parameters. Returns a JSON object with 'visualization' (the chart type, e.g. 'linechart'), 'title' (chart title if set), 'columns' (array of column names), 'rowCount' (number of data rows), and 'imageDataUrl' (a base64 data:image/png URL of the chart). Returns an error if no chart is currently displayed (e.g. results are shown as a table). Use this to see what the user's chart looks like, for example to help them customize or interpret it.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "kuskus-explorer",
+                    "title": "Kusto Explorer",
+                    "icon": "resources/kusto-logo-new-2.svg"
+                }
+            ],
+            "panel": [
+                {
+                    "id": "kuskus-results-panel",
+                    "title": "Kusto Results",
+                    "icon": "resources/kusto-logo-new-2.svg"
+                }
+            ]
+        },
+        "views": {
+            "kuskus-explorer": [
+                {
+                    "id": "kuskus-clusters",
+                    "name": "Clusters"
+                }
+            ],
+            "kuskus-results-panel": [
+                {
+                    "id": "kuskus-results",
+                    "name": "Results",
+                    "type": "webview"
+                }
+            ]
+        }
     },
     "scripts": {
         "lint": "cd client && npm run lint && cd ../server && npm run lint && cd ..",
         "lint:fix": "cd client && npm run lint:fix && cd ../server && npm run lint:fix && cd ..",
         "vscode:prepublish": "npm run compile",
-        "compile": "tsc -b",
+        "compile": "tsc -b && tsc -p client/src/results-panel/tsconfig.json",
         "watch": "tsc -b -w",
         "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-        "test": "sh ./scripts/e2e.sh"
+        "test": "vscode-test",
+        "test:unit": "cd client && npm run test:unit && cd ../server && npm run test:unit && cd ..",
+        "clean": "npx rimraf out client/out server/out"
     },
     "devDependencies": {
-        "@types/node": "^22.0.2",
+        "@eslint/eslintrc": "^3.3.1",
+        "@eslint/js": "^9.35.0",
+        "@types/node": "^22.18.4",
+        "@vscode/test-cli": "^0.0.12",
+        "eslint": "^9.35.0",
+        "globals": "^16.4.0",
         "tslint": "^6.1.3",
         "typescript": "^5.5.4"
     }

@@ -2,6 +2,7 @@
   "name": "kuskus-kusto-language-server-server",
   "description": "LSP part of the Kuskus Kusto Language Server",
   "version": "1.0.0",
+  "type": "module",
   "publisher": "rosshamish",
   "license": "Apache-2.0",
   "homepage": "https://github.com/rosshamish/kuskus",
@@ -13,25 +14,28 @@
     "url": "https://github.com/rosshamish/kuskus/issues"
   },
   "engines": {
-    "vscode": "^1.33.0"
+    "vscode": "^1.98.0"
   },
   "dependencies": {
-    "@kusto/language-service-next": "^11.7.1",
-    "azure-kusto-data": "^6.0.2",
-    "vscode-languageserver": "^7.0.0",
+    "@kusto/language-service-next": "^12.3.2",
+    "azure-kusto-data": "^7.0.4",
+    "vscode-languageserver": "^10.0.0-next.17",
     "vscode-languageserver-textdocument": "^1.0.12"
   },
   "scripts": {
-    "lint": "eslint --config .eslintrc.json src && prettier --check package.json .eslintrc.json tsconfig.json",
-    "lint:fix": "eslint --fix --config .eslintrc.json src && prettier --write package.json .eslintrc.json tsconfig.json"
+    "test:unit": "vitest run src/test",
+    "lint": "eslint --config eslint.config.mjs src && prettier --check package.json eslint.config.mjs tsconfig.json",
+    "lint:fix": "eslint --fix --config eslint.config.mjs src && prettier --write package.json eslint.config.mjs tsconfig.json"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.11.0",
-    "eslint": "^8.57.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-prettier": "^5.2.1",
-    "prettier": "3.3.3"
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^9.39.4",
+    "@types/vscode": "^1.98.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "vitest": "^4.0.18"
   }
 }

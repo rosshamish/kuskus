@@ -1,4 +1,4 @@
-import KustoClient from "azure-kusto-data/types/src/client";
+import { Client as KustoClient } from "azure-kusto-data";
 
 interface DatabaseMetadata {
   DatabaseName: string;
@@ -33,14 +33,6 @@ export async function getSymbolsOnCluster(
   kustoClient: KustoClient,
   defaultDatabaseName: string,
 ): Promise<Kusto.Language.GlobalState | null> {
-  // TODO use this functionality
-  // const databasesMetadata = await getDatabasesOnCluster(kustoClient, defaultDatabaseName);
-  // for (let databaseNames of databasesMetadata) {
-  // 	const functionMetadatas = await getFunctionsOnDatabase(kustoClient, defaultDatabaseName);
-  // }
-  // for (let databaseNames of databasesMetadata) {
-  // 	const tableMetadatas = await getTablesOnDatabase(kustoClient, defaultDatabaseName);
-  // }
   const tableMetadata = await getTableMetadata(
     kustoClient,
     defaultDatabaseName,
@@ -54,7 +46,9 @@ export async function getSymbolsOnCluster(
     return null;
   }
   const symbols = [];
-  symbols.push(...getTableSymbols(tableMetadata));
+  symbols.push(
+    ...(await getTableSymbols(kustoClient, defaultDatabaseName, tableMetadata)),
+  );
   symbols.push(...getFunctionSymbols(functionMetadata, globalState));
   return globalState.WithDatabase(
     new Kusto.Language.Symbols.DatabaseSymbol.ctor(
@@ -115,36 +109,22 @@ function getTableColumns(
  * @param kustoClient a Kusto client from azure-kusto-data
  * @param defaultDatabaseName to run `.show xyz` queries on
  */
-// TODO: use this function
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getDatabasesOnCluster(
-  kustoClient: KustoClient,
-  defaultDatabaseName: string,
-): Promise<DatabaseMetadata[]> {
-  return new Promise((resolve, reject) => {
-    const databaseNames: { DatabaseName: string; PrettyName: string }[] = [];
-    kustoClient
-      .execute(defaultDatabaseName, ".show cluster databases")
-      .catch(reject)
-      .then((results) => {
-        if (!results) {
-          return reject("void results");
-        }
 
-        console.log(results);
-        if (!results.primaryResults || !results.primaryResults[0]) {
-          return reject("Failed to fetch databases in cluster");
-        }
-        const primaryResults = results.primaryResults[0];
-        for (let i = 0; i < primaryResults._rows.length; i++) {
-          databaseNames.push({
-            DatabaseName: primaryResults[i].DatabaseName,
-            PrettyName: primaryResults[i].PrettyName,
-          });
-        }
-        return resolve(databaseNames);
-      });
-  });
+export async function getDatabasesOnCluster(
+  kustoClient: KustoClient,
+): Promise<DatabaseMetadata[]> {
+  const results = await kustoClient.execute("", ".show databases");
+  if (!results?.primaryResults?.[0]) {
+    return [];
+  }
+  const databaseNames: DatabaseMetadata[] = [];
+  for (const row of results.primaryResults[0].rows()) {
+    databaseNames.push({
+      DatabaseName: row["DatabaseName"] ?? "",
+      PrettyName: row["PrettyName"] ?? "",
+    });
+  }
+  return databaseNames;
 }
 
 /**
@@ -161,37 +141,23 @@ function getFunctionMetadata(
   kustoClient: KustoClient,
   databaseName: string,
 ): Promise<FunctionMetadata[]> {
-  return new Promise((resolve, reject) => {
-    const functionMetadatas: {
-      Name: string;
-      Parameters: string;
-      Folder: string;
-      DocString: string;
-    }[] = [];
-    kustoClient
-      .execute(databaseName, ".show functions")
-      .catch(reject)
-      .then((results) => {
-        if (!results) {
-          return reject("void results");
-        }
-
-        console.log(results);
-        if (!results.primaryResults || !results.primaryResults[0]) {
-          return reject("Failed to fetch functions in cluster");
-        }
-        const primaryResults = results.primaryResults[0];
-        for (let i = 0; i < primaryResults._rows.length; i++) {
-          functionMetadatas.push({
-            Name: primaryResults[i].Name,
-            Parameters: primaryResults[i].Parameters,
-            Folder: primaryResults[i].Folder,
-            DocString: primaryResults[i].DocString,
-          });
-        }
-        return resolve(functionMetadatas);
-      });
-  });
+  return kustoClient
+    .execute(databaseName, ".show functions")
+    .then((results) => {
+      if (!results?.primaryResults?.[0]) {
+        return [];
+      }
+      const functionMetadatas: FunctionMetadata[] = [];
+      for (const row of results.primaryResults[0].rows()) {
+        functionMetadatas.push({
+          Name: row["Name"] ?? "",
+          Parameters: row["Parameters"] ?? "",
+          Folder: row["Folder"] ?? "",
+          DocString: row["DocString"] ?? "",
+        });
+      }
+      return functionMetadatas;
+    });
 }
 
 /**
@@ -209,36 +175,20 @@ function getTableMetadata(
   kustoClient: KustoClient,
   databaseName: string,
 ): Promise<TableMetadata[]> {
-  return new Promise((resolve, reject) => {
-    const tableMetadatas: {
-      TableName: string;
-      DatabaseName: string;
-      Folder: string;
-      DocString: string;
-    }[] = [];
-    kustoClient
-      .execute(databaseName, ".show tables")
-      .catch(reject)
-      .then((results) => {
-        if (!results) {
-          return reject("void results");
-        }
-
-        console.log(results);
-        if (!results.primaryResults || !results.primaryResults[0]) {
-          return reject("Failed to fetch tables in cluster");
-        }
-        const primaryResults = results.primaryResults[0];
-        for (let i = 0; i < primaryResults._rows.length; i++) {
-          tableMetadatas.push({
-            TableName: primaryResults[i].TableName,
-            DatabaseName: primaryResults[i].DatabaseName,
-            Folder: primaryResults[i].Folder,
-            DocString: primaryResults[i].DocString,
-          });
-        }
-        return resolve(tableMetadatas);
+  return kustoClient.execute(databaseName, ".show tables").then((results) => {
+    if (!results?.primaryResults?.[0]) {
+      return [];
+    }
+    const tableMetadatas: TableMetadata[] = [];
+    for (const row of results.primaryResults[0].rows()) {
+      tableMetadatas.push({
+        TableName: row["TableName"] ?? "",
+        DatabaseName: row["DatabaseName"] ?? "",
+        Folder: row["Folder"] ?? "",
+        DocString: row["DocString"] ?? "",
       });
+    }
+    return tableMetadatas;
   });
 }
 
@@ -247,41 +197,46 @@ function getTableSchema(
   databaseName: string,
   tableName: string,
 ): Promise<TableSchema> {
-  return new Promise((resolve, reject) => {
-    kustoClient
-      .execute(databaseName, `.show table ${tableName} schema as json`)
-      .catch(reject)
-      .then((results) => {
-        if (!results) {
-          return reject("void results");
-        }
-
-        console.log(results);
-        if (!results.primaryResults || !results.primaryResults[0]) {
-          return reject("Failed to fetch tables in cluster");
-        }
-        const primaryResults = results.primaryResults[0];
-
-        const tableMetadata = {
-          TableName: primaryResults[0].TableName,
-          Schema: primaryResults[0].Schema,
-          DatabaseName: primaryResults[0].DatabaseName,
-          Folder: primaryResults[0].Folder,
-          DocString: primaryResults[0].DocString,
-        };
-
-        return resolve(tableMetadata);
-      });
-  });
+  return kustoClient
+    .execute(databaseName, `.show table ${tableName} schema as json`)
+    .then((results) => {
+      if (!results?.primaryResults?.[0]) {
+        throw new Error(`No schema results for table ${tableName}`);
+      }
+      const firstRow = results.primaryResults[0].rows().next().value;
+      if (!firstRow) {
+        throw new Error(`Empty schema results for table ${tableName}`);
+      }
+      return {
+        TableName: firstRow["TableName"] ?? "",
+        Schema: firstRow["Schema"] ?? "",
+        DatabaseName: firstRow["DatabaseName"] ?? "",
+        Folder: firstRow["Folder"] ?? "",
+        DocString: firstRow["DocString"] ?? "",
+      };
+    });
 }
 
-function getTableSymbols(
+async function getTableSymbols(
+  kustoClient: KustoClient,
+  databaseName: string,
   metadata: TableMetadata[],
-): Kusto.Language.Symbols.TableSymbol[] {
+): Promise<Kusto.Language.Symbols.TableSymbol[]> {
   const symbols: Kusto.Language.Symbols.TableSymbol[] = [];
   for (const m of metadata) {
+    let columns: Kusto.Language.Symbols.ColumnSymbol[] = [];
+    try {
+      const schema = await getTableSchema(
+        kustoClient,
+        databaseName,
+        m.TableName,
+      );
+      columns = getTableColumns(schema);
+    } catch {
+      // Fall back to table without columns if schema fetch fails
+    }
     symbols.push(
-      new Kusto.Language.Symbols.TableSymbol.$ctor4(m.TableName, []),
+      new Kusto.Language.Symbols.TableSymbol.$ctor4(m.TableName, columns),
     );
   }
   return symbols;

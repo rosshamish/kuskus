@@ -52,8 +52,8 @@ cd kusto-syntax-highlighting && npm ci && cd ..
 ### Run tests locally
 
 ```bash
-# Language server lint + type-check
-cd kusto-language-server && npm run lint && npm run vscode:prepublish
+# Language server lint + type-check + unit tests
+cd kusto-language-server && npm run lint && npm run test:unit && npm run vscode:prepublish
 
 # Syntax highlighting tests
 cd kusto-syntax-highlighting && npm run test
@@ -117,7 +117,7 @@ If unsure, open a PR and ask.
 
 Run this checklist before merging any release PR. These items cannot be automated and are accepted as manual-only risks.
 
-- [ ] **Live cluster auth (AAD)** — Sign in with a real Azure identity and verify that "Load Symbols" connects to a live Kusto cluster successfully. Requires an actual AAD account; cannot be faked in CI.
+- [ ] **Language server manual checks** — Run through the checklist in [`kusto-language-server/CONTRIBUTING.md`](kusto-language-server/CONTRIBUTING.md#manual-testing-checklist) (cluster auth, AI chat tools, results panel, chart visualization, CodeLens, persistence).
 - [ ] **Visual theme rendering** — Open a `.kql` file with the Kuskus Kusto (Dark) theme active and confirm that color assignments look correct. Color correctness is subjective and requires human review.
 - [ ] **Marketplace publish smoke test** — After a release merges and the publish workflow completes, visit the extension listing on the VS Code Marketplace and confirm the new version number appears and the listing loads without errors.
 

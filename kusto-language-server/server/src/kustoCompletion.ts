@@ -17,12 +17,15 @@ export function getVSCodeCompletionItemsAtPosition(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const vsCodeCompletionItems: CompletionItem[] = (Bridge as any)
     .toArray(completionItems)
-    .map((completionItem: Kusto.Language.Editor.CompletionItem) => {
-      return {
-        label: completionItem.DisplayText || "",
-        kind: _getVSCodeCompletionItemKind(completionItem),
-      };
-    });
+    .map(
+      (completionItem: Kusto.Language.Editor.CompletionItem, index: number) => {
+        return {
+          label: completionItem.DisplayText || "",
+          kind: _getVSCodeCompletionItemKind(completionItem),
+          sortText: completionItem.OrderText || String(index).padStart(6, "0"),
+        };
+      },
+    );
   return vsCodeCompletionItems;
 }
 
