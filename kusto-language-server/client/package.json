@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
-    "@types/vscode": "^1.109.0",
+    "@types/vscode": "^1.118.0",
     "@vscode/test-electron": "*",
     "mocha": "^10.7.0",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
@@ -39,6 +39,6 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
-    "prettier": "3.8.1"
+    "prettier": "3.8.3"
   }
 }
