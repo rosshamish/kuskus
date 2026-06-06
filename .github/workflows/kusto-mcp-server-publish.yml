@@ -1,0 +1,58 @@
+name: kusto-mcp-server-publish
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'kusto-mcp-server/**'
+      - '.github/workflows/kusto-mcp-server-publish.yml'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kusto-mcp-server
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Automated Version Bump
+        uses: phips28/gh-action-bump-version@2d294fcd028d7ec0de2fa4e94ad7fe04512cc13a # v11.1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+          PACKAGEJSON_DIR: 'kusto-mcp-server'
+        with:
+          default: patch
+          tag-prefix: kusto-mcp-server-v
+          skip-push: 'true'
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Push version bump commit
+        uses: ./.github/actions/pull-rebase-then-push
+        with:
+          max-retries: 5
+          remote-name: origin
+          branch: master
